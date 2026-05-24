@@ -9,17 +9,7 @@ import {
   reativarProjeto
 } from '../services/projetos'
 import type { Projeto } from '../types'
-
-const PALETA_CORES = [
-  { nome: 'Céu Azul', valor: '#03A9F4' },
-  { nome: 'Esmeralda', valor: '#10B981' },
-  { nome: 'Violeta', valor: '#8B5CF6' },
-  { nome: 'Rosa Quente', valor: '#EC4899' },
-  { nome: 'Âmbar', valor: '#F59E0B' },
-  { nome: 'Coral', valor: '#EF4444' },
-  { nome: 'Índigo', valor: '#6366F1' },
-  { nome: 'Laranja Elétrico', valor: '#FF7A00' }
-]
+import ModalProjeto from '../components/ModalProjeto'
 
 export default function Projetos() {
   const { user, signOut } = useAuth()
@@ -30,10 +20,6 @@ export default function Projetos() {
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProjeto, setEditingProjeto] = useState<Projeto | null>(null)
-  const [nome, setNome] = useState('')
-  const [cor, setCor] = useState(PALETA_CORES[0].valor)
-  const [status, setStatus] = useState<'ativo' | 'encerrado'>('ativo')
-  const [submitting, setSubmitting] = useState(false)
 
   const carregarProjetos = async () => {
     if (!user) return
@@ -56,61 +42,40 @@ export default function Projetos() {
 
   const abrirNovoProjetoModal = () => {
     setEditingProjeto(null)
-    setNome('')
-    setCor(PALETA_CORES[0].valor)
-    setStatus('ativo')
     setIsModalOpen(true)
   }
 
   const abrirEditarProjetoModal = (projeto: Projeto) => {
     setEditingProjeto(projeto)
-    setNome(projeto.nome)
-    setCor(projeto.cor)
-    setStatus(projeto.status)
     setIsModalOpen(true)
   }
 
   const fecharModal = () => {
     setIsModalOpen(false)
     setEditingProjeto(null)
-    setNome('')
-    setCor(PALETA_CORES[0].valor)
-    setStatus('ativo')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user || !nome.trim()) return
+  const handleSalvarProjeto = async (dados: { nome: string; cor: string; status?: 'ativo' | 'encerrado' }) => {
+    if (!user) return
 
-    try {
-      setSubmitting(true)
-      setError(null)
-
-      if (editingProjeto) {
-        // Atualizar
-        await atualizarProjeto(editingProjeto.id, {
-          nome: nome.trim(),
-          cor,
-          status
-        })
-      } else {
-        // Criar
-        await criarProjeto({
-          usuario_id: user.id,
-          nome: nome.trim(),
-          cor,
-          status: 'ativo'
-        })
-      }
-
-      await carregarProjetos()
-      fecharModal()
-    } catch (err: any) {
-      console.error('Erro ao salvar projeto:', err)
-      setError('Erro ao salvar as informações do projeto. Verifique os dados.')
-    } finally {
-      setSubmitting(false)
+    if (editingProjeto) {
+      // Atualizar projeto existente
+      await atualizarProjeto(editingProjeto.id, {
+        nome: dados.nome,
+        cor: dados.cor,
+        status: dados.status
+      })
+    } else {
+      // Criar novo projeto
+      await criarProjeto({
+        usuario_id: user.id,
+        nome: dados.nome,
+        cor: dados.cor,
+        status: 'ativo'
+      })
     }
+
+    await carregarProjetos()
   }
 
   const handleAlternarStatus = async (projeto: Projeto) => {
@@ -286,136 +251,13 @@ export default function Projetos() {
 
       </div>
 
-      {/* Modal - Novo/Editar Projeto */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div 
-            className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-md p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={fecharModal}
-              className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <h3 className="text-xl font-bold text-white mb-4">
-              {editingProjeto ? 'Editar Projeto' : 'Novo Projeto'}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Campo Nome */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nome do Projeto</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: App Horas, Freelance, Site XPTO"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
-                />
-              </div>
-
-              {/* Campo Cor */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Cor de Identificação</label>
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  {PALETA_CORES.map((item) => (
-                    <button
-                      key={item.valor}
-                      type="button"
-                      onClick={() => setCor(item.valor)}
-                      className={`h-10 rounded-xl transition-all border flex items-center justify-center ${
-                        cor === item.valor ? 'border-white scale-105 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-102'
-                      }`}
-                      style={{ backgroundColor: item.valor }}
-                      title={item.nome}
-                    >
-                      {cor === item.valor && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white drop-shadow-md" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-3 bg-[#0B0E14] border border-gray-800 rounded-xl p-3">
-                  <input
-                    type="color"
-                    value={cor}
-                    onChange={(e) => setCor(e.target.value)}
-                    className="h-8 w-8 rounded-lg bg-transparent border-0 cursor-pointer"
-                  />
-                  <span className="text-xs font-mono text-gray-400">Cor customizada: {cor.toUpperCase()}</span>
-                </div>
-              </div>
-
-              {/* Campo Status (Apenas visível se for edição) */}
-              {editingProjeto && (
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Status do Projeto</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setStatus('ativo')}
-                      className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
-                        status === 'ativo'
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                          : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
-                      }`}
-                    >
-                      Ativo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStatus('encerrado')}
-                      className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
-                        status === 'encerrado'
-                          ? 'bg-red-500/10 text-red-400 border-red-500/30'
-                          : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
-                      }`}
-                    >
-                      Encerrado
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Botões do Formulário */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={fecharModal}
-                  className="flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || !nome.trim()}
-                  className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {submitting ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Salvando...
-                    </>
-                  ) : (
-                    'Salvar Projeto'
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal Reutilizável de Projeto */}
+      <ModalProjeto
+        isOpen={isModalOpen}
+        onClose={fecharModal}
+        onSave={handleSalvarProjeto}
+        projeto={editingProjeto}
+      />
     </div>
   )
 }
