@@ -1,4 +1,5 @@
 import { useAuth } from '../contexts/AuthContext'
+import { Link } from 'react-router-dom'
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
@@ -22,6 +23,13 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold tracking-tight">HORAS</h1>
           </div>
           <div className="flex items-center gap-4">
+            <Link 
+              to="/projetos" 
+              className="text-sm font-semibold text-gray-400 hover:text-white px-3 py-2 rounded-xl hover:bg-gray-800/40 transition-all"
+            >
+              Projetos
+            </Link>
+            <span className="h-4 w-px bg-gray-800"></span>
             <span className="text-sm text-gray-400 font-medium hidden sm:inline">{user?.email}</span>
             <button
               onClick={handleSignOut}
