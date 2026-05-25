@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   listarProjetos,
   criarProjeto,
@@ -13,6 +13,7 @@ import ModalProjeto from '../components/ModalProjeto'
 
 export default function Projetos() {
   const { user, signOut } = useAuth()
+  const location = useLocation()
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -93,42 +94,100 @@ export default function Projetos() {
     }
   }
 
+  // Verificar se o item de navegação está ativo
+  const isActive = (path: string) => location.pathname === path
+
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        {/* Navbar */}
-        <div className="flex justify-between items-center bg-[#161B22] p-6 rounded-2xl border border-gray-800">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4] hover:bg-[#03A9F4]/20 transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">HORAS</h1>
-              <span className="text-xs text-gray-500 font-medium">Módulo de Projetos</span>
-            </div>
+    <div className="min-h-screen bg-[#0B0E14] text-white flex">
+      
+      {/* 1. Sidebar Fixa à Esquerda */}
+      <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
+        {/* Logo */}
+        <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <Link 
-              to="/dashboard" 
-              className="text-sm font-semibold text-gray-400 hover:text-white px-3 py-2 rounded-xl hover:bg-gray-800/40 transition-all"
-            >
-              Painel
-            </Link>
-            <span className="h-4 w-px bg-gray-800"></span>
-            <span className="text-sm text-gray-400 font-medium hidden md:inline">{user?.email}</span>
-            <button
-              onClick={() => signOut()}
-              className="py-2 px-4 bg-red-500/10 hover:bg-red-500/25 active:bg-red-500/30 text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
-            >
-              Sair
-            </button>
-          </div>
+          <span className="text-xl font-bold tracking-tight text-white">HORAS</span>
         </div>
 
+        {/* Links de Navegação */}
+        <nav className="flex-1 p-4 space-y-1.5">
+          <Link
+            to="/registros"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/registros')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Registros
+          </Link>
+          
+          <Link
+            to="/dashboard"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/dashboard')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Resumo
+          </Link>
+
+          <Link
+            to="/projetos"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/projetos')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Projetos
+          </Link>
+
+          <button
+            disabled
+            className="w-full flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold text-gray-600 cursor-not-allowed text-left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Ajustes <span className="ml-auto text-[10px] font-bold bg-gray-800 text-gray-500 py-0.5 px-1.5 rounded">BREVE</span>
+          </button>
+        </nav>
+
+        {/* User Profile / Logout */}
+        <div className="p-4 border-t border-gray-800/80 flex flex-col gap-2">
+          <div className="px-2 py-1">
+            <span className="block text-xs text-gray-500 font-semibold truncate">{user?.email}</span>
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      {/* 2. Conteúdo Principal */}
+      <main className="flex-1 p-8 overflow-y-auto max-w-5xl mx-auto space-y-6">
+        
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
@@ -157,7 +216,7 @@ export default function Projetos() {
         )}
 
         {/* Tabela ou Estado Vazio */}
-        <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
           {loading ? (
             <div className="p-12 flex flex-col items-center justify-center gap-3">
               <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -249,7 +308,7 @@ export default function Projetos() {
           )}
         </div>
 
-      </div>
+      </main>
 
       {/* Modal Reutilizável de Projeto */}
       <ModalProjeto

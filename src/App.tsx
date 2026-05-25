@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import Dashboard from './pages/Dashboard'
 import Projetos from './pages/Projetos'
+import Registros from './pages/Registros'
 
 function App() {
   return (
@@ -18,12 +19,19 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           
-          {/* Rota Protegida */}
+          {/* Rota Protegida - Redireciona para /registros como padrão */}
           <Route
             path="/dashboard"
             element={
+              <Navigate to="/registros" replace />
+            }
+          />
+
+          <Route
+            path="/registros"
+            element={
               <ProtectedRoute>
-                <Dashboard />
+                <Registros />
               </ProtectedRoute>
             }
           />

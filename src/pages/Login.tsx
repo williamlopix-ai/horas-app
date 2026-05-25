@@ -20,7 +20,7 @@ export default function Login() {
       if (signInError) {
         setError(signInError.message || 'Erro ao realizar login. Verifique suas credenciais.')
       } else {
-        navigate('/dashboard')
+        navigate('/registros')
       }
     } catch (err: any) {
       setError('Ocorreu um erro inesperado. Tente novamente mais tarde.')
