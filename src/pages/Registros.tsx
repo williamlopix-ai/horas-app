@@ -69,6 +69,7 @@ export default function Registros() {
   // Estados dos Filtros
   const [filtroProjetoId, setFiltroProjetoId] = useState<string>('todos')
   const [filtroSemana, setFiltroSemana] = useState<string>('todas')
+  const [filtroDiaEspecifico, setFiltroDiaEspecifico] = useState<string>('')
   const [diasExpandidos, setDiasExpandidos] = useState<{ [key: string]: boolean }>({})
 
   // Estados do Modal de Registros
@@ -236,13 +237,19 @@ export default function Registros() {
       if (filtroProjetoId !== 'todos' && reg.projeto_id !== filtroProjetoId) {
         return false
       }
-      // 2. Filtrar por Semana
-      if (filtroSemana !== 'todas' && getWeekKey(reg.data) !== filtroSemana) {
-        return false
+      // 2. Filtrar por Dia Específico ou Semana
+      if (filtroDiaEspecifico) {
+        if (reg.data !== filtroDiaEspecifico) {
+          return false
+        }
+      } else {
+        if (filtroSemana !== 'todas' && getWeekKey(reg.data) !== filtroSemana) {
+          return false
+        }
       }
       return true
     })
-  }, [registros, filtroProjetoId, filtroSemana])
+  }, [registros, filtroProjetoId, filtroSemana, filtroDiaEspecifico])
 
   // Formatar Título da Data (ex: "seg, 18 de mai")
   const formatarTituloData = (dataStr: string) => {
@@ -476,6 +483,17 @@ export default function Registros() {
               ))}
             </select>
           </div>
+
+          {/* Dia Específico */}
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Dia Específico</label>
+            <input
+              type="date"
+              value={filtroDiaEspecifico}
+              onChange={(e) => setFiltroDiaEspecifico(e.target.value)}
+              className="bg-[#0B0E14] border border-[#374151] rounded-[8px] p-[10px] text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
+            />
+          </div>
         </div>
 
         {/* 4. Lista de Registros Agrupados por Dia */}
@@ -566,7 +584,7 @@ export default function Registros() {
                           else descStr = `${h}h ${m}min disponíveis`
 
                           return (
-                            <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-sm text-[#6B7280]">
+                            <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-sm bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
                               <span className="text-[10px]">○</span>
                               <span className="font-mono">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
                               <span className="mx-1">·</span>
