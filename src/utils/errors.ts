@@ -26,6 +26,8 @@ export function getErrorMessage(error: any): string {
     return 'Sessão expirada. Faça login novamente.'
   }
 
-  // 3. Fallback Genérico
-  return 'Algo deu errado. Tente novamente.'
+  // 3. Fallback Genérico — exibe mensagem original se disponível
+  return error?.message
+    ? `Erro: ${error.message}`
+    : 'Algo deu errado. Tente novamente.'
 }

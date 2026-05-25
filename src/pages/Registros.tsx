@@ -202,12 +202,17 @@ export default function Registros() {
 
   const handleSalvarHorarioDia = async (inicio: string, fim: string) => {
     if (!user || !modalHorarioData) return
-    
-    await salvarHorarioDia(user.id, modalHorarioData.data, inicio, fim)
-    
-    // Recarregar horários
-    const excecoes = await listarHorariosDias(user.id)
-    setHorariosExcecoes(excecoes)
+    try {
+      await salvarHorarioDia(user.id, modalHorarioData.data, inicio, fim)
+      // Recarregar horários
+      const excecoes = await listarHorariosDias(user.id)
+      setHorariosExcecoes(excecoes)
+      setIsModalHorarioOpen(false)
+      showToast('Horário do dia atualizado!', 'success')
+    } catch (err: any) {
+      console.error('Erro ao salvar horário do dia:', err)
+      showToast(getErrorMessage(err), 'error')
+    }
   }
 
   // Pega os limites do dia (se houver exceção usa, senão usa config default)
