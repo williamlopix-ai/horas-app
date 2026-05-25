@@ -36,7 +36,6 @@ export default function Registros() {
   // Estados dos Dados
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
-  const [metaSemanal, setMetaSemanal] = useState<number>(42.5) // Default meta
   const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
   
@@ -68,7 +67,6 @@ export default function Registros() {
 
       // 1. Carregar Configurações
       const config = await buscarConfiguracoes(user.id)
-      setMetaSemanal(config.meta_semanal)
       setConfigDia({ inicio: config.inicio_dia || '08:00', fim: config.fim_dia || '18:00' })
 
       // 2. Carregar Projetos
