@@ -13,6 +13,8 @@ export interface Configuracao {
   meta_semanal: number
   inicio_semana: 'segunda' | 'domingo'
   formato_horas: 'decimal' | 'hhmm'
+  inicio_dia: string
+  fim_dia: string
 }
 
 export interface Registro {
@@ -26,4 +28,12 @@ export interface Registro {
   observacao: string | null
   semana_inicio: string | null
   criado_em: string
+}
+
+export interface HorarioDia {
+  id: string
+  usuario_id: string
+  data: string
+  inicio_dia: string
+  fim_dia: string
 }

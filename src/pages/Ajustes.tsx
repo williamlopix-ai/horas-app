@@ -11,6 +11,8 @@ export default function Ajustes() {
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [inicioSemana, setInicioSemana] = useState<'segunda' | 'domingo'>('segunda')
   const [formatoHoras, setFormatoHoras] = useState<'decimal' | 'hhmm'>('decimal')
+  const [inicioDia, setInicioDia] = useState<string>('08:00')
+  const [fimDia, setFimDia] = useState<string>('18:00')
 
   // Estados de UI/Feedback
   const [loading, setLoading] = useState(true)
@@ -28,6 +30,8 @@ export default function Ajustes() {
       setMetaSemanal(config.meta_semanal)
       setInicioSemana(config.inicio_semana)
       setFormatoHoras(config.formato_horas)
+      setInicioDia(config.inicio_dia || '08:00')
+      setFimDia(config.fim_dia || '18:00')
     } catch (err: any) {
       console.error('Erro ao buscar configurações:', err)
       setError('Não foi possível carregar suas configurações.')
@@ -52,7 +56,9 @@ export default function Ajustes() {
       await salvarConfiguracoes(user.id, {
         meta_semanal: metaSemanal,
         inicio_semana: inicioSemana,
-        formato_horas: formatoHoras
+        formato_horas: formatoHoras,
+        inicio_dia: inicioDia,
+        fim_dia: fimDia
       })
 
       setSuccess(true)
@@ -299,6 +305,40 @@ export default function Ajustes() {
                 >
                   HH:MM (ex: 01:30)
                 </button>
+              </div>
+            </div>
+
+            {/* 4. Horário Padrão do Dia */}
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horário Padrão do Dia</h3>
+                <p className="text-xs text-gray-400">Defina os horários de início e fim da sua jornada de trabalho.</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label htmlFor="inicioDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    Início
+                  </label>
+                  <input
+                    id="inicioDia"
+                    type="time"
+                    value={inicioDia}
+                    onChange={(e) => setInicioDia(e.target.value)}
+                    className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label htmlFor="fimDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    Fim
+                  </label>
+                  <input
+                    id="fimDia"
+                    type="time"
+                    value={fimDia}
+                    onChange={(e) => setFimDia(e.target.value)}
+                    className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                  />
+                </div>
               </div>
             </div>
 

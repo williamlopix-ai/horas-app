@@ -9,8 +9,25 @@ import {
 } from '../services/registros'
 import { listarProjetos } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
-import type { Registro, Projeto } from '../types'
+import { listarHorariosDias, salvarHorarioDia } from '../services/horarios'
+import type { Registro, Projeto, HorarioDia } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
+import ModalHorarioDia from '../components/ModalHorarioDia'
+
+// Helper para converter "HH:MM" em minutos para cálculo de gaps
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+// Helper para formatar minutos em string descritiva "Xh Ymin"
+function formatMinutesDesc(totalMin: number): string {
+  const h = Math.floor(totalMin / 60)
+  const m = totalMin % 60
+  if (h > 0 && m > 0) return `${h}h ${m}min`
+  if (h > 0) return `${h}h`
+  return `${m} min`
+}
 
 export default function Registros() {
   const { user, signOut } = useAuth()
@@ -20,17 +37,27 @@ export default function Registros() {
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5) // Default meta
+  const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
+  const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Estados dos Filtros
   const [filtroProjetoId, setFiltroProjetoId] = useState<string>('todos')
-  const [filtroPeriodo, setFiltroPeriodo] = useState<string>('todos') // todos, 7dias, 30dias, esteMes
-  const [filtroSemana, setFiltroSemana] = useState<string>('todas')
+  const [filtroData, setFiltroData] = useState<string>('todas')
 
-  // Estados do Modal
+  // Estados do Modal de Registros
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingRegistro, setEditingRegistro] = useState<(Registro & { projeto: { nome: string; cor: string } | null }) | null>(null)
+
+  // Estados do Modal de Horário do Dia
+  const [isModalHorarioOpen, setIsModalHorarioOpen] = useState(false)
+  const [modalHorarioData, setModalHorarioData] = useState<{
+    data: string,
+    inicio: string,
+    fim: string
+  } | null>(null)
 
   // Carregar dados iniciais
   const carregarDados = async () => {
@@ -39,15 +66,20 @@ export default function Registros() {
       setLoading(true)
       setError(null)
 
-      // 1. Carregar Configurações (Meta Semanal)
+      // 1. Carregar Configurações
       const config = await buscarConfiguracoes(user.id)
       setMetaSemanal(config.meta_semanal)
+      setConfigDia({ inicio: config.inicio_dia || '08:00', fim: config.fim_dia || '18:00' })
 
       // 2. Carregar Projetos
       const projs = await listarProjetos(user.id)
       setProjetos(projs)
 
-      // 3. Carregar Registros
+      // 3. Carregar Exceções de Horários
+      const excecoes = await listarHorariosDias(user.id)
+      setHorariosExcecoes(excecoes)
+
+      // 4. Carregar Registros
       const regs = await listarRegistros(user.id)
       setRegistros(regs)
     } catch (err: any) {
@@ -62,13 +94,14 @@ export default function Registros() {
     carregarDados()
   }, [user])
 
-  // Lidar com Exclusão
+  // ===============================
+  // LÓGICA DE REGISTROS (CRUD)
+  // ===============================
   const handleExcluir = async (id: string) => {
     if (!window.confirm('Tem certeza que deseja excluir este registro de horas?')) return
     try {
       setError(null)
       await excluirRegistro(id)
-      // Recarregar registros
       if (user) {
         const regs = await listarRegistros(user.id)
         setRegistros(regs)
@@ -79,7 +112,6 @@ export default function Registros() {
     }
   }
 
-  // Lidar com Salvamento do Modal (Criar/Editar)
   const handleSalvarRegistro = async (dados: {
     projeto_id: string | null
     data: string
@@ -88,7 +120,6 @@ export default function Registros() {
     observacao: string | null
   }) => {
     if (!user) return
-
     if (editingRegistro) {
       await atualizarRegistro(editingRegistro.id, dados)
     } else {
@@ -101,8 +132,6 @@ export default function Registros() {
         observacao: dados.observacao
       })
     }
-
-    // Recarregar lista
     const regs = await listarRegistros(user.id)
     setRegistros(regs)
     fecharModal()
@@ -123,95 +152,144 @@ export default function Registros() {
     setEditingRegistro(null)
   }
 
-  // Filtragem dos registros no Frontend (combina projeto, período e semana para performance e fluidez)
+  // ===============================
+  // LÓGICA DE HORÁRIO DIÁRIO (CRUD)
+  // ===============================
+  const abrirModalHorario = (dataStr: string) => {
+    const limits = getLimitesDia(dataStr)
+    setModalHorarioData({
+      data: dataStr,
+      inicio: limits.inicio,
+      fim: limits.fim
+    })
+    setIsModalHorarioOpen(true)
+  }
+
+  const handleSalvarHorarioDia = async (inicio: string, fim: string) => {
+    if (!user || !modalHorarioData) return
+    
+    await salvarHorarioDia(user.id, modalHorarioData.data, inicio, fim)
+    
+    // Recarregar horários
+    const excecoes = await listarHorariosDias(user.id)
+    setHorariosExcecoes(excecoes)
+  }
+
+  // Pega os limites do dia (se houver exceção usa, senão usa config default)
+  const getLimitesDia = (dataStr: string) => {
+    const excecao = horariosExcecoes.find(h => h.data === dataStr)
+    if (excecao) {
+      return { inicio: excecao.inicio_dia, fim: excecao.fim_dia, customizado: true }
+    }
+    return { inicio: configDia.inicio, fim: configDia.fim, customizado: false }
+  }
+
+
+  // ===============================
+  // FILTRAGEM E AGRUPAMENTO DIÁRIO
+  // ===============================
+
+  // Extrair datas únicas disponíveis
+  const datasDisponiveis = useMemo(() => {
+    const dates = registros.map((r) => r.data)
+    return Array.from(new Set(dates)).sort((a, b) => b.localeCompare(a))
+  }, [registros])
+
+  // Filtragem dos registros no Frontend
   const registrosFiltrados = useMemo(() => {
     return registros.filter((reg) => {
       // 1. Filtrar por Projeto
       if (filtroProjetoId !== 'todos' && reg.projeto_id !== filtroProjetoId) {
         return false
       }
-
-      // 2. Filtrar por Período
-      if (filtroPeriodo !== 'todos') {
-        const dataReg = new Date(reg.data + 'T00:00:00')
-        const hoje = new Date()
-        hoje.setHours(0, 0, 0, 0)
-
-        if (filtroPeriodo === '7dias') {
-          const limite = new Date(hoje)
-          limite.setDate(hoje.getDate() - 7)
-          if (dataReg < limite) return false
-        } else if (filtroPeriodo === '30dias') {
-          const limite = new Date(hoje)
-          limite.setDate(hoje.getDate() - 30)
-          if (dataReg < limite) return false
-        } else if (filtroPeriodo === 'esteMes') {
-          const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
-          if (dataReg < inicioMes) return false
-        }
-      }
-
-      // 3. Filtrar por Semana
-      if (filtroSemana !== 'todas' && reg.semana_inicio !== filtroSemana) {
+      // 2. Filtrar por Data
+      if (filtroData !== 'todas' && reg.data !== filtroData) {
         return false
       }
-
       return true
     })
-  }, [registros, filtroProjetoId, filtroPeriodo, filtroSemana])
+  }, [registros, filtroProjetoId, filtroData])
 
-  // Extrair semanas únicas disponíveis para o filtro de semanas
-  const semanasDisponiveis = useMemo(() => {
-    const semanas = registros.map((r) => r.semana_inicio).filter(Boolean) as string[]
-    return Array.from(new Set(semanas)).sort((a, b) => b.localeCompare(a))
-  }, [registros])
-
-  // Formatar Título da Semana (ex: "18 mai a 24 mai (2026)")
-  const formatarTituloSemana = (semanaInicio: string) => {
-    const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-    const [y, m, d] = semanaInicio.split('-').map(Number)
-    const segunda = new Date(y, m - 1, d)
-    
-    const domingo = new Date(segunda)
-    domingo.setDate(segunda.getDate() + 6)
-
-    const d1 = segunda.getDate()
-    const m1 = meses[segunda.getMonth()]
-    const d2 = domingo.getDate()
-    const m2 = meses[domingo.getMonth()]
-    const ano = domingo.getFullYear()
-
-    if (segunda.getMonth() === domingo.getMonth()) {
-      return `${String(d1).padStart(2, '0')} a ${String(d2).padStart(2, '0')} ${m1} (${ano})`
-    } else {
-      return `${String(d1).padStart(2, '0')} ${m1} a ${String(d2).padStart(2, '0')} ${m2} (${ano})`
-    }
+  // Formatar Título da Data (ex: "seg, 18 de mai")
+  const formatarTituloData = (dataStr: string) => {
+    const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
+    const [ry, rm, rd] = dataStr.split('-').map(Number)
+    const dataDate = new Date(ry, rm - 1, rd)
+    return `${diasSemana[dataDate.getDay()]}, ${String(rd).padStart(2, '0')} de ${mesesAbrev[rm - 1]} (${ry})`
   }
 
-  // Agrupar registros filtrados por semana_inicio
-  const registrosAgrupadosPorSemana = useMemo(() => {
+  // Agrupar registros filtrados por DATA e calcular Gaps
+  const registrosAgrupadosPorData = useMemo(() => {
     const grupos: { [key: string]: typeof registrosFiltrados } = {}
     
     registrosFiltrados.forEach((reg) => {
-      const semana = reg.semana_inicio || 'sem-semana'
-      if (!grupos[semana]) {
-        grupos[semana] = []
-      }
-      grupos[semana].push(reg)
+      if (!grupos[reg.data]) grupos[reg.data] = []
+      grupos[reg.data].push(reg)
     })
 
-    // Ordenar chaves das semanas decrescente
-    return Object.keys(grupos)
-      .sort((a, b) => b.localeCompare(a))
-      .map((semana) => ({
-        semana_inicio: semana,
-        titulo: semana === 'sem-semana' ? 'Lançamentos Sem Semana' : formatarTituloSemana(semana),
-        registros: grupos[semana],
-        totalHoras: grupos[semana].reduce((acc, curr) => acc + curr.duracao, 0)
-      }))
-  }, [registrosFiltrados])
+    // Ordenar as chaves (datas) de forma decrescente
+    const datasOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a))
 
-  // Verificar link ativo na Sidebar
+    return datasOrdenadas.map((dataStr) => {
+      const records = grupos[dataStr]
+      // Ordenar registros do dia por hora de inicio crescente
+      records.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))
+
+      const limites = getLimitesDia(dataStr)
+      
+      // Calcular Total de Horas no Dia
+      const totalHoras = records.reduce((acc, curr) => acc + curr.duracao, 0)
+      
+      // Array de itens (pode ser Registro ou Gap)
+      const items: any[] = []
+
+      // Verificar gap inicial (antes do primeiro registro)
+      if (records.length > 0) {
+        const minInicioDia = timeToMinutes(limites.inicio)
+        const minPrimeiroReg = timeToMinutes(records[0].hora_inicio)
+        const diffInic = minPrimeiroReg - minInicioDia
+        if (diffInic >= 5) {
+          items.push({ type: 'gap', label: 'Tempo vago', minutes: diffInic, inicio: limites.inicio, fim: records[0].hora_inicio })
+        }
+      }
+
+      for (let i = 0; i < records.length; i++) {
+        // Inserir o registro real
+        items.push({ type: 'registro', data: records[i] })
+
+        // Verificar gap entre este registro e o próximo
+        if (i < records.length - 1) {
+          const minAtualFim = timeToMinutes(records[i].hora_fim)
+          const minProxInicio = timeToMinutes(records[i+1].hora_inicio)
+          const diff = minProxInicio - minAtualFim
+          if (diff >= 5) {
+            items.push({ type: 'gap', label: 'Tempo vago', minutes: diff, inicio: records[i].hora_fim, fim: records[i+1].hora_inicio })
+          }
+        }
+      }
+
+      // Verificar gap final (depois do último registro)
+      if (records.length > 0) {
+        const lastReg = records[records.length - 1]
+        const minUltimoReg = timeToMinutes(lastReg.hora_fim)
+        const minFimDia = timeToMinutes(limites.fim)
+        const diffFim = minFimDia - minUltimoReg
+        if (diffFim >= 5) {
+          items.push({ type: 'gap', label: 'Tempo vago', minutes: diffFim, inicio: lastReg.hora_fim, fim: limites.fim })
+        }
+      }
+
+      return {
+        data: dataStr,
+        titulo: formatarTituloData(dataStr),
+        limites,
+        totalHoras,
+        items
+      }
+    })
+  }, [registrosFiltrados, horariosExcecoes, configDia])
+
   const isActive = (path: string) => location.pathname === path
 
   return (
@@ -219,7 +297,6 @@ export default function Registros() {
       
       {/* 1. Sidebar Fixa */}
       <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
-        {/* Logo */}
         <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -229,7 +306,6 @@ export default function Registros() {
           <span className="text-xl font-bold tracking-tight text-white">HORAS</span>
         </div>
 
-        {/* Links de Navegação */}
         <nav className="flex-1 p-4 space-y-1.5">
           <Link
             to="/registros"
@@ -289,7 +365,6 @@ export default function Registros() {
           </Link>
         </nav>
 
-        {/* User Profile / Logout */}
         <div className="p-4 border-t border-gray-800/80 flex flex-col gap-2">
           <div className="px-2 py-1">
             <span className="block text-xs text-gray-500 font-semibold truncate">{user?.email}</span>
@@ -307,13 +382,13 @@ export default function Registros() {
       </aside>
 
       {/* 2. Conteúdo Principal */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-6xl mx-auto space-y-6">
+      <main className="flex-1 p-8 overflow-y-auto max-w-5xl mx-auto space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Lançamento de Horas</h1>
-            <p className="text-sm text-gray-400">Controle e visualize todas as suas horas lançadas.</p>
+            <p className="text-sm text-gray-400">Acompanhe seu progresso e identifique horas ociosas no seu dia.</p>
           </div>
           <button
             onClick={abrirNovoRegistroModal}
@@ -337,9 +412,9 @@ export default function Registros() {
         )}
 
         {/* 3. Filtros */}
-        <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row gap-4">
           {/* Projeto */}
-          <div>
+          <div className="flex-1">
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Projeto</label>
             <select
               value={filtroProjetoId}
@@ -353,38 +428,23 @@ export default function Registros() {
             </select>
           </div>
 
-          {/* Período */}
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Período</label>
+          {/* Dia */}
+          <div className="flex-1">
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Data</label>
             <select
-              value={filtroPeriodo}
-              onChange={(e) => setFiltroPeriodo(e.target.value)}
+              value={filtroData}
+              onChange={(e) => setFiltroData(e.target.value)}
               className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
             >
-              <option value="todos">Todo o Histórico</option>
-              <option value="7dias">Últimos 7 dias</option>
-              <option value="30dias">Últimos 30 dias</option>
-              <option value="esteMes">Este mês</option>
-            </select>
-          </div>
-
-          {/* Semana */}
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Filtrar por Semana</label>
-            <select
-              value={filtroSemana}
-              onChange={(e) => setFiltroSemana(e.target.value)}
-              className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
-            >
-              <option value="todas">Todas as Semanas</option>
-              {semanasDisponiveis.map((sem) => (
-                <option key={sem} value={sem}>{formatarTituloSemana(sem)}</option>
+              <option value="todas">Todas as Datas Lançadas</option>
+              {datasDisponiveis.map((dt) => (
+                <option key={dt} value={dt}>{formatarTituloData(dt)}</option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* 4. Lista de Registros ou Estado Vazio */}
+        {/* 4. Lista de Registros Agrupados por Dia */}
         {loading ? (
           <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center gap-3">
             <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -393,8 +453,8 @@ export default function Registros() {
             </svg>
             <span className="text-sm text-gray-400">Carregando lançamentos...</span>
           </div>
-        ) : registrosFiltrados.length === 0 ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4">
+        ) : registrosAgrupadosPorData.length === 0 ? (
+          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 shadow-sm">
             <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -402,146 +462,163 @@ export default function Registros() {
             </div>
             <h3 className="text-lg font-bold text-white">Nenhum lançamento encontrado</h3>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Não encontramos nenhum registro de horas para os filtros selecionados. Comece criando um novo registro para acompanhar sua produtividade!
+              Não encontramos nenhum registro de horas para os filtros selecionados.
             </p>
-            <button
-              onClick={abrirNovoRegistroModal}
-              className="py-2.5 px-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
-            >
-              Lançar Primeiras Horas
-            </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {registrosAgrupadosPorSemana.map((grupo) => {
-              const atingiuMeta = grupo.totalHoras >= metaSemanal
-              const percentual = Math.min(100, Math.round((grupo.totalHoras / metaSemanal) * 100))
-
+          <div className="space-y-10">
+            {registrosAgrupadosPorData.map((grupo) => {
+              
               return (
-                <div key={grupo.semana_inicio} className="space-y-3">
-                  {/* Cabeçalho do Grupo de Semana */}
-                  <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-3 shadow-sm">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                      <h3 className="text-sm font-bold text-white tracking-wide uppercase">
-                        Semana: <span className="text-[#03A9F4] lowercase font-semibold normal-case">{grupo.titulo}</span>
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 font-semibold">Total:</span>
-                        <span className={`text-sm font-mono font-bold ${atingiuMeta ? 'text-emerald-400' : 'text-amber-400'}`}>
-                          {grupo.totalHoras.toFixed(2).replace('.', ',')}h
-                        </span>
-                        <span className="text-xs text-gray-600">/</span>
-                        <span className="text-xs text-gray-500 font-mono">{metaSemanal.toFixed(2).replace('.', ',')}h (meta)</span>
+                <div key={grupo.data} className="relative">
+                  {/* Linha vertical visual ligando os blocos do dia (Timeline) */}
+                  <div className="absolute left-6 top-16 bottom-2 w-px bg-gray-800/80 -z-10 hidden sm:block" />
+
+                  <div className="space-y-4">
+                    {/* Cabeçalho do Grupo de Dia */}
+                    <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shadow-sm relative z-10">
+                      <div>
+                        <h3 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#03A9F4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-[#03A9F4] capitalize normal-case">{grupo.titulo}</span>
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                          Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio} às {grupo.limites.fim}</span>
+                          {grupo.limites.customizado && (
+                            <span className="text-[9px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1 border border-amber-500/20">Modificado</span>
+                          )}
+                        </p>
                       </div>
-                    </div>
 
-                    {/* Barra de Progresso */}
-                    <div className="space-y-1">
-                      <div className="w-full bg-[#0B0E14] h-2.5 rounded-full overflow-hidden border border-gray-800/50">
-                        <div
-                          className={`h-full transition-all duration-500 rounded-full ${
-                            atingiuMeta 
-                              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20' 
-                              : 'bg-gradient-to-r from-amber-500 to-orange-400'
-                          }`}
-                          style={{ width: `${percentual}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] text-gray-500 font-semibold font-mono">
-                        <span>{percentual}% da meta semanal atingida</span>
-                        {atingiuMeta && <span className="text-emerald-400 flex items-center gap-1">Meta Batida! 🏆</span>}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lançamentos da Semana */}
-                  <div className="space-y-2.5">
-                    {grupo.registros.map((reg) => {
-                      const projCor = reg.projeto?.cor || '#6B7280'
-                      const projNome = reg.projeto?.nome || 'Sem Projeto'
-                      
-                      // Formatar Data (ex: "seg, 18 de mai")
-                      const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-                      const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
-                      const [ry, rm, rd] = reg.data.split('-').map(Number)
-                      const dataDate = new Date(ry, rm - 1, rd)
-                      const dataFormatada = `${diasSemana[dataDate.getDay()]}, ${rd} de ${mesesAbrev[rm - 1]}`
-
-                      return (
-                        <div
-                          key={reg.id}
-                          className="bg-[#161B22]/40 hover:bg-[#161B22]/80 border border-gray-800/60 hover:border-gray-700/80 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all group shadow-sm"
-                        >
-                          <div className="flex flex-wrap items-center gap-3">
-                            {/* Tag do Projeto */}
-                            <span
-                              className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold border"
-                              style={{ 
-                                backgroundColor: `${projCor}12`, 
-                                borderColor: `${projCor}44`,
-                                color: projCor
-                              }}
-                            >
-                              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: projCor }} />
-                              {projNome}
-                            </span>
-
-                            {/* Data */}
-                            <span className="text-sm font-semibold text-gray-300">{dataFormatada}</span>
-
-                            <span className="h-3 w-px bg-gray-800 hidden sm:inline" />
-
-                            {/* Hora de Início e Fim */}
-                            <span className="text-sm font-mono text-gray-400">
-                              {reg.hora_inicio} às {reg.hora_fim}
-                            </span>
-                          </div>
-
-                          {/* Observação, Duração e Ações */}
-                          <div className="w-full md:w-auto flex flex-col sm:flex-row justify-between md:justify-end items-start sm:items-center gap-4 shrink-0">
-                            {/* Observação */}
-                            {reg.observacao && (
-                              <span 
-                                className="text-xs text-gray-500 italic max-w-[200px] truncate"
-                                title={reg.observacao}
-                              >
-                                "{reg.observacao}"
-                              </span>
-                            )}
-
-                            {/* Duração Centesimal */}
-                            <div className="flex items-center gap-1 bg-gray-900/50 border border-gray-800/80 py-1 px-2.5 rounded-lg">
-                              <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total:</span>
-                              <span className="text-sm font-mono font-bold text-white">
-                                {reg.duracao.toFixed(2).replace('.', ',')}h
-                              </span>
-                            </div>
-
-                            {/* Ações */}
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => abrirEditarRegistroModal(reg)}
-                                className="p-1.5 bg-gray-800/50 hover:bg-gray-700/80 active:bg-gray-600/80 text-gray-400 hover:text-white rounded-lg border border-gray-800/60 transition-all"
-                                title="Editar Lançamento"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleExcluir(reg.id)}
-                                className="p-1.5 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-400 rounded-lg border border-red-500/20 transition-all"
-                                title="Excluir Lançamento"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-end">
+                          <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
+                          <span className="text-lg font-mono font-bold text-emerald-400">
+                            {grupo.totalHoras.toFixed(2).replace('.', ',')}h
+                          </span>
                         </div>
-                      )
-                    })}
+                        <span className="h-8 w-px bg-gray-800 hidden sm:inline" />
+                        <button
+                          onClick={() => abrirModalHorario(grupo.data)}
+                          className="p-2 text-gray-400 hover:text-white bg-gray-800/40 hover:bg-gray-800 border border-gray-700/50 rounded-xl transition-all shadow-sm focus:outline-none"
+                          title="Editar Horário do Dia"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          <span className="sr-only">Editar Horário do Dia</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Lançamentos e Gaps (Timeline) */}
+                    <div className="space-y-3 sm:pl-[11px]">
+                      {grupo.items.map((item, index) => {
+                        // ==== RENDERIZAÇÃO DO GAP ====
+                        if (item.type === 'gap') {
+                          return (
+                            <div key={`gap-${index}`} className="flex items-center group">
+                              {/* Bolinha na timeline */}
+                              <div className="w-2.5 h-2.5 rounded-full bg-red-500/50 border-2 border-[#0B0E14] shadow-sm z-10 shrink-0 hidden sm:block" />
+                              <div className="ml-0 sm:ml-4 flex-1 bg-red-500/5 border border-red-500/10 rounded-xl p-3 flex justify-between items-center opacity-80 hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-3">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span className="text-xs font-semibold text-red-400/90 tracking-wide uppercase">Tempo Ocioso</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-[10px] text-gray-500 font-mono hidden md:inline">{item.inicio} - {item.fim}</span>
+                                  <span className="text-xs font-mono font-bold text-red-400">{formatMinutesDesc(item.minutes)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        }
+
+                        // ==== RENDERIZAÇÃO DO REGISTRO ====
+                        const reg = item.data as (Registro & { projeto: { nome: string; cor: string } | null })
+                        const projCor = reg.projeto?.cor || '#6B7280'
+                        const projNome = reg.projeto?.nome || 'Sem Projeto'
+
+                        return (
+                          <div key={reg.id} className="flex items-center group">
+                            {/* Bolinha na timeline */}
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#03A9F4] border-2 border-[#0B0E14] shadow-sm z-10 shrink-0 hidden sm:block" />
+                            
+                            <div className="ml-0 sm:ml-4 flex-1 bg-[#161B22]/60 hover:bg-[#161B22] border border-gray-800/80 hover:border-gray-700/80 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all shadow-sm">
+                              
+                              <div className="flex flex-wrap items-center gap-3">
+                                {/* Tag do Projeto */}
+                                <span
+                                  className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold border"
+                                  style={{ 
+                                    backgroundColor: `${projCor}12`, 
+                                    borderColor: `${projCor}44`,
+                                    color: projCor
+                                  }}
+                                >
+                                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: projCor }} />
+                                  {projNome}
+                                </span>
+
+                                <span className="h-3 w-px bg-gray-800 hidden sm:inline" />
+
+                                {/* Hora de Início e Fim */}
+                                <span className="text-sm font-mono font-semibold text-gray-300 bg-[#0B0E14] px-2 py-0.5 rounded border border-gray-800/50">
+                                  {reg.hora_inicio} <span className="text-gray-500">→</span> {reg.hora_fim}
+                                </span>
+                              </div>
+
+                              {/* Observação, Duração e Ações */}
+                              <div className="w-full md:w-auto flex flex-col sm:flex-row justify-between md:justify-end items-start sm:items-center gap-4 shrink-0">
+                                {/* Observação */}
+                                {reg.observacao && (
+                                  <span 
+                                    className="text-xs text-gray-500 italic max-w-[200px] truncate"
+                                    title={reg.observacao}
+                                  >
+                                    "{reg.observacao}"
+                                  </span>
+                                )}
+
+                                {/* Duração Centesimal */}
+                                <div className="flex items-center gap-1 bg-[#0B0E14] border border-gray-800 py-1.5 px-3 rounded-lg shadow-inner">
+                                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Dur:</span>
+                                  <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                    {reg.duracao.toFixed(2).replace('.', ',')}h
+                                  </span>
+                                </div>
+
+                                {/* Ações */}
+                                <div className="flex gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => abrirEditarRegistroModal(reg)}
+                                    className="p-2 bg-gray-800/50 hover:bg-gray-700 active:bg-gray-600 text-gray-400 hover:text-white rounded-lg border border-gray-700/50 transition-all"
+                                    title="Editar Lançamento"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => handleExcluir(reg.id)}
+                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-400 rounded-lg border border-red-500/20 transition-all"
+                                    title="Excluir Lançamento"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
               )
@@ -558,6 +635,18 @@ export default function Registros() {
         onSave={handleSalvarRegistro}
         registro={editingRegistro}
       />
+
+      {/* Modal Horário Dia */}
+      {modalHorarioData && (
+        <ModalHorarioDia
+          isOpen={isModalHorarioOpen}
+          onClose={() => setIsModalHorarioOpen(false)}
+          onSave={handleSalvarHorarioDia}
+          dataSelecionada={modalHorarioData.data}
+          inicioAtual={modalHorarioData.inicio}
+          fimAtual={modalHorarioData.fim}
+        />
+      )}
     </div>
   )
 }

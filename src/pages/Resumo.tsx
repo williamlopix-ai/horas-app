@@ -2,30 +2,39 @@ import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { listarRegistros } from '../services/registros'
+import { listarProjetos } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
-import type { Registro } from '../types'
+import type { Registro, Projeto } from '../types'
+
+type Aba = 'semanal' | 'diario' | 'projetos'
 
 export default function Resumo() {
   const { user, signOut } = useAuth()
   const location = useLocation()
 
-  const [registros, setRegistros] = useState<Registro[]>([])
+  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
+  const [projetos, setProjetos] = useState<Projeto[]>([])
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
 
-  // Carregar dados (configurações do usuário e registros de horas)
+  const metaDiaria = useMemo(() => metaSemanal / 5, [metaSemanal])
+
+  // Carregar dados
   const carregarDados = async () => {
     if (!user) return
     try {
       setLoading(true)
       setError(null)
 
-      // 1. Carregar Configurações para obter a Meta Semanal
       const config = await buscarConfiguracoes(user.id)
       setMetaSemanal(config.meta_semanal)
 
-      // 2. Carregar Registros de Horas
+      const projs = await listarProjetos(user.id)
+      setProjetos(projs)
+
       const regs = await listarRegistros(user.id)
       setRegistros(regs)
     } catch (err: any) {
@@ -40,12 +49,13 @@ export default function Resumo() {
     carregarDados()
   }, [user])
 
-  // Formatar Título da Semana (ex: "18 mai a 24 mai (2026)")
+  // ============================
+  // Helpers de Formatação
+  // ============================
   const formatarTituloSemana = (semanaInicio: string) => {
     const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
     const [y, m, d] = semanaInicio.split('-').map(Number)
     const segunda = new Date(y, m - 1, d)
-    
     const domingo = new Date(segunda)
     domingo.setDate(segunda.getDate() + 6)
 
@@ -62,17 +72,25 @@ export default function Resumo() {
     }
   }
 
-  // Agrupar e somar as horas por semana
+  const formatarTituloData = (dataStr: string) => {
+    const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+    const [ry, rm, rd] = dataStr.split('-').map(Number)
+    const dataDate = new Date(ry, rm - 1, rd)
+    return `${diasSemana[dataDate.getDay()]}, ${String(rd).padStart(2, '0')} de ${mesesAbrev[rm - 1]} (${ry})`
+  }
+
+  // ============================
+  // Agrupamentos
+  // ============================
+
+  // 1. Semanal
   const resumoSemanas = useMemo(() => {
     const grupos: { [key: string]: number } = {}
-
     registros.forEach((reg) => {
-      // Filtrar apenas registros que possuem semana_inicio definida
       if (!reg.semana_inicio) return
       grupos[reg.semana_inicio] = (grupos[reg.semana_inicio] || 0) + reg.duracao
     })
-
-    // Ordenar chaves das semanas de forma decrescente (mais recente primeiro)
     return Object.keys(grupos)
       .sort((a, b) => b.localeCompare(a))
       .map((semana) => {
@@ -80,17 +98,58 @@ export default function Resumo() {
         const atingiuMeta = totalHoras >= metaSemanal
         const percentual = Math.min(100, Math.round((totalHoras / metaSemanal) * 100))
         const diferenca = totalHoras - metaSemanal
-
-        return {
-          semana_inicio: semana,
-          titulo: formatarTituloSemana(semana),
-          totalHoras,
-          atingiuMeta,
-          percentual,
-          diferenca
-        }
+        return { semana_inicio: semana, titulo: formatarTituloSemana(semana), totalHoras, atingiuMeta, percentual, diferenca }
       })
   }, [registros, metaSemanal])
+
+  // 2. Diário
+  const resumoDias = useMemo(() => {
+    const grupos: { [key: string]: number } = {}
+    registros.forEach((reg) => {
+      grupos[reg.data] = (grupos[reg.data] || 0) + reg.duracao
+    })
+    return Object.keys(grupos)
+      .sort((a, b) => b.localeCompare(a))
+      .map((data) => {
+        const totalHoras = grupos[data]
+        const atingiuMeta = totalHoras >= metaDiaria
+        const percentual = Math.min(100, Math.round((totalHoras / metaDiaria) * 100))
+        const diferenca = totalHoras - metaDiaria
+        return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca }
+      })
+  }, [registros, metaDiaria])
+
+  // 3. Projetos
+  const resumoProjetos = useMemo(() => {
+    const grupos: { [key: string]: number } = {}
+    let totalGeral = 0
+    registros.forEach((reg) => {
+      const projId = reg.projeto_id || 'sem_projeto'
+      grupos[projId] = (grupos[projId] || 0) + reg.duracao
+      totalGeral += reg.duracao
+    })
+    
+    const arrayProjetos = Object.keys(grupos).map(id => {
+      let nome = 'Sem Projeto'
+      let cor = '#6B7280'
+      if (id !== 'sem_projeto') {
+        const p = projetos.find(p => p.id === id)
+        if (p) {
+          nome = p.nome
+          cor = p.cor
+        }
+      }
+      const totalHoras = grupos[id]
+      const percentual = totalGeral > 0 ? Math.round((totalHoras / totalGeral) * 100) : 0
+      return { id, nome, cor, totalHoras, percentual }
+    })
+    
+    // Ordernar por total de horas decrescente
+    return {
+      totalGeral,
+      projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras)
+    }
+  }, [registros, projetos])
 
   const isActive = (path: string) => location.pathname === path
 
@@ -185,8 +244,8 @@ export default function Resumo() {
       {/* Conteúdo Principal */}
       <main className="flex-1 p-8 overflow-y-auto max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Resumo Semanal</h1>
-          <p className="text-sm text-gray-400">Acompanhe seu desempenho semanal frente à meta estabelecida.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Painel de Resumos</h1>
+          <p className="text-sm text-gray-400">Analise suas horas lançadas sob diferentes perspectivas.</p>
         </div>
 
         {error && (
@@ -198,6 +257,34 @@ export default function Resumo() {
           </div>
         )}
 
+        {/* Sistema de Abas */}
+        <div className="flex p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
+          <button
+            onClick={() => setAbaAtiva('semanal')}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              abaAtiva === 'semanal' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Semanal
+          </button>
+          <button
+            onClick={() => setAbaAtiva('diario')}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              abaAtiva === 'diario' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Diário
+          </button>
+          <button
+            onClick={() => setAbaAtiva('projetos')}
+            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              abaAtiva === 'projetos' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Por Projetos
+          </button>
+        </div>
+
         {loading ? (
           <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center gap-3">
             <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -206,7 +293,7 @@ export default function Resumo() {
             </svg>
             <span className="text-sm text-gray-400">Calculando resumos...</span>
           </div>
-        ) : resumoSemanas.length === 0 ? (
+        ) : registros.length === 0 ? (
           <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4">
             <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -215,7 +302,7 @@ export default function Resumo() {
             </div>
             <h3 className="text-lg font-bold text-white">Nenhum histórico encontrado</h3>
             <p className="text-sm text-gray-400 leading-relaxed">
-              Você ainda não registrou nenhuma hora. Seus dados semanais consolidados aparecerão aqui assim que fizer seus primeiros lançamentos.
+              Você ainda não registrou nenhuma hora. Seus dados consolidados aparecerão aqui assim que fizer seus primeiros lançamentos.
             </p>
             <Link
               to="/registros"
@@ -225,104 +312,176 @@ export default function Resumo() {
             </Link>
           </div>
         ) : (
-          /* Grid de Cards */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {resumoSemanas.map((semana) => {
-              const valorDiferenca = semana.diferenca
-              const isPositivoOuZero = valorDiferenca >= 0
-              const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+          <div className="space-y-6">
+            
+            {/* =========================================================================
+                ABA: SEMANAL 
+               ========================================================================= */}
+            {abaAtiva === 'semanal' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                {resumoSemanas.map((semana) => {
+                  const valorDiferenca = semana.diferenca
+                  const isPositivoOuZero = valorDiferenca >= 0
+                  const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
 
-              return (
-                <div 
-                  key={semana.semana_inicio} 
-                  className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between"
-                >
-                  {/* Cabeçalho do Card */}
-                  <div className="flex justify-between items-start gap-4">
-                    <div>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                        Período
-                      </span>
-                      <h3 className="text-base font-bold text-white leading-snug">
-                        {semana.titulo}
-                      </h3>
-                    </div>
+                  return (
+                    <div key={semana.semana_inicio} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                      {/* Cabeçalho */}
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Período</span>
+                          <h3 className="text-base font-bold text-white leading-snug">{semana.titulo}</h3>
+                        </div>
+                        <div className="shrink-0">
+                          {semana.atingiuMeta ? (
+                            <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Meta atingida">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20" title="Meta não atingida">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                    {/* Status Badge */}
-                    <div className="shrink-0">
-                      {semana.atingiuMeta ? (
-                        <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Meta atingida">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20" title="Meta não atingida">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                        </span>
-                      )}
+                      {/* Dados */}
+                      <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60">
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Trabalhado</span>
+                          <span className="text-lg font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Meta</span>
+                          <span className="text-lg font-mono font-bold text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Restante</span>
+                          <span className="text-lg font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                        </div>
+                      </div>
+
+                      {/* Progresso */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs font-semibold">
+                          <span className="text-gray-400">Progresso</span>
+                          <span style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}% Concluído</span>
+                        </div>
+                        <div className="w-full bg-[#0B0E14] h-3 rounded-full overflow-hidden border border-gray-800/50">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                        </div>
+                      </div>
                     </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* =========================================================================
+                ABA: DIÁRIO
+               ========================================================================= */}
+            {abaAtiva === 'diario' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 animate-in fade-in duration-300">
+                {resumoDias.map((dia) => {
+                  const valorDiferenca = dia.diferenca
+                  const isPositivoOuZero = valorDiferenca >= 0
+                  const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+
+                  return (
+                    <div key={dia.data} className="bg-[#161B22] border border-gray-800 rounded-xl p-5 space-y-4 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                      {/* Cabeçalho */}
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <h3 className="text-sm font-bold text-white capitalize leading-snug">{dia.titulo}</h3>
+                        </div>
+                        <div className="shrink-0">
+                          {dia.atingiuMeta ? (
+                            <span className="inline-flex p-1 rounded-full bg-emerald-500/10 text-emerald-400" title="Meta atingida">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                            </span>
+                          ) : (
+                            <span className="inline-flex p-1 rounded-full bg-red-500/10 text-red-400" title="Meta não atingida">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Dados */}
+                      <div className="flex justify-between py-2 border-y border-gray-800/60">
+                        <div>
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Trabalhado</span>
+                          <span className="text-base font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Diferença</span>
+                          <span className="text-base font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                        </div>
+                      </div>
+
+                      {/* Progresso */}
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-[10px] font-semibold">
+                          <span className="text-gray-400">Meta: {metaDiaria.toFixed(2).replace('.', ',')}h</span>
+                          <span style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span>
+                        </div>
+                        <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* =========================================================================
+                ABA: PROJETOS 
+               ========================================================================= */}
+            {abaAtiva === 'projetos' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 flex items-center justify-between shadow-sm">
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Geral Histórico</h2>
+                    <p className="text-3xl font-mono font-bold text-white mt-1">{resumoProjetos.totalGeral.toFixed(2).replace('.', ',')}h</p>
                   </div>
-
-                  {/* Informações Numéricas */}
-                  <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60">
-                    <div>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                        Trabalhado
-                      </span>
-                      <span className="text-lg font-mono font-bold text-white">
-                        {semana.totalHoras.toFixed(2).replace('.', ',')}h
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                        Meta
-                      </span>
-                      <span className="text-lg font-mono font-bold text-gray-400">
-                        {metaSemanal.toFixed(2).replace('.', ',')}h
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">
-                        Restante
-                      </span>
-                      <span 
-                        className="text-lg font-mono font-bold"
-                        style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}
-                      >
-                        {diferencaTexto}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Barra de Progresso e Percentual */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="text-gray-400">Progresso</span>
-                      <span 
-                        style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}
-                      >
-                        {semana.percentual}% Concluído
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-[#0B0E14] h-3 rounded-full overflow-hidden border border-gray-800/50">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${semana.percentual}%`,
-                          backgroundColor: semana.atingiuMeta ? '#4CAF50' : '#F44336'
-                        }}
-                      />
-                    </div>
+                  <div className="p-4 rounded-full bg-[#03A9F4]/10 text-[#03A9F4]">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
                   </div>
                 </div>
-              )
-            })}
+
+                <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-800 text-xs font-bold text-gray-500 uppercase tracking-wider bg-[#0B0E14]/50">
+                    <div className="col-span-6 md:col-span-4">Projeto</div>
+                    <div className="col-span-6 md:col-span-6">Distribuição</div>
+                    <div className="col-span-12 md:col-span-2 text-left md:text-right mt-2 md:mt-0">Horas Acumuladas</div>
+                  </div>
+                  <div className="divide-y divide-gray-800/60">
+                    {resumoProjetos.projetos.map((proj) => (
+                      <div key={proj.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-gray-800/20 transition-colors">
+                        <div className="col-span-6 md:col-span-4 flex items-center gap-3">
+                          <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: proj.cor }}></span>
+                          <span className="font-semibold text-white truncate" title={proj.nome}>{proj.nome}</span>
+                        </div>
+                        <div className="col-span-6 md:col-span-6 flex items-center gap-3">
+                          <div className="flex-1 bg-[#0B0E14] h-2.5 rounded-full overflow-hidden border border-gray-800/50">
+                            <div className="h-full transition-all duration-500" style={{ width: `${proj.percentual}%`, backgroundColor: proj.cor }} />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-gray-400 w-8 text-right">{proj.percentual}%</span>
+                        </div>
+                        <div className="col-span-12 md:col-span-2 text-left md:text-right mt-1 md:mt-0">
+                          <span className="font-mono font-bold text-[#03A9F4]">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
           </div>
         )}
       </main>

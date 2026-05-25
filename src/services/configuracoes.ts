@@ -4,7 +4,9 @@ import type { Configuracao } from '../types'
 const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
   meta_semanal: 42.5,
   inicio_semana: 'segunda',
-  formato_horas: 'decimal'
+  formato_horas: 'decimal',
+  inicio_dia: '08:00',
+  fim_dia: '18:00'
 }
 
 export async function buscarConfiguracoes(
