@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import { Link, useLocation } from 'react-router-dom'
 import {
   listarRegistros,
@@ -10,9 +11,11 @@ import {
 import { listarProjetos } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosDias, salvarHorarioDia } from '../services/horarios'
+import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto, HorarioDia } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalHorarioDia from '../components/ModalHorarioDia'
+import { Skeleton } from '../components/Skeleton'
 
 // Helper para converter "HH:MM" em minutos para cálculo de gaps
 function timeToMinutes(time: string): number {
@@ -55,6 +58,7 @@ function formatWeekLabel(dateStr: string) {
 
 export default function Registros() {
   const { user, signOut } = useAuth()
+  const { showToast } = useToast()
   const location = useLocation()
 
   // Estados dos Dados
@@ -108,7 +112,7 @@ export default function Registros() {
       setRegistros(regs)
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err)
-      setError('Ocorreu um erro ao carregar as informações.')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -130,9 +134,10 @@ export default function Registros() {
         const regs = await listarRegistros(user.id)
         setRegistros(regs)
       }
+      showToast('Registro excluído!', 'success')
     } catch (err: any) {
       console.error('Erro ao excluir registro:', err)
-      setError('Não foi possível excluir o registro de horas.')
+      showToast(getErrorMessage(err), 'error')
     }
   }
 
@@ -144,21 +149,27 @@ export default function Registros() {
     observacao: string | null
   }) => {
     if (!user) return
-    if (editingRegistro) {
-      await atualizarRegistro(editingRegistro.id, dados)
-    } else {
-      await criarRegistro({
-        usuario_id: user.id,
-        projeto_id: dados.projeto_id,
-        data: dados.data,
-        hora_inicio: dados.hora_inicio,
-        hora_fim: dados.hora_fim,
-        observacao: dados.observacao
-      })
+    try {
+      if (editingRegistro) {
+        await atualizarRegistro(editingRegistro.id, dados)
+      } else {
+        await criarRegistro({
+          usuario_id: user.id,
+          projeto_id: dados.projeto_id,
+          data: dados.data,
+          hora_inicio: dados.hora_inicio,
+          hora_fim: dados.hora_fim,
+          observacao: dados.observacao
+        })
+      }
+      const regs = await listarRegistros(user.id)
+      setRegistros(regs)
+      fecharModal()
+      showToast('Registro salvo!', 'success')
+    } catch (err: any) {
+      console.error('Erro ao salvar registro:', err)
+      showToast(getErrorMessage(err), 'error')
     }
-    const regs = await listarRegistros(user.id)
-    setRegistros(regs)
-    fecharModal()
   }
 
   const abrirNovoRegistroModal = () => {
@@ -353,7 +364,7 @@ export default function Registros() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/registros')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -367,7 +378,7 @@ export default function Registros() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/resumo')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -381,7 +392,7 @@ export default function Registros() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/projetos')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -395,7 +406,7 @@ export default function Registros() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/ajustes')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -412,7 +423,7 @@ export default function Registros() {
           </div>
           <button
             onClick={() => signOut()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -433,7 +444,7 @@ export default function Registros() {
           </div>
           <button
             onClick={abrirNovoRegistroModal}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none shrink-0"
+            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none shrink-0"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -511,12 +522,16 @@ export default function Registros() {
 
         {/* 4. Lista de Registros Agrupados por Dia */}
         {loading ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center gap-3">
-            <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span className="text-sm text-gray-400">Carregando lançamentos...</span>
+          <div className="flex flex-col gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col gap-4">
+                <Skeleton className="h-[68px] w-full rounded-lg" />
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-[52px] w-full rounded-lg" />
+                  <Skeleton className="h-[52px] w-full rounded-lg" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : registrosAgrupadosPorData.length === 0 ? (
           <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 shadow-sm">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { getErrorMessage } from '../utils/errors'
 
 export default function Cadastro() {
   const [email, setEmail] = useState('')
@@ -33,7 +34,7 @@ export default function Cadastro() {
     try {
       const { error: signUpError } = await signUp(email, password)
       if (signUpError) {
-        setError(signUpError.message || 'Erro ao realizar o cadastro.')
+        setError(getErrorMessage(signUpError))
       } else {
         setSuccess('Cadastro realizado com sucesso! Verifique seu e-mail para confirmação se necessário.')
         // Limpar os campos
@@ -46,7 +47,7 @@ export default function Cadastro() {
         }, 3000)
       }
     } catch (err: any) {
-      setError('Ocorreu um erro inesperado. Tente novamente mais tarde.')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }

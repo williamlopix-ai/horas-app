@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import type { Projeto } from '../types'
+import { getErrorMessage } from '../utils/errors'
 
 interface ModalProjetoProps {
   isOpen: boolean
@@ -79,7 +80,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
       onClose()
     } catch (err: any) {
       console.error('Erro ao salvar projeto:', err)
-      setError('Erro ao salvar as informações do projeto. Tente novamente.')
+      setError(getErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
@@ -255,7 +256,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
             <button
               type="submit"
               disabled={submitting || !nome.trim()}
-              className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

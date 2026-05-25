@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getErrorMessage } from '../utils/errors'
 
 interface ModalHorarioDiaProps {
   isOpen: boolean
@@ -57,7 +58,7 @@ export default function ModalHorarioDia({
       onClose()
     } catch (err: any) {
       console.error('Erro ao salvar horário do dia:', err)
-      setError(err.message || 'Ocorreu um erro ao salvar o horário.')
+      setError(getErrorMessage(err))
     } finally {
       setSaving(false)
     }
@@ -143,7 +144,7 @@ export default function ModalHorarioDia({
             <button
               type="submit"
               disabled={saving}
-              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {saving ? (
                 <>

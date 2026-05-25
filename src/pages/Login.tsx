@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { getErrorMessage } from '../utils/errors'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -18,12 +19,12 @@ export default function Login() {
     try {
       const { error: signInError } = await signIn(email, password)
       if (signInError) {
-        setError(signInError.message || 'Erro ao realizar login. Verifique suas credenciais.')
+        setError(getErrorMessage(signInError))
       } else {
         navigate('/registros')
       }
     } catch (err: any) {
-      setError('Ocorreu um erro inesperado. Tente novamente mais tarde.')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }

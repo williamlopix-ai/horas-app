@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { listarProjetos } from '../services/projetos'
+import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto } from '../types'
 
 interface ModalRegistroProps {
@@ -184,7 +185,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
       })
     } catch (err: any) {
       console.error('Erro ao salvar lançamento:', err)
-      setError('Falha ao registrar suas horas. Verifique os dados fornecidos.')
+      setError(getErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
@@ -377,7 +378,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
               <button
                 type="submit"
                 disabled={submitting || !!validacaoErro || !projetoId || !data}
-                className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
+                className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
               >
                 {submitting ? (
                   <>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useToast } from '../contexts/ToastContext'
 import { Link, useLocation } from 'react-router-dom'
 import {
   listarProjetos,
@@ -9,11 +10,14 @@ import {
   reativarProjeto,
   excluirProjeto
 } from '../services/projetos'
+import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
+import { SkeletonRow } from '../components/Skeleton'
 
 export default function Projetos() {
   const { user, signOut } = useAuth()
+  const { showToast } = useToast()
   const location = useLocation()
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +36,7 @@ export default function Projetos() {
       setProjetos(dados)
     } catch (err: any) {
       console.error('Erro ao listar projetos:', err)
-      setError('Não foi possível carregar os projetos. Tente novamente.')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -60,28 +64,34 @@ export default function Projetos() {
   const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => {
     if (!user) return
 
-    if (editingProjeto) {
-      // Atualizar projeto existente
-      await atualizarProjeto(editingProjeto.id, {
-        nome: dados.nome,
-        cor: dados.cor,
-        tipo: dados.tipo,
-        horas_contratadas: dados.horas_contratadas,
-        status: dados.status
-      })
-    } else {
-      // Criar novo projeto
-      await criarProjeto({
-        usuario_id: user.id,
-        nome: dados.nome,
-        cor: dados.cor,
-        tipo: dados.tipo,
-        horas_contratadas: dados.horas_contratadas,
-        status: 'ativo'
-      })
+    try {
+      if (editingProjeto) {
+        // Atualizar projeto existente
+        await atualizarProjeto(editingProjeto.id, {
+          nome: dados.nome,
+          cor: dados.cor,
+          tipo: dados.tipo,
+          horas_contratadas: dados.horas_contratadas,
+          status: dados.status
+        })
+        showToast('Projeto atualizado!', 'success')
+      } else {
+        // Criar novo projeto
+        await criarProjeto({
+          usuario_id: user.id,
+          nome: dados.nome,
+          cor: dados.cor,
+          tipo: dados.tipo,
+          horas_contratadas: dados.horas_contratadas,
+          status: 'ativo'
+        })
+        showToast('Projeto criado!', 'success')
+      }
+      await carregarProjetos()
+    } catch (err: any) {
+      console.error('Erro ao salvar projeto:', err)
+      showToast(getErrorMessage(err), 'error')
     }
-
-    await carregarProjetos()
   }
 
   const handleExcluirProjeto = async (id: string) => {
@@ -90,9 +100,10 @@ export default function Projetos() {
         setError(null)
         await excluirProjeto(id)
         await carregarProjetos()
+        showToast('Projeto excluído!', 'success')
       } catch (err: any) {
         console.error('Erro ao excluir projeto:', err)
-        setError('Não foi possível excluir o projeto. Verifique se ele possui registros associados.')
+        showToast(getErrorMessage(err), 'error')
       }
     }
   }
@@ -102,13 +113,15 @@ export default function Projetos() {
       setError(null)
       if (projeto.status === 'ativo') {
         await encerrarProjeto(projeto.id)
+        showToast('Projeto encerrado.', 'info')
       } else {
         await reativarProjeto(projeto.id)
+        showToast('Projeto reativado!', 'success')
       }
       await carregarProjetos()
     } catch (err: any) {
       console.error('Erro ao alternar status do projeto:', err)
-      setError('Não foi possível atualizar o status do projeto.')
+      showToast(getErrorMessage(err), 'error')
     }
   }
 
@@ -137,7 +150,7 @@ export default function Projetos() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/registros')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -151,7 +164,7 @@ export default function Projetos() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/resumo')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -165,7 +178,7 @@ export default function Projetos() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/projetos')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -179,7 +192,7 @@ export default function Projetos() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/ajustes')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -197,7 +210,7 @@ export default function Projetos() {
           </div>
           <button
             onClick={() => signOut()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -218,7 +231,7 @@ export default function Projetos() {
           </div>
           <button
             onClick={abrirNovoProjetoModal}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0091d2] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none"
+            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -240,12 +253,10 @@ export default function Projetos() {
         {/* Tabela ou Estado Vazio */}
         <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
           {loading ? (
-            <div className="p-12 flex flex-col items-center justify-center gap-3">
-              <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span className="text-sm text-gray-400">Buscando seus projetos...</span>
+            <div className="flex flex-col">
+              {[1, 2, 3].map((i) => (
+                <SkeletonRow key={i} />
+              ))}
             </div>
           ) : projetos.length === 0 ? (
             <div className="p-12 text-center max-w-md mx-auto space-y-4">
@@ -322,7 +333,7 @@ export default function Projetos() {
                           </button>
                           <button
                             onClick={() => handleExcluirProjeto(projeto.id)}
-                            className="py-1.5 px-3 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
+                            className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
                           >
                             Excluir
                           </button>

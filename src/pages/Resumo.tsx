@@ -4,7 +4,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { listarRegistros } from '../services/registros'
 import { listarProjetos } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
+import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto } from '../types'
+import { SkeletonCard } from '../components/Skeleton'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -44,7 +46,7 @@ export default function Resumo() {
       setRegistros(regs)
     } catch (err: any) {
       console.error('Erro ao carregar dados do resumo:', err)
-      setError('Não foi possível carregar as informações do resumo.')
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -207,7 +209,7 @@ export default function Resumo() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/registros')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -221,7 +223,7 @@ export default function Resumo() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/resumo')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -235,7 +237,7 @@ export default function Resumo() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/projetos')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -249,7 +251,7 @@ export default function Resumo() {
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/ajustes')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -266,7 +268,7 @@ export default function Resumo() {
           </div>
           <button
             onClick={() => signOut()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-400 text-sm font-semibold rounded-xl border border-red-500/20 transition-all focus:outline-none"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -321,12 +323,10 @@ export default function Resumo() {
         </div>
 
         {loading ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 flex flex-col items-center justify-center gap-3">
-            <svg className="animate-spin h-8 w-8 text-[#03A9F4]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span className="text-sm text-gray-400">Calculando resumos...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : registros.length === 0 ? (
           <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4">
@@ -548,7 +548,7 @@ export default function Resumo() {
                           return (
                             <div key={rotina.id} className="flex flex-col border-b border-gray-800/60 last:border-0">
                               <div 
-                                className="flex items-center justify-between p-4 hover:bg-gray-800/40 transition-colors cursor-pointer"
+                                className="flex items-center justify-between p-4 hover:bg-[#1E2530] transition-colors cursor-pointer"
                                 onClick={() => toggleRotina(rotina.id)}
                               >
                                 <div className="flex items-center gap-4">
