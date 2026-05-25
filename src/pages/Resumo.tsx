@@ -121,33 +121,51 @@ export default function Resumo() {
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {
-    const grupos: { [key: string]: number } = {}
+    const grupos: { [key: string]: { duracao: number, qtd: number } } = {}
     let totalGeral = 0
     registros.forEach((reg) => {
       const projId = reg.projeto_id || 'sem_projeto'
-      grupos[projId] = (grupos[projId] || 0) + reg.duracao
+      if (!grupos[projId]) grupos[projId] = { duracao: 0, qtd: 0 }
+      grupos[projId].duracao += reg.duracao
+      grupos[projId].qtd += 1
       totalGeral += reg.duracao
     })
     
-    const arrayProjetos = Object.keys(grupos).map(id => {
+    const arrayProjetos: any[] = []
+    const arrayRotina: any[] = []
+
+    Object.keys(grupos).forEach(id => {
       let nome = 'Sem Projeto'
       let cor = '#6B7280'
+      let tipo = 'projeto'
+      let horas_contratadas = null
+
       if (id !== 'sem_projeto') {
         const p = projetos.find(p => p.id === id)
         if (p) {
           nome = p.nome
           cor = p.cor
+          tipo = p.tipo || 'projeto'
+          horas_contratadas = p.horas_contratadas
         }
       }
-      const totalHoras = grupos[id]
-      const percentual = totalGeral > 0 ? Math.round((totalHoras / totalGeral) * 100) : 0
-      return { id, nome, cor, totalHoras, percentual }
+
+      const totalHoras = grupos[id].duracao
+      const qtd = grupos[id].qtd
+
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas }
+      
+      if (tipo === 'rotina') {
+        arrayRotina.push(item)
+      } else {
+        arrayProjetos.push(item)
+      }
     })
     
-    // Ordernar por total de horas decrescente
     return {
       totalGeral,
-      projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras)
+      projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras),
+      rotinas: arrayRotina.sort((a, b) => b.totalHoras - a.totalHoras)
     }
   }, [registros, projetos])
 
@@ -439,46 +457,82 @@ export default function Resumo() {
                 ABA: PROJETOS 
                ========================================================================= */}
             {abaAtiva === 'projetos' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 flex items-center justify-between shadow-sm">
-                  <div>
-                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Geral Histórico</h2>
-                    <p className="text-3xl font-mono font-bold text-white mt-1">{resumoProjetos.totalGeral.toFixed(2).replace('.', ',')}h</p>
-                  </div>
-                  <div className="p-4 rounded-full bg-[#03A9F4]/10 text-[#03A9F4]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                    </svg>
-                  </div>
+              <div className="space-y-8 animate-in fade-in duration-300">
+                {/* Seção Projetos */}
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-4">Projetos</h2>
+                  {resumoProjetos.projetos.length === 0 ? (
+                    <div className="text-sm text-gray-500 bg-[#161B22] p-4 rounded-xl border border-gray-800">Nenhum projeto registrado.</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {resumoProjetos.projetos.map(proj => {
+                        const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
+                        const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
+                        const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
+                        const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
+
+                        return (
+                          <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
+                            {/* Cabeçalho */}
+                            <div className="flex items-center gap-3">
+                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: proj.cor }}></span>
+                              <span className="font-bold text-white text-lg truncate" title={proj.nome}>{proj.nome}</span>
+                            </div>
+                            
+                            {/* Dados */}
+                            <div className="space-y-1 flex-1">
+                              <p className="text-sm font-semibold text-white">{proj.totalHoras.toFixed(2).replace('.', ',')}h lançadas</p>
+                              {temContrato && (
+                                <>
+                                  <p className="text-xs text-gray-400">de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas</p>
+                                  {passou ? (
+                                    <p className="text-xs font-bold text-red-400 mt-2">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
+                                  ) : (
+                                    <p className="text-xs font-bold text-emerald-400 mt-2">{diff.toFixed(2).replace('.', ',')}h restantes</p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {/* Progresso (apenas se tiver contrato) */}
+                            {temContrato && (
+                              <div className="space-y-2 pt-3 border-t border-gray-800/60 mt-auto">
+                                <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
+                                  <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-800 text-xs font-bold text-gray-500 uppercase tracking-wider bg-[#0B0E14]/50">
-                    <div className="col-span-6 md:col-span-4">Projeto</div>
-                    <div className="col-span-6 md:col-span-6">Distribuição</div>
-                    <div className="col-span-12 md:col-span-2 text-left md:text-right mt-2 md:mt-0">Horas Acumuladas</div>
-                  </div>
-                  <div className="divide-y divide-gray-800/60">
-                    {resumoProjetos.projetos.map((proj) => (
-                      <div key={proj.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-gray-800/20 transition-colors">
-                        <div className="col-span-6 md:col-span-4 flex items-center gap-3">
-                          <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: proj.cor }}></span>
-                          <span className="font-semibold text-white truncate" title={proj.nome}>{proj.nome}</span>
-                        </div>
-                        <div className="col-span-6 md:col-span-6 flex items-center gap-3">
-                          <div className="flex-1 bg-[#0B0E14] h-2.5 rounded-full overflow-hidden border border-gray-800/50">
-                            <div className="h-full transition-all duration-500" style={{ width: `${proj.percentual}%`, backgroundColor: proj.cor }} />
+                {/* Seção Rotina */}
+                {resumoProjetos.rotinas.length > 0 && (
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-4">Rotina</h2>
+                    <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                      <div className="divide-y divide-gray-800/60">
+                        {resumoProjetos.rotinas.map((rotina) => (
+                          <div key={rotina.id} className="flex items-center justify-between p-4 hover:bg-gray-800/20 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
+                              <div>
+                                <p className="font-bold text-white text-base truncate" title={rotina.nome}>{rotina.nome}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-mono font-bold text-[#03A9F4] text-lg">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                            </div>
                           </div>
-                          <span className="text-xs font-mono font-bold text-gray-400 w-8 text-right">{proj.percentual}%</span>
-                        </div>
-                        <div className="col-span-12 md:col-span-2 text-left md:text-right mt-1 md:mt-0">
-                          <span className="font-mono font-bold text-[#03A9F4]">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
             

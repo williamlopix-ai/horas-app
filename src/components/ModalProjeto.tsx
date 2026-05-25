@@ -4,7 +4,7 @@ import type { Projeto } from '../types'
 interface ModalProjetoProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (dados: { nome: string; cor: string; status?: 'ativo' | 'encerrado' }) => Promise<void>
+  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => Promise<void>
   projeto?: Projeto | null
 }
 
@@ -23,6 +23,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
   const [nome, setNome] = useState('')
   const [cor, setCor] = useState(PALETA_CORES[0])
   const [status, setStatus] = useState<'ativo' | 'encerrado'>('ativo')
+  const [tipo, setTipo] = useState<'projeto' | 'rotina'>('projeto')
+  const [horasContratadas, setHorasContratadas] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,10 +35,14 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
         setNome(projeto.nome)
         setCor(projeto.cor)
         setStatus(projeto.status)
+        setTipo(projeto.tipo || 'projeto')
+        setHorasContratadas(projeto.horas_contratadas ? projeto.horas_contratadas.toString() : '')
       } else {
         setNome('')
         setCor(PALETA_CORES[0])
         setStatus('ativo')
+        setTipo('projeto')
+        setHorasContratadas('')
       }
       setError(null)
     }
@@ -54,9 +60,20 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
     try {
       setSubmitting(true)
       setError(null)
+      
+      let horasParsed = null
+      if (tipo === 'projeto' && horasContratadas.trim()) {
+        const val = parseFloat(horasContratadas.replace(',', '.'))
+        if (!isNaN(val)) {
+          horasParsed = val
+        }
+      }
+
       await onSave({
         nome: nome.trim(),
         cor,
+        tipo,
+        horas_contratadas: horasParsed,
         status: projeto ? status : 'ativo'
       })
       onClose()
@@ -117,6 +134,54 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto }: Modal
               className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
             />
           </div>
+
+          {/* Tipo do Projeto */}
+          <div>
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Tipo
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setTipo('projeto')}
+                className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                  tipo === 'projeto'
+                    ? 'bg-[#03A9F4]/10 text-[#03A9F4] border-[#03A9F4]/30'
+                    : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                }`}
+              >
+                Projeto
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipo('rotina')}
+                className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                  tipo === 'rotina'
+                    ? 'bg-[#03A9F4]/10 text-[#03A9F4] border-[#03A9F4]/30'
+                    : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                }`}
+              >
+                Rotina
+              </button>
+            </div>
+          </div>
+
+          {/* Horas Contratadas */}
+          {tipo === 'projeto' && (
+            <div>
+              <label htmlFor="horas-contratadas" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Horas Contratadas (opcional)
+              </label>
+              <input
+                id="horas-contratadas"
+                type="text"
+                placeholder="Ex: 100"
+                value={horasContratadas}
+                onChange={(e) => setHorasContratadas(e.target.value)}
+                className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
+              />
+            </div>
+          )}
 
           {/* Seletor de Cores */}
           <div>

@@ -54,3 +54,14 @@ export async function encerrarProjeto(id: string): Promise<Projeto> {
 export async function reativarProjeto(id: string): Promise<Projeto> {
   return atualizarProjeto(id, { status: 'ativo' })
 }
+
+export async function excluirProjeto(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('projetos')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    throw error
+  }
+}

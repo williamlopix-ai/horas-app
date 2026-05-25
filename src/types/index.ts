@@ -4,6 +4,8 @@ export interface Projeto {
   nome: string
   cor: string
   status: 'ativo' | 'encerrado'
+  tipo: 'projeto' | 'rotina'
+  horas_contratadas: number | null
   criado_em: string
 }
 

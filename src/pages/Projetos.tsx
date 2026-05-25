@@ -6,7 +6,8 @@ import {
   criarProjeto,
   atualizarProjeto,
   encerrarProjeto,
-  reativarProjeto
+  reativarProjeto,
+  excluirProjeto
 } from '../services/projetos'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
@@ -56,7 +57,7 @@ export default function Projetos() {
     setEditingProjeto(null)
   }
 
-  const handleSalvarProjeto = async (dados: { nome: string; cor: string; status?: 'ativo' | 'encerrado' }) => {
+  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => {
     if (!user) return
 
     if (editingProjeto) {
@@ -64,6 +65,8 @@ export default function Projetos() {
       await atualizarProjeto(editingProjeto.id, {
         nome: dados.nome,
         cor: dados.cor,
+        tipo: dados.tipo,
+        horas_contratadas: dados.horas_contratadas,
         status: dados.status
       })
     } else {
@@ -72,11 +75,26 @@ export default function Projetos() {
         usuario_id: user.id,
         nome: dados.nome,
         cor: dados.cor,
+        tipo: dados.tipo,
+        horas_contratadas: dados.horas_contratadas,
         status: 'ativo'
       })
     }
 
     await carregarProjetos()
+  }
+
+  const handleExcluirProjeto = async (id: string) => {
+    if (window.confirm("Excluir projeto? Esta ação não pode ser desfeita.")) {
+      try {
+        setError(null)
+        await excluirProjeto(id)
+        await carregarProjetos()
+      } catch (err: any) {
+        console.error('Erro ao excluir projeto:', err)
+        setError('Não foi possível excluir o projeto. Verifique se ele possui registros associados.')
+      }
+    }
   }
 
   const handleAlternarStatus = async (projeto: Projeto) => {
@@ -296,11 +314,17 @@ export default function Projetos() {
                             onClick={() => handleAlternarStatus(projeto)}
                             className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border ${
                               projeto.status === 'ativo'
-                                ? 'bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-400 border-red-500/20'
+                                ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
                                 : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
                             }`}
                           >
                             {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
+                          </button>
+                          <button
+                            onClick={() => handleExcluirProjeto(projeto.id)}
+                            className="py-1.5 px-3 bg-red-500/10 hover:bg-red-500/20 active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
+                          >
+                            Excluir
                           </button>
                         </div>
                       </td>

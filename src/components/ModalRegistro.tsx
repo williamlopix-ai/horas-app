@@ -223,9 +223,26 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro }: Mod
                 className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
               >
                 <option value="" disabled>Selecione um projeto...</option>
-                {projetos.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nome}</option>
-                ))}
+                
+                {projetos.filter(p => p.tipo === 'projeto' || !p.tipo).length > 0 && (
+                  <optgroup label="── PROJETOS ──" className="bg-[#161B22] text-gray-400 font-bold">
+                    {projetos.filter(p => p.tipo === 'projeto' || !p.tipo).map((p) => (
+                      <option key={p.id} value={p.id} className="text-white font-normal bg-[#0B0E14]">
+                        {p.nome}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {projetos.filter(p => p.tipo === 'rotina').length > 0 && (
+                  <optgroup label="── ROTINA ──" className="bg-[#161B22] text-gray-400 font-bold">
+                    {projetos.filter(p => p.tipo === 'rotina').map((p) => (
+                      <option key={p.id} value={p.id} className="text-white font-normal bg-[#0B0E14]">
+                        {p.nome}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
