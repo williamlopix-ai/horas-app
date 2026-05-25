@@ -568,9 +568,6 @@ export default function Registros() {
                           </h3>
                           <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
                             Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
-                            {grupo.limites.customizado && (
-                              <span className="text-[9px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1 border border-amber-500/20">Modificado</span>
-                            )}
                           </p>
                         </div>
                       </div>
