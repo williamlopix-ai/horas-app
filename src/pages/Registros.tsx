@@ -58,7 +58,7 @@ export default function Registros() {
   const location = useLocation()
 
   // Estados dos Dados
-  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
+  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
@@ -74,7 +74,7 @@ export default function Registros() {
 
   // Estados do Modal de Registros
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingRegistro, setEditingRegistro] = useState<(Registro & { projeto: { nome: string; cor: string } | null }) | null>(null)
+  const [editingRegistro, setEditingRegistro] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null }) | null>(null)
 
   // Estados do Modal de Horário do Dia
   const [isModalHorarioOpen, setIsModalHorarioOpen] = useState(false)
@@ -487,12 +487,25 @@ export default function Registros() {
           {/* Dia Específico */}
           <div className="flex-1">
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Dia Específico</label>
-            <input
-              type="date"
-              value={filtroDiaEspecifico}
-              onChange={(e) => setFiltroDiaEspecifico(e.target.value)}
-              className="bg-[#0B0E14] border border-[#374151] rounded-[8px] p-[10px] text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={filtroDiaEspecifico}
+                onChange={(e) => setFiltroDiaEspecifico(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="bg-[#0B0E14] border border-[#374151] rounded-[8px] p-[10px] text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
+              />
+              {filtroDiaEspecifico && (
+                <button
+                  type="button"
+                  onClick={() => setFiltroDiaEspecifico('')}
+                  className="text-xs text-[#8B949E] hover:text-white transition-colors cursor-pointer whitespace-nowrap px-1"
+                  title="Limpar data"
+                >
+                  ✕ Limpar
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -594,7 +607,7 @@ export default function Registros() {
                         }
 
                         // ==== RENDERIZAÇÃO DO REGISTRO ====
-                        const reg = item.data as (Registro & { projeto: { nome: string; cor: string } | null })
+                        const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })
                         const projCor = reg.projeto?.cor || '#6B7280'
                         const projNome = reg.projeto?.nome || 'Sem Projeto'
 
@@ -602,17 +615,29 @@ export default function Registros() {
                           <div key={reg.id} className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group">
                             {/* Tag do Projeto */}
                             <div className="w-full md:w-[120px] shrink-0">
-                              <span
-                                className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
-                                style={{ 
-                                  backgroundColor: `${projCor}12`, 
-                                  borderColor: `${projCor}44`,
-                                  color: projCor
-                                }}
-                              >
-                                <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                <span className="truncate">{projNome}</span>
-                              </span>
+                              {reg.projeto?.tipo === 'rotina' ? (
+                                <span
+                                  className="inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
+                                  style={{ 
+                                    borderColor: projCor,
+                                    color: projCor
+                                  }}
+                                >
+                                  <span className="truncate">· {projNome}</span>
+                                </span>
+                              ) : (
+                                <span
+                                  className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
+                                  style={{ 
+                                    backgroundColor: `${projCor}12`, 
+                                    borderColor: `${projCor}44`,
+                                    color: projCor
+                                  }}
+                                >
+                                  <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                  <span className="truncate">{projNome}</span>
+                                </span>
+                              )}
                             </div>
 
                             {/* Horários */}

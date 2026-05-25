@@ -13,8 +13,8 @@ interface ModalRegistroProps {
     hora_fim: string
     observacao: string | null
   }) => Promise<void>
-  registro?: (Registro & { projeto: { nome: string; cor: string } | null }) | null
-  registrosExistentes?: (Registro & { projeto: { nome: string; cor: string } | null })[]
+  registro?: (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null }) | null
+  registrosExistentes?: (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })[]
 }
 
 // Função auxiliar para obter a data local de hoje no formato YYYY-MM-DD

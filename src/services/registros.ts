@@ -41,12 +41,12 @@ export function calcularSemanaInicio(dataStr: string): string {
 export async function listarRegistros(
   usuarioId: string,
   filtros?: { projetoId?: string; dataInicio?: string; dataFim?: string }
-): Promise<(Registro & { projeto: { nome: string; cor: string } | null })[]> {
+): Promise<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })[]> {
   let query = supabase
     .from('registros')
     .select(`
       *,
-      projeto:projetos(nome, cor)
+      projeto:projetos(nome, cor, tipo)
     `)
     .eq('usuario_id', usuarioId)
     .order('data', { ascending: false })
