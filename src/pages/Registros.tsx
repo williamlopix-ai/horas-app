@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import {
   listarRegistros,
@@ -14,7 +14,6 @@ import ModalRegistro from '../components/ModalRegistro'
 
 export default function Registros() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
   const location = useLocation()
 
   // Estados dos Dados

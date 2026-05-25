@@ -3,7 +3,6 @@ import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-import Dashboard from './pages/Dashboard'
 import Projetos from './pages/Projetos'
 import Registros from './pages/Registros'
 
