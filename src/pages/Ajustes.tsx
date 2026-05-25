@@ -22,6 +22,7 @@ export default function Ajustes() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   // Carregar configurações do usuário ao montar
   const carregarConfiguracoes = async () => {
@@ -54,7 +55,7 @@ export default function Ajustes() {
     try {
       setSaving(true)
       setError(null)
-      setSuccess(false)
+      setSuccess(null)
 
       await salvarConfiguracoes(user.id, {
         meta_semanal: metaSemanal,
