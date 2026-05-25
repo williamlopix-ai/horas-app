@@ -5,14 +5,16 @@ import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import Projetos from './pages/Projetos'
 import Registros from './pages/Registros'
+import Resumo from './pages/Resumo'
+import Ajustes from './pages/Ajustes'
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Redirecionamento da raiz para o Login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Redirecionamento da raiz para /registros */}
+          <Route path="/" element={<Navigate to="/registros" replace />} />
           
           {/* Rotas Públicas */}
           <Route path="/login" element={<Login />} />
@@ -36,10 +38,28 @@ function App() {
           />
 
           <Route
+            path="/resumo"
+            element={
+              <ProtectedRoute>
+                <Resumo />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/projetos"
             element={
               <ProtectedRoute>
                 <Projetos />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ajustes"
+            element={
+              <ProtectedRoute>
+                <Ajustes />
               </ProtectedRoute>
             }
           />
