@@ -19,7 +19,7 @@ export default function Registros() {
   // Estados dos Dados
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
-  const [metaSemanal, setMetaSemanal] = useState<number>(40) // Default meta
+  const [metaSemanal, setMetaSemanal] = useState<number>(42.5) // Default meta
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

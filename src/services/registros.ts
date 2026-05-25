@@ -16,8 +16,8 @@ export function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): 
   const horasInteiras = Math.floor(diferencaMinutos / 60)
   const minutosRestantes = diferencaMinutos % 60
   
-  // Regra crítica: horas_inteiras + (minutos * 100) / 60
-  const duracao = horasInteiras + (minutosRestantes * 100) / 60
+  // Regra crítica: horas_inteiras + (minutosRestantes / 60)
+  const duracao = horasInteiras + (minutosRestantes / 60)
   
   return Math.round(duracao * 100) / 100
 }
