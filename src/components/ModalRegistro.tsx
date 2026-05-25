@@ -14,6 +14,7 @@ interface ModalRegistroProps {
     observacao: string | null
   }) => Promise<void>
   registro?: (Registro & { projeto: { nome: string; cor: string } | null }) | null
+  registrosExistentes?: (Registro & { projeto: { nome: string; cor: string } | null })[]
 }
 
 // Função auxiliar para obter a data local de hoje no formato YYYY-MM-DD
@@ -66,7 +67,7 @@ function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): number 
   return Math.round(duracao * 100) / 100
 }
 
-export default function ModalRegistro({ isOpen, onClose, onSave, registro }: ModalRegistroProps) {
+export default function ModalRegistro({ isOpen, onClose, onSave, registro, registrosExistentes = [] }: ModalRegistroProps) {
   const { user } = useAuth()
   
   // Estados do Form
@@ -129,8 +130,25 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro }: Mod
     if (totalMinutosFim <= totalMinutosInicio) {
       return 'A hora de fim deve ser estritamente maior que a hora de início.'
     }
+
+    if (data && registrosExistentes.length > 0) {
+      const registrosDoDia = registrosExistentes.filter(r => r.data === data && r.id !== registro?.id)
+      
+      for (const reg of registrosDoDia) {
+        const [regH1, regM1] = reg.hora_inicio.split(':').map(Number)
+        const [regH2, regM2] = reg.hora_fim.split(':').map(Number)
+        const regTotalInicio = regH1 * 60 + regM1
+        const regTotalFim = regH2 * 60 + regM2
+
+        if (totalMinutosInicio < regTotalFim && totalMinutosFim > regTotalInicio) {
+          const nomeProjeto = reg.projeto?.nome || 'Sem Projeto'
+          return `⚠ Conflito com ${nomeProjeto} (${reg.hora_inicio.slice(0, 5)} - ${reg.hora_fim.slice(0, 5)})`
+        }
+      }
+    }
+
     return null
-  }, [horaInicio, horaFim])
+  }, [horaInicio, horaFim, data, registro, registrosExistentes])
 
   if (!isOpen) return null
 

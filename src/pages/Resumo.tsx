@@ -19,8 +19,13 @@ export default function Resumo() {
   const [error, setError] = useState<string | null>(null)
   
   const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
+  const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
 
   const metaDiaria = useMemo(() => metaSemanal / 5, [metaSemanal])
+
+  const toggleRotina = (id: string) => {
+    setRotinasExpandidas(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   // Carregar dados
   const carregarDados = async () => {
@@ -80,6 +85,12 @@ export default function Resumo() {
     return `${diasSemana[dataDate.getDay()]}, ${String(rd).padStart(2, '0')} de ${mesesAbrev[rm - 1]} (${ry})`
   }
 
+  const formatarDataCurta = (dataStr: string) => {
+    const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+    const [, rm, rd] = dataStr.split('-').map(Number)
+    return `${String(rd).padStart(2, '0')} ${mesesAbrev[rm - 1]}`
+  }
+
   // ============================
   // Agrupamentos
   // ============================
@@ -121,13 +132,14 @@ export default function Resumo() {
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {
-    const grupos: { [key: string]: { duracao: number, qtd: number } } = {}
+    const grupos: { [key: string]: { duracao: number, qtd: number, registros: any[] } } = {}
     let totalGeral = 0
     registros.forEach((reg) => {
       const projId = reg.projeto_id || 'sem_projeto'
-      if (!grupos[projId]) grupos[projId] = { duracao: 0, qtd: 0 }
+      if (!grupos[projId]) grupos[projId] = { duracao: 0, qtd: 0, registros: [] }
       grupos[projId].duracao += reg.duracao
       grupos[projId].qtd += 1
+      grupos[projId].registros.push(reg)
       totalGeral += reg.duracao
     })
     
@@ -152,8 +164,13 @@ export default function Resumo() {
 
       const totalHoras = grupos[id].duracao
       const qtd = grupos[id].qtd
+      // Ordenar os registros pela data e hora de inicio (mais recente primeiro)
+      const regs = grupos[id].registros.sort((a, b) => {
+        if (a.data === b.data) return b.hora_inicio.localeCompare(a.hora_inicio)
+        return b.data.localeCompare(a.data)
+      })
 
-      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas }
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs }
       
       if (tipo === 'rotina') {
         arrayRotina.push(item)
@@ -475,33 +492,44 @@ export default function Resumo() {
                           <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
                             {/* Cabeçalho */}
                             <div className="flex items-center gap-3">
-                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: proj.cor }}></span>
-                              <span className="font-bold text-white text-lg truncate" title={proj.nome}>{proj.nome}</span>
+                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
+                                <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
+                              </span>
+                              <span className="font-bold text-white uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
                             </div>
                             
+                            <hr className="border-gray-800/80" />
+
                             {/* Dados */}
-                            <div className="space-y-1 flex-1">
-                              <p className="text-sm font-semibold text-white">{proj.totalHoras.toFixed(2).replace('.', ',')}h lançadas</p>
+                            <div className="flex-1 space-y-3">
+                              {temContrato ? (
+                                <p className="text-sm font-medium text-[#8B949E]">
+                                  <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                </p>
+                              ) : (
+                                <p className="text-sm font-medium text-[#8B949E]">
+                                  <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                </p>
+                              )}
+
+                              {/* Progresso (apenas se tiver contrato) */}
                               {temContrato && (
-                                <>
-                                  <p className="text-xs text-gray-400">de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas</p>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex-1 bg-[#0B0E14] h-[6px] rounded-full overflow-hidden border border-gray-800/50">
+                                      <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
+                                    </div>
+                                    <span className="text-sm font-bold" style={{ color: passou ? '#F44336' : '#4CAF50' }}>{percentual}%</span>
+                                  </div>
+                                  
                                   {passou ? (
-                                    <p className="text-xs font-bold text-red-400 mt-2">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
+                                    <p className="text-sm font-bold text-red-500">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
                                   ) : (
-                                    <p className="text-xs font-bold text-emerald-400 mt-2">{diff.toFixed(2).replace('.', ',')}h restantes</p>
+                                    <p className="text-sm font-bold text-emerald-500">{diff.toFixed(2).replace('.', ',')}h restantes</p>
                                   )}
-                                </>
+                                </div>
                               )}
                             </div>
-
-                            {/* Progresso (apenas se tiver contrato) */}
-                            {temContrato && (
-                              <div className="space-y-2 pt-3 border-t border-gray-800/60 mt-auto">
-                                <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
-                                  <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
-                                </div>
-                              </div>
-                            )}
                           </div>
                         )
                       })}
@@ -515,20 +543,49 @@ export default function Resumo() {
                     <h2 className="text-xl font-bold text-white mb-4">Rotina</h2>
                     <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
                       <div className="divide-y divide-gray-800/60">
-                        {resumoProjetos.rotinas.map((rotina) => (
-                          <div key={rotina.id} className="flex items-center justify-between p-4 hover:bg-gray-800/20 transition-colors">
-                            <div className="flex items-center gap-4">
-                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
-                              <div>
-                                <p className="font-bold text-white text-base truncate" title={rotina.nome}>{rotina.nome}</p>
-                                <p className="text-xs text-gray-500 mt-0.5">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</p>
+                        {resumoProjetos.rotinas.map((rotina) => {
+                          const isExpanded = rotinasExpandidas[rotina.id] || false;
+                          return (
+                            <div key={rotina.id} className="flex flex-col border-b border-gray-800/60 last:border-0">
+                              <div 
+                                className="flex items-center justify-between p-4 hover:bg-gray-800/40 transition-colors cursor-pointer"
+                                onClick={() => toggleRotina(rotina.id)}
+                              >
+                                <div className="flex items-center gap-4">
+                                  <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
+                                  <p className="font-bold text-white text-sm uppercase tracking-wide truncate" title={rotina.nome}>{rotina.nome}</p>
+                                </div>
+                                <div className="flex items-center gap-4 text-right">
+                                  <span className="font-mono font-bold text-[#03A9F4] text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                                  <span className="text-xs font-semibold text-gray-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
+                                  <svg className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+                              
+                              <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
+                                <div className="flex flex-col gap-1 px-4 ml-[22px] border-l-2 border-gray-800/50 pl-3">
+                                  {rotina.registros.map((reg: any) => (
+                                    <div key={reg.id} className="flex items-center gap-3 py-1">
+                                      <span className="text-xs text-gray-400 font-mono w-[50px] shrink-0">{formatarDataCurta(reg.data)}</span>
+                                      <span className="text-gray-600">·</span>
+                                      <span className="text-xs text-gray-400 font-mono w-[85px] shrink-0">{reg.hora_inicio.slice(0, 5)}-{reg.hora_fim.slice(0, 5)}</span>
+                                      <span className="text-gray-600">·</span>
+                                      <span className="text-xs text-gray-400 font-mono font-bold shrink-0">{reg.duracao.toFixed(2).replace('.', ',')}h</span>
+                                      {reg.observacao && (
+                                        <>
+                                          <span className="text-gray-600">·</span>
+                                          <span className="text-[11px] text-gray-500 italic truncate" title={reg.observacao}>{reg.observacao}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <span className="font-mono font-bold text-[#03A9F4] text-lg">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
