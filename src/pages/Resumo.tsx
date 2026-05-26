@@ -22,6 +22,7 @@ export default function Resumo() {
   
   const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
+  const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
   const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
     return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
   })
@@ -35,6 +36,10 @@ export default function Resumo() {
 
   const toggleRotina = (id: string) => {
     setRotinasExpandidas(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const toggleProjeto = (id: string) => {
+    setProjetosExpandidos(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   // Carregar dados
@@ -180,7 +185,31 @@ export default function Resumo() {
         return b.data.localeCompare(a.data)
       })
 
-      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs }
+      // Breakdown de Subcategorias
+      const subGrupos: { [key: string]: { id: string | null, nome: string, duracao: number } } = {}
+      regs.forEach(reg => {
+        const subId = reg.subcategoria_id || 'sem_subcategoria'
+        if (!subGrupos[subId]) {
+          subGrupos[subId] = {
+            id: reg.subcategoria_id || null,
+            nome: reg.subcategoria?.nome || 'Sem subcategoria',
+            duracao: 0
+          }
+        }
+        subGrupos[subId].duracao += reg.duracao
+      })
+      
+      const arraySub = Object.values(subGrupos)
+      const comSub = arraySub.filter(s => s.id !== null).sort((a, b) => b.duracao - a.duracao)
+      const semSub = arraySub.find(s => s.id === null)
+      if (semSub) comSub.push(semSub)
+      
+      const subcategorias = comSub.map(s => ({
+        ...s,
+        percentual: Math.round((s.duracao / totalHoras) * 100)
+      }))
+
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias }
       
       if (tipo === 'rotina') {
         arrayRotina.push(item)
@@ -688,6 +717,9 @@ export default function Resumo() {
                         const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
                         const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
                         const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
+                        
+                        const isExpanded = projetosExpandidos[proj.id] || false;
+                        const hasRegistros = proj.registros.length > 0;
 
                         return (
                           <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
@@ -731,6 +763,45 @@ export default function Resumo() {
                                 </div>
                               )}
                             </div>
+
+                            {/* Detalhes Subcategorias */}
+                            {hasRegistros && (
+                              <div className="pt-2">
+                                <button
+                                  onClick={() => toggleProjeto(proj.id)}
+                                  className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                >
+                                  <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+
+                                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                  <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+                                    <div className="space-y-2">
+                                      {proj.subcategorias.map((sub: any) => (
+                                        <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs">
+                                          <div className="flex items-center gap-2 flex-1 min-w-0 pr-4">
+                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                            <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
+                                          </div>
+                                          <div className="flex items-center gap-4 shrink-0">
+                                            <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                            <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )
                       })}

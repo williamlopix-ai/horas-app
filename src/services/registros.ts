@@ -46,7 +46,8 @@ export async function listarRegistros(
     .from('registros')
     .select(`
       *,
-      projeto:projetos(nome, cor, tipo)
+      projeto:projetos(nome, cor, tipo),
+      subcategoria:subcategorias(nome)
     `)
     .eq('usuario_id', usuarioId)
     .order('data', { ascending: false })
