@@ -151,6 +151,7 @@ export default function Registros() {
 
   const handleSalvarRegistro = async (dados: {
     projeto_id: string | null
+    subcategoria_id: string | null
     data: string
     hora_inicio: string
     hora_fim: string
@@ -164,6 +165,7 @@ export default function Registros() {
         await criarRegistro({
           usuario_id: user.id,
           projeto_id: dados.projeto_id,
+          subcategoria_id: dados.subcategoria_id,
           data: dados.data,
           hora_inicio: dados.hora_inicio,
           hora_fim: dados.hora_fim,

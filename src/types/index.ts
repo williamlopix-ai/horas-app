@@ -19,6 +19,14 @@ export interface Configuracao {
   fim_dia: string
 }
 
+export interface Subcategoria {
+  id: string
+  projeto_id: string
+  usuario_id: string
+  nome: string
+  criado_em: string
+}
+
 export interface Registro {
   id: string
   usuario_id: string
@@ -29,6 +37,8 @@ export interface Registro {
   duracao: number
   observacao: string | null
   semana_inicio: string | null
+  subcategoria_id: string | null
+  subcategoria?: { nome: string } | null
   criado_em: string
 }
 

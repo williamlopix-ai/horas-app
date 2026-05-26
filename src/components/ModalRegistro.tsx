@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { listarProjetos } from '../services/projetos'
+import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
-import type { Registro, Projeto } from '../types'
+import type { Registro, Projeto, Subcategoria } from '../types'
 
 interface ModalRegistroProps {
   isOpen: boolean
   onClose: () => void
   onSave: (dados: {
     projeto_id: string | null
+    subcategoria_id: string | null
     data: string
     hora_inicio: string
     hora_fim: string
@@ -77,6 +79,8 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   const [horaInicio, setHoraInicio] = useState<string>('09:00')
   const [horaFim, setHoraFim] = useState<string>('18:00')
   const [observacao, setObservacao] = useState<string>('')
+  const [subcategoriaId, setSubcategoriaId] = useState<string>('')
+  const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<Subcategoria[]>([])
 
   // Estados Operacionais
   const [projetos, setProjetos] = useState<Projeto[]>([])
@@ -104,12 +108,14 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     if (isOpen) {
       if (registro) {
         setProjetoId(registro.projeto_id || '')
+        setSubcategoriaId(registro.subcategoria_id || '')
         setData(registro.data)
         setHoraInicio(registro.hora_inicio.slice(0, 5)) // Garantir formato HH:MM
         setHoraFim(registro.hora_fim.slice(0, 5)) // Garantir formato HH:MM
         setObservacao(registro.observacao || '')
       } else {
         setProjetoId('')
+        setSubcategoriaId('')
         setData(obterDataLocalHoje())
         setHoraInicio('09:00')
         setHoraFim('18:00')
@@ -118,6 +124,34 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
       setError(null)
     }
   }, [isOpen, registro])
+
+  // Buscar subcategorias quando mudar de projeto
+  useEffect(() => {
+    let montado = true
+    if (projetoId) {
+      const projetoSelecionado = projetos.find(p => p.id === projetoId)
+      if (projetoSelecionado?.tipo === 'projeto' || (!projetoSelecionado?.tipo)) {
+        subcategoriasService.listarSubcategorias(projetoId)
+          .then(data => {
+            if (montado) {
+              setSubcategoriasDisponiveis(data)
+              // Se não for o projeto original da edição, resetar a subcategoria
+              if (!registro || (registro && registro.projeto_id !== projetoId)) {
+                setSubcategoriaId('')
+              }
+            }
+          })
+          .catch(err => console.error('Erro ao listar subcategorias', err))
+      } else {
+        setSubcategoriasDisponiveis([])
+        setSubcategoriaId('')
+      }
+    } else {
+      setSubcategoriasDisponiveis([])
+      setSubcategoriaId('')
+    }
+    return () => { montado = false }
+  }, [projetoId, projetos, registro])
 
   // Validações em tempo real
   const validacaoErro = useMemo(() => {
@@ -178,6 +212,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
       setSubmitting(true)
       await onSave({
         projeto_id: projetoId === 'nenhum' ? null : projetoId,
+        subcategoria_id: subcategoriaId || null,
         data,
         hora_inicio: horaInicio,
         hora_fim: horaFim,
@@ -264,6 +299,28 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                 )}
               </select>
             </div>
+
+            {/* Subcategoria (Condicional) */}
+            {subcategoriasDisponiveis.length > 0 && (
+              <div>
+                <label htmlFor="modal-subcategoria" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Subcategoria (opcional)
+                </label>
+                <select
+                  id="modal-subcategoria"
+                  value={subcategoriaId}
+                  onChange={(e) => setSubcategoriaId(e.target.value)}
+                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
+                >
+                  <option value="">Sem subcategoria</option>
+                  {subcategoriasDisponiveis.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Data */}
             <div>

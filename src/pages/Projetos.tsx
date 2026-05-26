@@ -31,6 +31,8 @@ export default function Projetos() {
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProjeto, setEditingProjeto] = useState<Projeto | null>(null)
+  const [focarSubcategorias, setFocarSubcategorias] = useState(false)
+  const [projetoRecemCriado, setProjetoRecemCriado] = useState<Projeto | null>(null)
 
   const carregarProjetos = async () => {
     if (!user) return
@@ -53,17 +55,20 @@ export default function Projetos() {
 
   const abrirNovoProjetoModal = () => {
     setEditingProjeto(null)
+    setFocarSubcategorias(false)
     setIsModalOpen(true)
   }
 
-  const abrirEditarProjetoModal = (projeto: Projeto) => {
+  const abrirEditarProjetoModal = (projeto: Projeto, focarSubs = false) => {
     setEditingProjeto(projeto)
+    setFocarSubcategorias(focarSubs)
     setIsModalOpen(true)
   }
 
   const fecharModal = () => {
     setIsModalOpen(false)
     setEditingProjeto(null)
+    setFocarSubcategorias(false)
   }
 
   const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => {
@@ -82,7 +87,7 @@ export default function Projetos() {
         showToast('Projeto atualizado!', 'success')
       } else {
         // Criar novo projeto
-        await criarProjeto({
+        const novoProj = await criarProjeto({
           usuario_id: user.id,
           nome: dados.nome,
           cor: dados.cor,
@@ -91,6 +96,11 @@ export default function Projetos() {
           status: 'ativo'
         })
         showToast('Projeto criado!', 'success')
+        
+        // Se for do tipo 'projeto', exibe dialog para oferecer subcategorias
+        if (novoProj.tipo === 'projeto') {
+          setProjetoRecemCriado(novoProj)
+        }
       }
       await carregarProjetos()
     } catch (err: any) {
@@ -390,7 +400,43 @@ export default function Projetos() {
         onClose={fecharModal}
         onSave={handleSalvarProjeto}
         projeto={editingProjeto}
+        focarSubcategorias={focarSubcategorias}
       />
+
+      {/* Dialog de Confirmação para Adicionar Subcategorias */}
+      {projetoRecemCriado && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl animate-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-white mb-2">Projeto criado!</h3>
+            <p className="text-sm text-gray-400 mb-6">
+              Deseja adicionar subcategorias agora?
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const p = projetoRecemCriado
+                  setProjetoRecemCriado(null)
+                  abrirEditarProjetoModal(p, true)
+                }}
+                className="w-full py-2.5 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/10"
+              >
+                Adicionar subcategorias
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjetoRecemCriado(null)}
+                className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all border border-gray-700/50"
+              >
+                Agora não
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
