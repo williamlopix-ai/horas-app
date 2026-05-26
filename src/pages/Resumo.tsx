@@ -22,6 +22,14 @@ export default function Resumo() {
   
   const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
+  const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
+    return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
+  })
+
+  const changeViewMode = (mode: 'cards' | 'lista' | 'tabela') => {
+    setViewMode(mode)
+    localStorage.setItem('horas_view_resumo', mode)
+  }
 
   const metaDiaria = useMemo(() => metaSemanal / 5, [metaSemanal])
 
@@ -105,7 +113,7 @@ export default function Resumo() {
       grupos[reg.semana_inicio] = (grupos[reg.semana_inicio] || 0) + reg.duracao
     })
     return Object.keys(grupos)
-      .sort((a, b) => b.localeCompare(a))
+      .sort((a, b) => a.localeCompare(b))
       .map((semana) => {
         const totalHoras = grupos[semana]
         const atingiuMeta = totalHoras >= metaSemanal
@@ -122,7 +130,7 @@ export default function Resumo() {
       grupos[reg.data] = (grupos[reg.data] || 0) + reg.duracao
     })
     return Object.keys(grupos)
-      .sort((a, b) => b.localeCompare(a))
+      .sort((a, b) => a.localeCompare(b))
       .map((data) => {
         const totalHoras = grupos[data]
         const atingiuMeta = totalHoras >= metaDiaria
@@ -294,32 +302,79 @@ export default function Resumo() {
           </div>
         )}
 
-        {/* Sistema de Abas */}
-        <div className="flex p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
-          <button
-            onClick={() => setAbaAtiva('semanal')}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-              abaAtiva === 'semanal' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Semanal
-          </button>
-          <button
-            onClick={() => setAbaAtiva('diario')}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-              abaAtiva === 'diario' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Diário
-          </button>
-          <button
-            onClick={() => setAbaAtiva('projetos')}
-            className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-              abaAtiva === 'projetos' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Por Projetos
-          </button>
+        {/* Sistema de Abas e Toggle de Visualização */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
+            <button
+              onClick={() => setAbaAtiva('semanal')}
+              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+                abaAtiva === 'semanal' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Semanal
+            </button>
+            <button
+              onClick={() => setAbaAtiva('diario')}
+              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+                abaAtiva === 'diario' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Diário
+            </button>
+            <button
+              onClick={() => setAbaAtiva('projetos')}
+              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+                abaAtiva === 'projetos' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Por Projetos
+            </button>
+          </div>
+
+          {(abaAtiva === 'semanal' || abaAtiva === 'diario') && (
+            <div className="flex bg-[#161B22] p-1 rounded-xl border border-gray-800">
+              <button
+                onClick={() => changeViewMode('cards')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === 'cards'
+                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Visualização em Cards"
+              >
+                <span>⊞</span>
+                <span>Cards</span>
+              </button>
+              <button
+                onClick={() => changeViewMode('lista')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === 'lista'
+                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Visualização em Lista"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span>Lista</span>
+              </button>
+              <button
+                onClick={() => changeViewMode('tabela')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewMode === 'tabela'
+                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Visualização em Tabela"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Tabela</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -353,62 +408,135 @@ export default function Resumo() {
                 ABA: SEMANAL 
                ========================================================================= */}
             {abaAtiva === 'semanal' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                {resumoSemanas.map((semana) => {
-                  const valorDiferenca = semana.diferenca
-                  const isPositivoOuZero = valorDiferenca >= 0
-                  const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+              <div className="animate-in fade-in duration-300">
+                {viewMode === 'cards' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {resumoSemanas.map((semana) => {
+                      const valorDiferenca = semana.diferenca
+                      const isPositivoOuZero = valorDiferenca >= 0
+                      const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
 
-                  return (
-                    <div key={semana.semana_inicio} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
-                      {/* Cabeçalho */}
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Período</span>
-                          <h3 className="text-base font-bold text-white leading-snug">{semana.titulo}</h3>
-                        </div>
-                        <div className="shrink-0">
-                          {semana.atingiuMeta ? (
-                            <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Meta atingida">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20" title="Meta não atingida">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      return (
+                        <div key={semana.semana_inicio} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                          {/* Cabeçalho */}
+                          <div className="flex justify-between items-start gap-4">
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Período</span>
+                              <h3 className="text-base font-bold text-white leading-snug">{semana.titulo}</h3>
+                            </div>
+                            <div className="shrink-0">
+                              {semana.atingiuMeta ? (
+                                <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Meta atingida">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20" title="Meta não atingida">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
-                      {/* Dados */}
-                      <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60">
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Trabalhado</span>
-                          <span className="text-lg font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Meta</span>
-                          <span className="text-lg font-mono font-bold text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Restante</span>
-                          <span className="text-lg font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
-                        </div>
-                      </div>
+                          {/* Dados */}
+                          <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60">
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Trabalhado</span>
+                              <span className="text-lg font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Meta</span>
+                              <span className="text-lg font-mono font-bold text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Restante</span>
+                              <span className="text-lg font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                            </div>
+                          </div>
 
-                      {/* Progresso */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs font-semibold">
-                          <span className="text-gray-400">Progresso</span>
-                          <span style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}% Concluído</span>
+                          {/* Progresso */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-xs font-semibold">
+                              <span className="text-gray-400">Progresso</span>
+                              <span style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}% Concluído</span>
+                            </div>
+                            <div className="w-full bg-[#0B0E14] h-3 rounded-full overflow-hidden border border-gray-800/50">
+                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="w-full bg-[#0B0E14] h-3 rounded-full overflow-hidden border border-gray-800/50">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                      )
+                    })}
+                  </div>
+                )}
+
+                {viewMode === 'lista' && (
+                  <div className="flex flex-col gap-2 bg-[#161B22] border border-gray-800 rounded-2xl p-4 divide-y divide-gray-800/60">
+                    {resumoSemanas.map((semana) => {
+                      const valorDiferenca = semana.diferenca
+                      const isPositivoOuZero = valorDiferenca >= 0
+                      const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+                      return (
+                        <div key={semana.semana_inicio} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${semana.atingiuMeta ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                            <span className="font-bold text-white truncate">{semana.titulo}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
+                            <div>Trabalhado: <span className="font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-gray-300">{metaSemanal.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
+                            <div>Concluído: <span className="font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</span></div>
+                          </div>
                         </div>
-                      </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {viewMode === 'tabela' && (
+                  <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-800 bg-[#1E2530]/40 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <th className="py-3.5 px-6">Período</th>
+                            <th className="py-3.5 px-6 text-right">Trabalhado</th>
+                            <th className="py-3.5 px-6 text-right">Meta</th>
+                            <th className="py-3.5 px-6 text-right">Diferença</th>
+                            <th className="py-3.5 px-6 text-right">%</th>
+                            <th className="py-3.5 px-6 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800/60 text-sm">
+                          {resumoSemanas.map((semana) => {
+                            const valorDiferenca = semana.diferenca
+                            const isPositivoOuZero = valorDiferenca >= 0
+                            const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+                            return (
+                              <tr key={semana.semana_inicio} className="hover:bg-[#1E2530]/20 transition-colors">
+                                <td className="py-4 px-6 font-semibold text-white">{semana.titulo}</td>
+                                <td className="py-4 px-6 text-right font-mono font-semibold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</td>
+                                <td className="py-4 px-6 text-center">
+                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${
+                                    semana.atingiuMeta 
+                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                                      : 'bg-red-500/10 border-red-500/20 text-red-400'
+                                  }`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${semana.atingiuMeta ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                    {semana.atingiuMeta ? 'Atingida' : 'Pendente'}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
                     </div>
-                  )
-                })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -416,57 +544,130 @@ export default function Resumo() {
                 ABA: DIÁRIO
                ========================================================================= */}
             {abaAtiva === 'diario' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 animate-in fade-in duration-300">
-                {resumoDias.map((dia) => {
-                  const valorDiferenca = dia.diferenca
-                  const isPositivoOuZero = valorDiferenca >= 0
-                  const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+              <div className="animate-in fade-in duration-300">
+                {viewMode === 'cards' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                    {resumoDias.map((dia) => {
+                      const valorDiferenca = dia.diferenca
+                      const isPositivoOuZero = valorDiferenca >= 0
+                      const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
 
-                  return (
-                    <div key={dia.data} className="bg-[#161B22] border border-gray-800 rounded-xl p-5 space-y-4 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
-                      {/* Cabeçalho */}
-                      <div className="flex justify-between items-start gap-4">
-                        <div>
-                          <h3 className="text-sm font-bold text-white capitalize leading-snug">{dia.titulo}</h3>
-                        </div>
-                        <div className="shrink-0">
-                          {dia.atingiuMeta ? (
-                            <span className="inline-flex p-1 rounded-full bg-emerald-500/10 text-emerald-400" title="Meta atingida">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                            </span>
-                          ) : (
-                            <span className="inline-flex p-1 rounded-full bg-red-500/10 text-red-400" title="Meta não atingida">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      return (
+                        <div key={dia.data} className="bg-[#161B22] border border-gray-800 rounded-xl p-5 space-y-4 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                          {/* Cabeçalho */}
+                          <div className="flex justify-between items-start gap-4">
+                            <div>
+                              <h3 className="text-sm font-bold text-white capitalize leading-snug">{dia.titulo}</h3>
+                            </div>
+                            <div className="shrink-0">
+                              {dia.atingiuMeta ? (
+                                <span className="inline-flex p-1 rounded-full bg-emerald-500/10 text-emerald-400" title="Meta atingida">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                </span>
+                              ) : (
+                                <span className="inline-flex p-1 rounded-full bg-red-500/10 text-red-400" title="Meta não atingida">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
-                      {/* Dados */}
-                      <div className="flex justify-between py-2 border-y border-gray-800/60">
-                        <div>
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Trabalhado</span>
-                          <span className="text-base font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Diferença</span>
-                          <span className="text-base font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
-                        </div>
-                      </div>
+                          {/* Dados */}
+                          <div className="flex justify-between py-2 border-y border-gray-800/60">
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Trabalhado</span>
+                              <span className="text-base font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Diferença</span>
+                              <span className="text-base font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                            </div>
+                          </div>
 
-                      {/* Progresso */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between items-center text-[10px] font-semibold">
-                          <span className="text-gray-400">Meta: {metaDiaria.toFixed(2).replace('.', ',')}h</span>
-                          <span style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span>
+                          {/* Progresso */}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center text-[10px] font-semibold">
+                              <span className="text-gray-400">Meta: {metaDiaria.toFixed(2).replace('.', ',')}h</span>
+                              <span style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span>
+                            </div>
+                            <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
+                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                      )
+                    })}
+                  </div>
+                )}
+
+                {viewMode === 'lista' && (
+                  <div className="flex flex-col gap-2 bg-[#161B22] border border-gray-800 rounded-2xl p-4 divide-y divide-gray-800/60">
+                    {resumoDias.map((dia) => {
+                      const valorDiferenca = dia.diferenca
+                      const isPositivoOuZero = valorDiferenca >= 0
+                      const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+                      return (
+                        <div key={dia.data} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${dia.atingiuMeta ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                            <span className="font-bold text-white capitalize truncate">{dia.titulo}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
+                            <div>Trabalhado: <span className="font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-gray-300">{metaDiaria.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
+                            <div>Concluído: <span className="font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span></div>
+                          </div>
                         </div>
-                      </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {viewMode === 'tabela' && (
+                  <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-800 bg-[#1E2530]/40 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <th className="py-3.5 px-6">Dia</th>
+                            <th className="py-3.5 px-6 text-right">Trabalhado</th>
+                            <th className="py-3.5 px-6 text-right">Meta</th>
+                            <th className="py-3.5 px-6 text-right">Diferença</th>
+                            <th className="py-3.5 px-6 text-right">%</th>
+                            <th className="py-3.5 px-6 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800/60 text-sm">
+                          {resumoDias.map((dia) => {
+                            const valorDiferenca = dia.diferenca
+                            const isPositivoOuZero = valorDiferenca >= 0
+                            const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
+                            return (
+                              <tr key={dia.data} className="hover:bg-[#1E2530]/20 transition-colors">
+                                <td className="py-4 px-6 font-semibold text-white capitalize">{dia.titulo}</td>
+                                <td className="py-4 px-6 text-right font-mono font-semibold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-gray-400">{metaDiaria.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</td>
+                                <td className="py-4 px-6 text-center">
+                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${
+                                    dia.atingiuMeta 
+                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                                      : 'bg-red-500/10 border-red-500/20 text-red-400'
+                                  }`}>
+                                    <span className={`h-1.5 w-1.5 rounded-full ${dia.atingiuMeta ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                    {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
                     </div>
-                  )
-                })}
+                  </div>
+                )}
               </div>
             )}
 

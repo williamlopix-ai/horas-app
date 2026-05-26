@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { Link, useLocation } from 'react-router-dom'
@@ -22,6 +22,11 @@ export default function Projetos() {
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [abaAtiva, setAbaAtiva] = useState<'projeto' | 'rotina'>('projeto')
+
+  const projetosFiltrados = useMemo(() => {
+    return projetos.filter(p => (p.tipo || 'projeto') === abaAtiva)
+  }, [projetos, abaAtiva])
 
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -240,6 +245,36 @@ export default function Projetos() {
           </button>
         </div>
 
+        {/* Abas Projetos / Rotina */}
+        <div className="flex border-b border-gray-800 gap-6">
+          <button
+            onClick={() => setAbaAtiva('projeto')}
+            className={`pb-3 text-sm font-bold transition-all relative ${
+              abaAtiva === 'projeto'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Projetos
+            {abaAtiva === 'projeto' && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#03A9F4]" />
+            )}
+          </button>
+          <button
+            onClick={() => setAbaAtiva('rotina')}
+            className={`pb-3 text-sm font-bold transition-all relative ${
+              abaAtiva === 'rotina'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Rotina
+            {abaAtiva === 'rotina' && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#03A9F4]" />
+            )}
+          </button>
+        </div>
+
         {/* Exibição de Mensagem de Erro */}
         {error && (
           <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
@@ -258,22 +293,22 @@ export default function Projetos() {
                 <SkeletonRow key={i} />
               ))}
             </div>
-          ) : projetos.length === 0 ? (
+          ) : projetosFiltrados.length === 0 ? (
             <div className="p-12 text-center max-w-md mx-auto space-y-4">
               <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-gray-400 mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-white">Nenhum projeto encontrado</h3>
+              <h3 className="text-lg font-bold text-white">Nenhum item encontrado</h3>
               <p className="text-sm text-gray-400">
-                Você ainda não cadastrou nenhum projeto. Comece criando um para organizar seus lançamentos de horas de forma profissional.
+                Você ainda não cadastrou nenhum{abaAtiva === 'projeto' ? 'o projeto' : 'a rotina'}. Comece criando um para organizar seus lançamentos de horas de forma profissional.
               </p>
               <button
                 onClick={abrirNovoProjetoModal}
                 className="py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
               >
-                Cadastrar Primeiro Projeto
+                Cadastrar Primeir{abaAtiva === 'projeto' ? 'o Projeto' : 'a Rotina'}
               </button>
             </div>
           ) : (
@@ -287,7 +322,7 @@ export default function Projetos() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/50">
-                  {projetos.map((projeto) => (
+                  {projetosFiltrados.map((projeto) => (
                     <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">

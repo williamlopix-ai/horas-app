@@ -75,6 +75,14 @@ export default function Registros() {
   const [filtroSemana, setFiltroSemana] = useState<string>('todas')
   const [filtroDiaEspecifico, setFiltroDiaEspecifico] = useState<string>('')
   const [diasExpandidos, setDiasExpandidos] = useState<{ [key: string]: boolean }>({})
+  const [viewMode, setViewMode] = useState<'lista' | 'projeto'>(() => {
+    return (localStorage.getItem('horas_view_registros') as 'lista' | 'projeto') || 'lista'
+  })
+
+  const changeViewMode = (mode: 'lista' | 'projeto') => {
+    setViewMode(mode)
+    localStorage.setItem('horas_view_registros', mode)
+  }
 
   // Estados do Modal de Registros
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -285,8 +293,8 @@ export default function Registros() {
       grupos[reg.data].push(reg)
     })
 
-    // Ordenar as chaves (datas) de forma decrescente
-    const datasOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a))
+    // Ordenar as chaves (datas) de forma crescente
+    const datasOrdenadas = Object.keys(grupos).sort((a, b) => a.localeCompare(b))
 
     return datasOrdenadas.map((dataStr) => {
       const records = grupos[dataStr]
@@ -301,40 +309,46 @@ export default function Registros() {
       // Array de itens (pode ser Registro ou Gap)
       const items: any[] = []
 
-      // Verificar gap inicial (antes do primeiro registro)
-      if (records.length > 0) {
-        const minInicioDia = timeToMinutes(limites.inicio)
-        const minPrimeiroReg = timeToMinutes(records[0].hora_inicio)
-        const diffInic = minPrimeiroReg - minInicioDia
-        if (diffInic >= 5) {
-          items.push({ type: 'gap', label: 'Tempo vago', minutes: diffInic, inicio: limites.inicio, fim: records[0].hora_inicio })
-        }
-      }
-
-      for (let i = 0; i < records.length; i++) {
-        // Inserir o registro real
-        items.push({ type: 'registro', data: records[i] })
-
-        // Verificar gap entre este registro e o próximo
-        if (i < records.length - 1) {
-          const minAtualFim = timeToMinutes(records[i].hora_fim)
-          const minProxInicio = timeToMinutes(records[i+1].hora_inicio)
-          const diff = minProxInicio - minAtualFim
-          if (diff >= 5) {
-            items.push({ type: 'gap', label: 'Tempo vago', minutes: diff, inicio: records[i].hora_fim, fim: records[i+1].hora_inicio })
+      if (viewMode === 'lista') {
+        // Verificar gap inicial (antes do primeiro registro)
+        if (records.length > 0) {
+          const minInicioDia = timeToMinutes(limites.inicio)
+          const minPrimeiroReg = timeToMinutes(records[0].hora_inicio)
+          const diffInic = minPrimeiroReg - minInicioDia
+          if (diffInic >= 5) {
+            items.push({ type: 'gap', label: 'Tempo vago', minutes: diffInic, inicio: limites.inicio, fim: records[0].hora_inicio })
           }
         }
-      }
 
-      // Verificar gap final (depois do último registro)
-      if (records.length > 0) {
-        const lastReg = records[records.length - 1]
-        const minUltimoReg = timeToMinutes(lastReg.hora_fim)
-        const minFimDia = timeToMinutes(limites.fim)
-        const diffFim = minFimDia - minUltimoReg
-        if (diffFim >= 5) {
-          items.push({ type: 'gap', label: 'Tempo vago', minutes: diffFim, inicio: lastReg.hora_fim, fim: limites.fim })
+        for (let i = 0; i < records.length; i++) {
+          // Inserir o registro real
+          items.push({ type: 'registro', data: records[i] })
+
+          // Verificar gap entre este registro e o próximo
+          if (i < records.length - 1) {
+            const minAtualFim = timeToMinutes(records[i].hora_fim)
+            const minProxInicio = timeToMinutes(records[i+1].hora_inicio)
+            const diff = minProxInicio - minAtualFim
+            if (diff >= 5) {
+              items.push({ type: 'gap', label: 'Tempo vago', minutes: diff, inicio: records[i].hora_fim, fim: records[i+1].hora_inicio })
+            }
+          }
         }
+
+        // Verificar gap final (depois do último registro)
+        if (records.length > 0) {
+          const lastReg = records[records.length - 1]
+          const minUltimoReg = timeToMinutes(lastReg.hora_fim)
+          const minFimDia = timeToMinutes(limites.fim)
+          const diffFim = minFimDia - minUltimoReg
+          if (diffFim >= 5) {
+            items.push({ type: 'gap', label: 'Tempo vago', minutes: diffFim, inicio: lastReg.hora_fim, fim: limites.fim })
+          }
+        }
+      } else {
+        records.forEach(r => {
+          items.push({ type: 'registro', data: r })
+        })
       }
 
       return {
@@ -345,7 +359,7 @@ export default function Registros() {
         items
       }
     })
-  }, [registrosFiltrados, horariosExcecoes, configDia])
+  }, [registrosFiltrados, horariosExcecoes, configDia, viewMode])
 
   const isActive = (path: string) => location.pathname === path
 
@@ -525,6 +539,39 @@ export default function Registros() {
           </div>
         </div>
 
+        {/* Toggle de Visualização */}
+        <div className="flex justify-end items-center gap-2">
+          <span className="text-xs font-semibold text-gray-400 px-2.5">Visualização:</span>
+          <div className="flex bg-[#161B22] p-1 rounded-xl border border-gray-800">
+            <button
+              onClick={() => changeViewMode('lista')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'lista'
+                  ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Lista detalhada com gaps"
+            >
+              <span>☰</span>
+              <span>Lista</span>
+            </button>
+            <button
+              onClick={() => changeViewMode('projeto')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === 'projeto'
+                  ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Agrupado por projeto"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>Por Projeto</span>
+            </button>
+          </div>
+        </div>
+
         {/* 4. Lista de Registros Agrupados por Dia */}
         {loading ? (
           <div className="flex flex-col gap-6">
@@ -602,113 +649,246 @@ export default function Registros() {
                     </div>
 
                     {/* Lançamentos e Gaps */}
-                    <div className={`flex flex-col gap-1 transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
-                      {grupo.items.map((item, index) => {
-                        // ==== RENDERIZAÇÃO DO GAP ====
-                        if (item.type === 'gap') {
-                          const h = Math.floor(item.minutes / 60)
-                          const m = item.minutes % 60
-                          let descStr = ''
-                          if (h === 0) descStr = `${m}min disponíveis`
-                          else if (m === 0) descStr = `${h}h disponíveis`
-                          else descStr = `${h}h ${m}min disponíveis`
+                    <div className={`flex flex-col gap-1.5 transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                      {viewMode === 'projeto' ? (
+                        // Agrupar registros do dia por projeto
+                        (() => {
+                          const registrosPorProjeto: { 
+                            [projId: string]: { 
+                              projeto: typeof registrosFiltrados[0]['projeto'] | null,
+                              records: typeof registrosFiltrados,
+                              subtotal: number 
+                            } 
+                          } = {}
+
+                          // Filtrar apenas registros (não deve ter gaps aqui, mas por segurança filtramos)
+                          const recordsOnly = grupo.items
+                            .filter((item: any) => item.type === 'registro')
+                            .map((item: any) => item.data)
+
+                          recordsOnly.forEach((reg) => {
+                            const projId = reg.projeto_id || 'sem-projeto'
+                            if (!registrosPorProjeto[projId]) {
+                              registrosPorProjeto[projId] = {
+                                projeto: reg.projeto,
+                                records: [],
+                                subtotal: 0
+                              }
+                            }
+                            registrosPorProjeto[projId].records.push(reg)
+                            registrosPorProjeto[projId].subtotal += reg.duracao
+                          })
+
+                          return Object.entries(registrosPorProjeto).map(([projId, itemProj]) => {
+                            const projCor = itemProj.projeto?.cor || '#6B7280'
+                            const projNome = itemProj.projeto?.nome || 'Sem Projeto'
+
+                            return (
+                              <div key={projId} className="bg-[#161B22]/30 border border-gray-800/60 rounded-xl p-3 mb-2 flex flex-col gap-2">
+                                {/* Header do Projeto */}
+                                <div className="flex justify-between items-center border-b border-gray-800/40 pb-2">
+                                  <div className="flex items-center gap-2">
+                                    {itemProj.projeto?.tipo === 'rotina' ? (
+                                      <span
+                                        className="inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
+                                        style={{ 
+                                          borderColor: projCor,
+                                          color: projCor
+                                        }}
+                                      >
+                                        <span>· {projNome}</span>
+                                      </span>
+                                    ) : (
+                                      <span
+                                        className="inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
+                                        style={{ 
+                                          backgroundColor: `${projCor}12`, 
+                                          borderColor: `${projCor}44`,
+                                          color: projCor
+                                        }}
+                                      >
+                                        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                        <span>{projNome}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    Subtotal: <span className="font-mono font-bold text-[#03A9F4]">{itemProj.subtotal.toFixed(2).replace('.', ',')}h</span>
+                                  </div>
+                                </div>
+
+                                {/* Registros deste projeto */}
+                                <div className="flex flex-col gap-1">
+                                  {itemProj.records.map((reg) => (
+                                    <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
+                                      {/* Horários */}
+                                      <div className="w-full md:w-[130px] shrink-0 text-left">
+                                        <span className="text-sm font-mono font-semibold text-gray-300">
+                                          {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                        </span>
+                                      </div>
+
+                                      {/* Observação */}
+                                      <div className="flex-grow min-w-0 w-full text-left">
+                                        {reg.observacao ? (
+                                          <span 
+                                            className="text-sm text-gray-400 block truncate"
+                                            title={reg.observacao}
+                                          >
+                                            {reg.observacao}
+                                          </span>
+                                        ) : (
+                                          <span className="text-sm text-gray-600 italic"></span>
+                                        )}
+                                      </div>
+
+                                      {/* Duração */}
+                                      <div className="w-full md:w-[80px] shrink-0 text-left md:text-right">
+                                        <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                          {reg.duracao.toFixed(2).replace('.', ',')}h
+                                        </span>
+                                      </div>
+
+                                      {/* Ações */}
+                                      <div className="w-full md:w-[60px] shrink-0 flex gap-1 justify-start md:justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => abrirEditarRegistroModal(reg)}
+                                          className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                          title="Editar Lançamento"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                          </svg>
+                                        </button>
+                                        <button
+                                          onClick={() => handleExcluir(reg.id)}
+                                          className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                          title="Excluir Lançamento"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )
+                          })
+                        })()
+                      ) : (
+                        // Renderização Normal (Lista e Compacta)
+                        grupo.items.map((item, index) => {
+                          // ==== RENDERIZAÇÃO DO GAP ====
+                          if (item.type === 'gap') {
+                            const h = Math.floor(item.minutes / 60)
+                            const m = item.minutes % 60
+                            let descStr = ''
+                            if (h === 0) descStr = `${m}min disponíveis`
+                            else if (m === 0) descStr = `${h}h disponíveis`
+                            else descStr = `${h}h ${m}min disponíveis`
+
+                            return (
+                              <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-sm bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
+                                <span className="text-[10px]">○</span>
+                                <span className="font-mono">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
+                                <span className="mx-1">·</span>
+                                <span>{descStr}</span>
+                              </div>
+                            )
+                          }
+
+                          // ==== RENDERIZAÇÃO DO REGISTRO (LISTA) ====
+                          const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })
+                          const projCor = reg.projeto?.cor || '#6B7280'
+                          const projNome = reg.projeto?.nome || 'Sem Projeto'
 
                           return (
-                            <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-sm bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
-                              <span className="text-[10px]">○</span>
-                              <span className="font-mono">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
-                              <span className="mx-1">·</span>
-                              <span>{descStr}</span>
+                            <div 
+                              key={reg.id} 
+                              className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group"
+                            >
+                              {/* Tag do Projeto */}
+                              <div className="w-full md:w-[120px] shrink-0">
+                                {reg.projeto?.tipo === 'rotina' ? (
+                                  <span
+                                    className="inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
+                                    style={{ 
+                                      borderColor: projCor,
+                                      color: projCor
+                                    }}
+                                  >
+                                    <span className="truncate">· {projNome}</span>
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
+                                    style={{ 
+                                      backgroundColor: `${projCor}12`, 
+                                      borderColor: `${projCor}44`,
+                                      color: projCor
+                                    }}
+                                  >
+                                    <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                    <span className="truncate">{projNome}</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Horários */}
+                              <div className="w-full md:w-[130px] shrink-0 text-left md:text-center">
+                                <span className="text-sm font-mono font-semibold text-gray-300">
+                                  {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                </span>
+                              </div>
+
+                              {/* Observação */}
+                              <div className="flex-grow min-w-0 w-full text-left">
+                                {reg.observacao ? (
+                                  <span 
+                                    className="text-sm text-gray-400 block truncate"
+                                    title={reg.observacao}
+                                  >
+                                    {reg.observacao}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-gray-600 italic"></span>
+                                )}
+                              </div>
+
+                              {/* Duração */}
+                              <div className="w-full md:w-[80px] shrink-0 text-left md:text-right">
+                                <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                  {reg.duracao.toFixed(2).replace('.', ',')}h
+                                </span>
+                              </div>
+
+                              {/* Ações */}
+                              <div className="w-full md:w-[60px] shrink-0 flex gap-1 justify-start md:justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => abrirEditarRegistroModal(reg)}
+                                  className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                  title="Editar Lançamento"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleExcluir(reg.id)}
+                                  className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                  title="Excluir Lançamento"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           )
-                        }
-
-                        // ==== RENDERIZAÇÃO DO REGISTRO ====
-                        const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })
-                        const projCor = reg.projeto?.cor || '#6B7280'
-                        const projNome = reg.projeto?.nome || 'Sem Projeto'
-
-                        return (
-                          <div key={reg.id} className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group">
-                            {/* Tag do Projeto */}
-                            <div className="w-full md:w-[120px] shrink-0">
-                              {reg.projeto?.tipo === 'rotina' ? (
-                                <span
-                                  className="inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
-                                  style={{ 
-                                    borderColor: projCor,
-                                    color: projCor
-                                  }}
-                                >
-                                  <span className="truncate">· {projNome}</span>
-                                </span>
-                              ) : (
-                                <span
-                                  className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
-                                  style={{ 
-                                    backgroundColor: `${projCor}12`, 
-                                    borderColor: `${projCor}44`,
-                                    color: projCor
-                                  }}
-                                >
-                                  <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                  <span className="truncate">{projNome}</span>
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Horários */}
-                            <div className="w-full md:w-[130px] shrink-0 text-left md:text-center">
-                              <span className="text-sm font-mono font-semibold text-gray-300">
-                                {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
-                              </span>
-                            </div>
-
-                            {/* Observação */}
-                            <div className="flex-grow min-w-0 w-full text-left">
-                              {reg.observacao ? (
-                                <span 
-                                  className="text-sm text-gray-400 block truncate"
-                                  title={reg.observacao}
-                                >
-                                  {reg.observacao}
-                                </span>
-                              ) : (
-                                <span className="text-sm text-gray-600 italic"></span>
-                              )}
-                            </div>
-
-                            {/* Duração */}
-                            <div className="w-full md:w-[80px] shrink-0 text-left md:text-right">
-                              <span className="text-sm font-mono font-bold text-[#03A9F4]">
-                                {reg.duracao.toFixed(2).replace('.', ',')}h
-                              </span>
-                            </div>
-
-                            {/* Ações */}
-                            <div className="w-full md:w-[60px] shrink-0 flex gap-1 justify-start md:justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => abrirEditarRegistroModal(reg)}
-                                className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
-                                title="Editar Lançamento"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleExcluir(reg.id)}
-                                className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
-                                title="Excluir Lançamento"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
+                        })
+                      )}
                     </div>
                   </div>
                 </div>
