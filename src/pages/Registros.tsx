@@ -62,7 +62,7 @@ export default function Registros() {
   const location = useLocation()
 
   // Estados dos Dados
-  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })[]>([])
+  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
@@ -86,7 +86,7 @@ export default function Registros() {
 
   // Estados do Modal de Registros
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingRegistro, setEditingRegistro] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null }) | null>(null)
+  const [editingRegistro, setEditingRegistro] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null }) | null>(null)
 
   // Estados do Modal de Horário do Dia
   const [isModalHorarioOpen, setIsModalHorarioOpen] = useState(false)
@@ -682,8 +682,11 @@ export default function Registros() {
                           })
 
                           return Object.entries(registrosPorProjeto).map(([projId, itemProj]) => {
-                            const projCor = itemProj.projeto?.cor || '#6B7280'
-                            const projNome = itemProj.projeto?.nome || 'Sem Projeto'
+                            const status = itemProj.projeto?.status
+                            const isEncerrado = status === 'encerrado'
+                            const isExcluido = status === 'excluido'
+                            const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : (itemProj.projeto?.cor || '#6B7280')
+                            const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
                             return (
                               <div key={projId} className="bg-[#161B22]/30 border border-gray-800/60 rounded-xl p-3 mb-2 flex flex-col gap-2">
@@ -692,17 +695,19 @@ export default function Registros() {
                                   <div className="flex items-center gap-2">
                                     {itemProj.projeto?.tipo === 'rotina' ? (
                                       <span
-                                        className="inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
+                                        className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                         style={{ 
                                           borderColor: projCor,
                                           color: projCor
                                         }}
                                       >
-                                        <span>· {projNome}</span>
+                                        <span className="truncate">· {projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
                                       </span>
                                     ) : (
                                       <span
-                                        className="inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
+                                        className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                         style={{ 
                                           backgroundColor: `${projCor}12`, 
                                           borderColor: `${projCor}44`,
@@ -710,7 +715,9 @@ export default function Registros() {
                                         }}
                                       >
                                         <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                        <span>{projNome}</span>
+                                        <span className="truncate">{projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
                                       </span>
                                     )}
                                   </div>
@@ -802,9 +809,12 @@ export default function Registros() {
                           }
 
                           // ==== RENDERIZAÇÃO DO REGISTRO (LISTA) ====
-                          const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina' } | null })
-                          const projCor = reg.projeto?.cor || '#6B7280'
-                          const projNome = reg.projeto?.nome || 'Sem Projeto'
+                          const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })
+                          const status = reg.projeto?.status
+                          const isEncerrado = status === 'encerrado'
+                          const isExcluido = status === 'excluido'
+                          const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : (reg.projeto?.cor || '#6B7280')
+                          const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
 
                           return (
                             <div 
@@ -813,29 +823,33 @@ export default function Registros() {
                             >
                               {/* Tag do Projeto */}
                               <div className="w-full md:w-[120px] shrink-0">
-                                {reg.projeto?.tipo === 'rotina' ? (
-                                  <span
-                                    className="inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent"
-                                    style={{ 
-                                      borderColor: projCor,
-                                      color: projCor
-                                    }}
-                                  >
-                                    <span className="truncate">· {projNome}</span>
-                                  </span>
-                                ) : (
-                                  <span
-                                    className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full"
-                                    style={{ 
-                                      backgroundColor: `${projCor}12`, 
-                                      borderColor: `${projCor}44`,
-                                      color: projCor
-                                    }}
-                                  >
-                                    <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                    <span className="truncate">{projNome}</span>
-                                  </span>
-                                )}
+                                  {reg.projeto?.tipo === 'rotina' ? (
+                                    <span
+                                      className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      style={{ 
+                                        borderColor: projCor,
+                                        color: projCor
+                                      }}
+                                    >
+                                      <span className="truncate">· {projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      style={{ 
+                                        backgroundColor: `${projCor}12`, 
+                                        borderColor: `${projCor}44`,
+                                        color: projCor
+                                      }}
+                                    >
+                                      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                      <span className="truncate">{projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                    </span>
+                                  )}
                               </div>
 
                               {/* Horários */}

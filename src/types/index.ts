@@ -3,9 +3,11 @@ export interface Projeto {
   usuario_id: string
   nome: string
   cor: string
-  status: 'ativo' | 'encerrado'
+  status: 'ativo' | 'encerrado' | 'excluido'
   tipo: 'projeto' | 'rotina'
   horas_contratadas: number | null
+  arquivado: boolean
+  nome_original: string | null
   criado_em: string
 }
 

@@ -8,8 +8,11 @@ import {
   atualizarProjeto,
   encerrarProjeto,
   reativarProjeto,
-  excluirProjeto
+  excluirProjeto,
+  excluirProjetoComRegistros,
+  arquivarProjeto
 } from '../services/projetos'
+import { supabase } from '../lib/supabase'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
@@ -25,7 +28,7 @@ export default function Projetos() {
   const [abaAtiva, setAbaAtiva] = useState<'projeto' | 'rotina'>('projeto')
 
   const projetosFiltrados = useMemo(() => {
-    return projetos.filter(p => (p.tipo || 'projeto') === abaAtiva)
+    return projetos.filter(p => (p.tipo || 'projeto') === abaAtiva && !p.arquivado)
   }, [projetos, abaAtiva])
 
   // Estados do Modal
@@ -33,13 +36,14 @@ export default function Projetos() {
   const [editingProjeto, setEditingProjeto] = useState<Projeto | null>(null)
   const [focarSubcategorias, setFocarSubcategorias] = useState(false)
   const [projetoRecemCriado, setProjetoRecemCriado] = useState<Projeto | null>(null)
+  const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ projeto: Projeto; numRegistros: number } | null>(null)
 
   const carregarProjetos = async () => {
     if (!user) return
     try {
       setLoading(true)
       setError(null)
-      const dados = await listarProjetos(user.id)
+      const dados = await listarProjetos(user.id, false)
       setProjetos(dados)
     } catch (err: any) {
       console.error('Erro ao listar projetos:', err)
@@ -109,17 +113,27 @@ export default function Projetos() {
     }
   }
 
-  const handleExcluirProjeto = async (id: string) => {
-    if (window.confirm("Excluir projeto? Esta ação não pode ser desfeita.")) {
-      try {
-        setError(null)
-        await excluirProjeto(id)
-        await carregarProjetos()
-        showToast('Projeto excluído!', 'success')
-      } catch (err: any) {
-        console.error('Erro ao excluir projeto:', err)
-        showToast(getErrorMessage(err), 'error')
+  const handleExcluirProjeto = async (projeto: Projeto) => {
+    try {
+      const { count, error } = await supabase
+        .from('registros')
+        .select('*', { count: 'exact', head: true })
+        .eq('projeto_id', projeto.id)
+
+      if (error) throw error
+
+      if (count === 0) {
+        if (window.confirm("Excluir projeto? Esta ação não pode ser desfeita.")) {
+          await excluirProjeto(projeto.id)
+          await carregarProjetos()
+          showToast('Projeto excluído!', 'success')
+        }
+      } else {
+        setProjetoParaExcluir({ projeto, numRegistros: count || 0 })
       }
+    } catch (err: any) {
+      console.error('Erro ao verificar registros:', err)
+      showToast(getErrorMessage(err), 'error')
     }
   }
 
@@ -351,37 +365,66 @@ export default function Projetos() {
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                             Ativo
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                        ) : projeto.status === 'encerrado' ? (
+                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                             Encerrado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">
+                            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                            Excluído
                           </span>
                         )}
                       </td>
                       <td className="py-4 px-6 text-right">
                         <div className="inline-flex gap-2">
-                          <button
-                            onClick={() => abrirEditarProjetoModal(projeto)}
-                            className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleAlternarStatus(projeto)}
-                            className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border ${
-                              projeto.status === 'ativo'
-                                ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
-                                : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
-                            }`}
-                          >
-                            {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
-                          </button>
-                          <button
-                            onClick={() => handleExcluirProjeto(projeto.id)}
-                            className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
-                          >
-                            Excluir
-                          </button>
+                          {projeto.status === 'excluido' ? (
+                            <>
+                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30">
+                                Excluído
+                              </span>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await arquivarProjeto(projeto.id)
+                                    await carregarProjetos()
+                                    showToast('Projeto arquivado!', 'success')
+                                  } catch (err: any) {
+                                    showToast(getErrorMessage(err), 'error')
+                                  }
+                                }}
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                              >
+                                Arquivar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => abrirEditarProjetoModal(projeto)}
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleAlternarStatus(projeto)}
+                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border ${
+                                  projeto.status === 'ativo'
+                                    ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
+                                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
+                                }`}
+                              >
+                                {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
+                              </button>
+                              <button
+                                onClick={() => handleExcluirProjeto(projeto)}
+                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
+                              >
+                                Excluir
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -432,6 +475,60 @@ export default function Projetos() {
                 className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all border border-gray-700/50"
               >
                 Agora não
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {projetoParaExcluir && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl animate-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-white mb-2">Este projeto possui {projetoParaExcluir.numRegistros} lançamentos</h3>
+            <p className="text-sm text-gray-400 mb-6">
+              O que deseja fazer?
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await encerrarProjeto(projetoParaExcluir.projeto.id)
+                    setProjetoParaExcluir(null)
+                    await carregarProjetos()
+                    showToast('Projeto encerrado!', 'success')
+                  } catch (err: any) {
+                    showToast(getErrorMessage(err), 'error')
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border border-orange-500/20 text-sm font-bold rounded-xl transition-all"
+              >
+                Encerrar projeto
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await excluirProjetoComRegistros(projetoParaExcluir.projeto.id, projetoParaExcluir.projeto.nome)
+                    setProjetoParaExcluir(null)
+                    await carregarProjetos()
+                    showToast('Projeto excluído!', 'success')
+                  } catch (err: any) {
+                    showToast(getErrorMessage(err), 'error')
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 border border-red-500/20 text-sm font-bold rounded-xl transition-all"
+              >
+                Excluir mesmo assim
+              </button>
+              <button
+                type="button"
+                onClick={() => setProjetoParaExcluir(null)}
+                className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all border border-gray-700/50"
+              >
+                Cancelar
               </button>
             </div>
           </div>

@@ -2,19 +2,21 @@ import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { listarRegistros } from '../services/registros'
-import { listarProjetos } from '../services/projetos'
+import { listarProjetos, arquivarProjeto, desarquivarProjeto } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
+import { useToast } from '../contexts/ToastContext'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
 export default function Resumo() {
   const { user, signOut } = useAuth()
+  const { showToast } = useToast()
   const location = useLocation()
 
-  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string } | null })[]>([])
+  const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [loading, setLoading] = useState(true)
@@ -23,6 +25,7 @@ export default function Resumo() {
   const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
+  const [mostrarArquivados, setMostrarArquivados] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
     return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
   })
@@ -30,6 +33,26 @@ export default function Resumo() {
   const changeViewMode = (mode: 'cards' | 'lista' | 'tabela') => {
     setViewMode(mode)
     localStorage.setItem('horas_view_resumo', mode)
+  }
+
+  const handleArquivar = async (id: string) => {
+    try {
+      await arquivarProjeto(id)
+      await carregarDados()
+      showToast('Projeto arquivado!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
+
+  const handleDesarquivar = async (id: string) => {
+    try {
+      await desarquivarProjeto(id)
+      await carregarDados()
+      showToast('Projeto desarquivado!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    }
   }
 
   const metaDiaria = useMemo(() => metaSemanal / 5, [metaSemanal])
@@ -166,6 +189,9 @@ export default function Resumo() {
       let cor = '#6B7280'
       let tipo = 'projeto'
       let horas_contratadas = null
+      let status = 'ativo'
+      let arquivado = false
+      let nome_original = null
 
       if (id !== 'sem_projeto') {
         const p = projetos.find(p => p.id === id)
@@ -174,6 +200,9 @@ export default function Resumo() {
           cor = p.cor
           tipo = p.tipo || 'projeto'
           horas_contratadas = p.horas_contratadas
+          status = p.status
+          arquivado = p.arquivado
+          nome_original = p.nome_original
         }
       }
 
@@ -209,7 +238,7 @@ export default function Resumo() {
         percentual: Math.round((s.duracao / totalHoras) * 100)
       }))
 
-      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias }
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original }
       
       if (tipo === 'rotina') {
         arrayRotina.push(item)
@@ -711,100 +740,255 @@ export default function Resumo() {
                   {resumoProjetos.projetos.length === 0 ? (
                     <div className="text-sm text-gray-500 bg-[#161B22] p-4 rounded-xl border border-gray-800">Nenhum projeto registrado.</div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {resumoProjetos.projetos.map(proj => {
-                        const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
-                        const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
-                        const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
-                        const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
-                        
-                        const isExpanded = projetosExpandidos[proj.id] || false;
-                        const hasRegistros = proj.registros.length > 0;
+                    <div className="space-y-10">
+                      {/* Ativos */}
+                      {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).length > 0 && (
+                        <div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).map(proj => {
+                              const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
+                              const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
+                              const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
+                              const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
+                              const isExpanded = projetosExpandidos[proj.id] || false;
+                              const hasRegistros = proj.registros.length > 0;
 
-                        return (
-                          <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
-                            {/* Cabeçalho */}
-                            <div className="flex items-center gap-3">
-                              <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
-                                <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
-                              </span>
-                              <span className="font-bold text-white uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
-                            </div>
-                            
-                            <hr className="border-gray-800/80" />
-
-                            {/* Dados */}
-                            <div className="flex-1 space-y-3">
-                              {temContrato ? (
-                                <p className="text-sm font-medium text-[#8B949E]">
-                                  <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
-                                </p>
-                              ) : (
-                                <p className="text-sm font-medium text-[#8B949E]">
-                                  <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
-                                </p>
-                              )}
-
-                              {/* Progresso (apenas se tiver contrato) */}
-                              {temContrato && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex-1 bg-[#0B0E14] h-[6px] rounded-full overflow-hidden border border-gray-800/50">
-                                      <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
+                              return (
+                                <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
+                                        <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
+                                      </span>
+                                      <span className="font-bold text-white uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
                                     </div>
-                                    <span className="text-sm font-bold" style={{ color: passou ? '#F44336' : '#4CAF50' }}>{percentual}%</span>
                                   </div>
-                                  
-                                  {passou ? (
-                                    <p className="text-sm font-bold text-red-500">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
-                                  ) : (
-                                    <p className="text-sm font-bold text-emerald-500">{diff.toFixed(2).replace('.', ',')}h restantes</p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Detalhes Subcategorias */}
-                            {hasRegistros && (
-                              <div className="pt-2">
-                                <button
-                                  onClick={() => toggleProjeto(proj.id)}
-                                  className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
-                                >
-                                  <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </button>
-
-                                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                                  <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
-                                    <div className="space-y-2">
-                                      {proj.subcategorias.map((sub: any) => (
-                                        <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
-                                          <div className="flex items-start gap-2 flex-1 pr-4">
-                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                            <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                  <hr className="border-gray-800/80" />
+                                  <div className="flex-1 space-y-3">
+                                    {temContrato ? (
+                                      <p className="text-sm font-medium text-[#8B949E]">
+                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                      </p>
+                                    ) : (
+                                      <p className="text-sm font-medium text-[#8B949E]">
+                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                      </p>
+                                    )}
+                                    {temContrato && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                          <div className="flex-1 bg-[#0B0E14] h-[6px] rounded-full overflow-hidden border border-gray-800/50">
+                                            <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
                                           </div>
-                                          <div className="flex items-center gap-4 shrink-0 pt-0.5">
-                                            <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                            <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                          <span className="text-sm font-bold" style={{ color: passou ? '#F44336' : '#4CAF50' }}>{percentual}%</span>
+                                        </div>
+                                        {passou ? (
+                                          <p className="text-sm font-bold text-red-500">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
+                                        ) : (
+                                          <p className="text-sm font-bold text-emerald-500">{diff.toFixed(2).replace('.', ',')}h restantes</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {hasRegistros && (
+                                    <div className="pt-2">
+                                      <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                        <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                      </button>
+                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
+                                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+                                          <div className="space-y-2">
+                                            {proj.subcategorias.map((sub: any) => (
+                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
+                                                <div className="flex items-start gap-2 flex-1 pr-4">
+                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                  <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                                </div>
+                                                <div className="flex items-center gap-4 shrink-0 pt-0.5">
+                                                  <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                  <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                </div>
+                                              </div>
+                                            ))}
                                           </div>
                                         </div>
-                                      ))}
+                                      </div>
                                     </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Inativos */}
+                      {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
+                        <div>
+                          <h2 className="text-lg font-bold text-gray-400 mb-4">Encerrados / Excluídos</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
+                              const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
+                              const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
+                              const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
+                              const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
+                              const isExpanded = projetosExpandidos[proj.id] || false;
+                              const hasRegistros = proj.registros.length > 0;
+                              
+                              const isExcluido = proj.status === 'excluido';
+                              const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
+                              const projCor = isExcluido ? '#4B5563' : '#6B7280';
+
+                              return (
+                                <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-60 hover:opacity-80">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
+                                        <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
+                                      </span>
+                                      <span className={`font-bold text-white uppercase text-base truncate ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                    </div>
+                                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
+                                      {isExcluido ? 'Excluído' : 'Encerrado'}
+                                    </span>
+                                  </div>
+                                  <hr className="border-gray-800/80" />
+                                  <div className="flex-1 space-y-3">
+                                    {temContrato ? (
+                                      <p className="text-sm font-medium text-[#8B949E]">
+                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                      </p>
+                                    ) : (
+                                      <p className="text-sm font-medium text-[#8B949E]">
+                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                      </p>
+                                    )}
+                                  </div>
+                                  {hasRegistros && (
+                                    <div className="pt-2">
+                                      <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                        <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                      </button>
+                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
+                                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+                                          <div className="space-y-2">
+                                            {proj.subcategorias.map((sub: any) => (
+                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
+                                                <div className="flex items-start gap-2 flex-1 pr-4">
+                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                  <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                                </div>
+                                                <div className="flex items-center gap-4 shrink-0 pt-0.5">
+                                                  <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                  <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="pt-3 border-t border-gray-800/80 mt-auto">
+                                    <button onClick={() => handleArquivar(proj.id)} className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50">
+                                      Arquivar Projeto
+                                    </button>
                                   </div>
                                 </div>
-                              </div>
-                            )}
+                              )
+                            })}
                           </div>
-                        )
-                      })}
+                        </div>
+                      )}
+
+                      {/* Arquivados */}
+                      {resumoProjetos.projetos.filter(p => p.arquivado).length > 0 && (
+                        <div className="border-t border-gray-800/80 pt-6">
+                          <button 
+                            onClick={() => setMostrarArquivados(!mostrarArquivados)}
+                            className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 focus:outline-none"
+                          >
+                            <span className="text-xs">{mostrarArquivados ? '▼' : '▶'}</span>
+                            <h2 className="text-lg font-bold">Arquivados ({resumoProjetos.projetos.filter(p => p.arquivado).length})</h2>
+                          </button>
+                          
+                          {mostrarArquivados && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {resumoProjetos.projetos.filter(p => p.arquivado).map(proj => {
+                                const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
+                                const isExpanded = projetosExpandidos[proj.id] || false;
+                                const hasRegistros = proj.registros.length > 0;
+                                
+                                const isExcluido = proj.status === 'excluido';
+                                const isEncerrado = proj.status === 'encerrado';
+                                const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
+                                const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : proj.cor;
+
+                                return (
+                                  <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-40 hover:opacity-60">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
+                                          <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
+                                        </span>
+                                        <span className={`font-bold text-white uppercase text-base truncate ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                      </div>
+                                    </div>
+                                    <hr className="border-gray-800/80" />
+                                    <div className="flex-1 space-y-3">
+                                      {temContrato ? (
+                                        <p className="text-sm font-medium text-[#8B949E]">
+                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                        </p>
+                                      ) : (
+                                        <p className="text-sm font-medium text-[#8B949E]">
+                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                        </p>
+                                      )}
+                                    </div>
+                                    {hasRegistros && (
+                                      <div className="pt-2">
+                                        <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                          <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
+                                          <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                          <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
+                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+                                            <div className="space-y-2">
+                                              {proj.subcategorias.map((sub: any) => (
+                                                <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
+                                                  <div className="flex items-start gap-2 flex-1 pr-4">
+                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                    <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                                  </div>
+                                                  <div className="flex items-center gap-4 shrink-0 pt-0.5">
+                                                    <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                    <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="pt-3 border-t border-gray-800/80 mt-auto">
+                                      <button onClick={() => handleDesarquivar(proj.id)} className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50">
+                                        Desarquivar Projeto
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
