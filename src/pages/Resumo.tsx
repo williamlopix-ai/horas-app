@@ -15,6 +15,7 @@ export default function Resumo() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const location = useLocation()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
@@ -270,9 +271,39 @@ export default function Resumo() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex">
+    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+      
+      {/* Header Mobile */}
+      <header className="lg:hidden bg-[#161B22] border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors focus:outline-none"
+            aria-label="Abrir menu"
+          >
+            <span className="text-2xl">☰</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-[#03A9F4]/10 text-[#03A9F4]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white">HORAS</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Overlay escuro no mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar de Navegação */}
-      <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen transition-transform duration-300 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -358,7 +389,7 @@ export default function Resumo() {
       </aside>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-6xl mx-auto space-y-6">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Painel de Resumos</h1>
           <p className="text-sm text-gray-400">Analise suas horas lançadas sob diferentes perspectivas.</p>
@@ -375,10 +406,10 @@ export default function Resumo() {
 
         {/* Sistema de Abas e Toggle de Visualização */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
+          <div className="flex p-0.5 sm:p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
             <button
               onClick={() => setAbaAtiva('semanal')}
-              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
                 abaAtiva === 'semanal' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -386,7 +417,7 @@ export default function Resumo() {
             </button>
             <button
               onClick={() => setAbaAtiva('diario')}
-              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
                 abaAtiva === 'diario' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -394,7 +425,7 @@ export default function Resumo() {
             </button>
             <button
               onClick={() => setAbaAtiva('projetos')}
-              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all focus:outline-none ${
+              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
                 abaAtiva === 'projetos' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -757,7 +788,7 @@ export default function Resumo() {
                       {/* Ativos */}
                       {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).length > 0 && (
                         <div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
@@ -814,14 +845,14 @@ export default function Resumo() {
                                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
                                           <div className="space-y-2">
                                             {proj.subcategorias.map((sub: any) => (
-                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
-                                                <div className="flex items-start gap-2 flex-1 pr-4">
-                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
+                                                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                  <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 shrink-0 pt-0.5">
-                                                  <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                  <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                                                  <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                  <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
                                                 </div>
                                               </div>
                                             ))}
@@ -841,7 +872,7 @@ export default function Resumo() {
                       {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
                         <div>
                           <h2 className="text-lg font-bold text-gray-400 mb-4">Encerrados / Excluídos</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
@@ -887,14 +918,14 @@ export default function Resumo() {
                                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
                                           <div className="space-y-2">
                                             {proj.subcategorias.map((sub: any) => (
-                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
-                                                <div className="flex items-start gap-2 flex-1 pr-4">
-                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
+                                                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                  <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 shrink-0 pt-0.5">
-                                                  <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                  <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                                                  <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                  <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
                                                 </div>
                                               </div>
                                             ))}
@@ -927,7 +958,7 @@ export default function Resumo() {
                           </button>
                           
                           {mostrarArquivados && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                               {resumoProjetos.projetos.filter(p => p.arquivado).map(proj => {
                                 const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                 const isExpanded = projetosExpandidos[proj.id] || false;
@@ -971,14 +1002,14 @@ export default function Resumo() {
                                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
                                             <div className="space-y-2">
                                               {proj.subcategorias.map((sub: any) => (
-                                                <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
-                                                  <div className="flex items-start gap-2 flex-1 pr-4">
-                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                    <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
+                                                <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
+                                                  <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                                    <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
                                                   </div>
-                                                  <div className="flex items-center gap-4 shrink-0 pt-0.5">
-                                                    <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                    <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
+                                                  <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                                                    <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
+                                                    <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
                                                   </div>
                                                 </div>
                                               ))}

@@ -231,7 +231,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div
-        className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-2xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="bg-[#161B22] border border-gray-800 rounded-2xl w-[95%] sm:w-full max-w-2xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Botão Fechar */}
@@ -426,23 +426,23 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
             </div>
 
             {/* Ações */}
-            <div className="flex gap-3 pt-6 md:pt-0">
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
+                className="w-full sm:flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={submitting || !!validacaoErro || !projetoId || !data}
-                className="flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
+                className="w-full sm:flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
               >
                 {submitting ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Salvando...

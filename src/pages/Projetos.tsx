@@ -22,6 +22,7 @@ export default function Projetos() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const location = useLocation()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -160,10 +161,39 @@ export default function Projetos() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex">
+    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
       
-      {/* 1. Sidebar Fixa à Esquerda */}
-      <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
+      {/* Header Mobile */}
+      <header className="lg:hidden bg-[#161B22] border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors focus:outline-none"
+            aria-label="Abrir menu"
+          >
+            <span className="text-2xl">☰</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-[#03A9F4]/10 text-[#03A9F4]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white">HORAS</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Overlay escuro no mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* 1. Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen transition-transform duration-300 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
@@ -252,7 +282,7 @@ export default function Projetos() {
       </aside>
 
       {/* 2. Conteúdo Principal */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-5xl mx-auto space-y-6">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
         
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -339,18 +369,18 @@ export default function Projetos() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
+              <table className="w-full text-left border-collapse block md:table">
+                <thead className="hidden md:table-header-group">
                   <tr className="border-b border-gray-800 bg-gray-900/30">
                     <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
                     <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                     <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/50">
+                <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
                   {projetosFiltrados.map((projeto) => (
-                    <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group">
-                      <td className="py-4 px-6">
+                    <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group flex flex-col md:table-row p-4 md:p-0 gap-2.5 md:gap-0 border-b border-gray-800/40 md:border-b-0">
+                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6">
                         <div className="flex items-center gap-3">
                           <span 
                             className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-sm"
@@ -361,7 +391,7 @@ export default function Projetos() {
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6">
                         {projeto.status === 'ativo' ? (
                           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -379,11 +409,11 @@ export default function Projetos() {
                           </span>
                         )}
                       </td>
-                      <td className="py-4 px-6 text-right">
-                        <div className="inline-flex gap-2">
+                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
+                        <div className="flex flex-col sm:flex-row md:inline-flex gap-2 w-full md:w-auto">
                           {projeto.status === 'excluido' ? (
                             <>
-                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30">
+                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-full sm:w-auto text-center">
                                 Excluído
                               </span>
                               <button
@@ -396,7 +426,7 @@ export default function Projetos() {
                                     showToast(getErrorMessage(err), 'error')
                                   }
                                 }}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-full sm:w-auto text-center justify-center"
                               >
                                 Arquivar
                               </button>
@@ -405,13 +435,13 @@ export default function Projetos() {
                             <>
                               <button
                                 onClick={() => abrirEditarProjetoModal(projeto)}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-full sm:w-auto text-center justify-center"
                               >
                                 Editar
                               </button>
                               <button
                                 onClick={() => handleAlternarStatus(projeto)}
-                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border ${
+                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-full sm:w-auto text-center justify-center ${
                                   projeto.status === 'ativo'
                                     ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
                                     : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
@@ -421,7 +451,7 @@ export default function Projetos() {
                               </button>
                               <button
                                 onClick={() => handleExcluirProjeto(projeto)}
-                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20"
+                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-full sm:w-auto text-center justify-center"
                               >
                                 Excluir
                               </button>

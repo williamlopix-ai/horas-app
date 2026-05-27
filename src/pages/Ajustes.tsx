@@ -10,6 +10,7 @@ export default function Ajustes() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const location = useLocation()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Estados dos Campos de Configuração
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
@@ -84,9 +85,39 @@ export default function Ajustes() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex">
+    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+      
+      {/* Header Mobile */}
+      <header className="lg:hidden bg-[#161B22] border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors focus:outline-none"
+            aria-label="Abrir menu"
+          >
+            <span className="text-2xl">☰</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-[#03A9F4]/10 text-[#03A9F4]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white">HORAS</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Overlay escuro no mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar de Navegação */}
-      <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen transition-transform duration-300 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -172,7 +203,7 @@ export default function Ajustes() {
       </aside>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-3xl mx-auto space-y-6">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-3xl mx-auto space-y-6 lg:ml-[240px] w-full">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Configurações</h1>
           <p className="text-sm text-gray-400">Personalize o comportamento e as metas do seu aplicativo.</p>
@@ -246,29 +277,31 @@ export default function Ajustes() {
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Início da Semana</h3>
                 <p className="text-xs text-gray-400">Escolha o dia em que o ciclo da semana se inicia para os resumos.</p>
               </div>
-              <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setInicioSemana('segunda')}
-                  className={`py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                    inicioSemana === 'segunda'
-                      ? 'bg-[#03A9F4] text-white shadow'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Segunda-feira
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setInicioSemana('domingo')}
-                  className={`py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                    inicioSemana === 'domingo'
-                      ? 'bg-[#03A9F4] text-white shadow'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Domingo
-                </button>
+              <div className="flex justify-center sm:justify-start w-full">
+                <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setInicioSemana('segunda')}
+                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
+                      inicioSemana === 'segunda'
+                        ? 'bg-[#03A9F4] text-white shadow'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Segunda-feira
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInicioSemana('domingo')}
+                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
+                      inicioSemana === 'domingo'
+                        ? 'bg-[#03A9F4] text-white shadow'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Domingo
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -278,29 +311,31 @@ export default function Ajustes() {
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Formato de Horas</h3>
                 <p className="text-xs text-gray-400">Selecione como deseja visualizar as horas no aplicativo.</p>
               </div>
-              <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setFormatoHoras('decimal')}
-                  className={`py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                    formatoHoras === 'decimal'
-                      ? 'bg-[#03A9F4] text-white shadow'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Decimal (ex: 1,50h)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormatoHoras('hhmm')}
-                  className={`py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                    formatoHoras === 'hhmm'
-                      ? 'bg-[#03A9F4] text-white shadow'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  HH:MM (ex: 01:30)
-                </button>
+              <div className="flex justify-center sm:justify-start w-full">
+                <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setFormatoHoras('decimal')}
+                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
+                      formatoHoras === 'decimal'
+                        ? 'bg-[#03A9F4] text-white shadow'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Decimal (ex: 1,50h)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormatoHoras('hhmm')}
+                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
+                      formatoHoras === 'hhmm'
+                        ? 'bg-[#03A9F4] text-white shadow'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    HH:MM (ex: 01:30)
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -310,8 +345,8 @@ export default function Ajustes() {
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horário Padrão do Dia</h3>
                 <p className="text-xs text-gray-400">Defina os horários de início e fim da sua jornada de trabalho.</p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col gap-1.5 flex-1">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col gap-1.5 flex-1 w-full">
                   <label htmlFor="inicioDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     Início
                   </label>
@@ -323,7 +358,7 @@ export default function Ajustes() {
                     className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
                   />
                 </div>
-                <div className="flex flex-col gap-1.5 flex-1">
+                <div className="flex flex-col gap-1.5 flex-1 w-full">
                   <label htmlFor="fimDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     Fim
                   </label>
@@ -343,7 +378,7 @@ export default function Ajustes() {
               <button
                 type="submit"
                 disabled={saving || metaSemanal <= 0}
-                className="py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
+                className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
               >
                 {saving ? (
                   <>

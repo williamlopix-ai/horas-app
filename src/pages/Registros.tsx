@@ -60,6 +60,7 @@ export default function Registros() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const location = useLocation()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Estados dos Dados
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
@@ -366,10 +367,39 @@ export default function Registros() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex">
+    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
       
-      {/* 1. Sidebar Fixa */}
-      <aside className="w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen">
+      {/* Header Mobile */}
+      <header className="lg:hidden bg-[#161B22] border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 -ml-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-colors focus:outline-none"
+            aria-label="Abrir menu"
+          >
+            <span className="text-2xl">☰</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-[#03A9F4]/10 text-[#03A9F4]">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white">HORAS</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Overlay escuro no mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* 1. Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-[#161B22] border-r border-gray-800 flex flex-col shrink-0 min-h-screen transition-transform duration-300 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         <div className="p-6 border-b border-gray-800/80 flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -455,7 +485,7 @@ export default function Registros() {
       </aside>
 
       {/* 2. Conteúdo Principal */}
-      <main className="flex-1 p-8 overflow-y-auto max-w-5xl mx-auto space-y-6">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -543,11 +573,11 @@ export default function Registros() {
 
         {/* Toggle de Visualização */}
         <div className="flex justify-end items-center gap-2">
-          <span className="text-xs font-semibold text-gray-400 px-2.5">Visualização:</span>
-          <div className="flex bg-[#161B22] p-1 rounded-xl border border-gray-800">
+          <span className="text-xs font-semibold text-gray-400 px-2.5 hidden sm:inline">Visualização:</span>
+          <div className="flex bg-[#161B22] p-0.5 sm:p-1 rounded-xl border border-gray-800">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
                 viewMode === 'lista'
                   ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
                   : 'text-gray-400 hover:text-white'
@@ -559,14 +589,14 @@ export default function Registros() {
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
                 viewMode === 'projeto'
                   ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
                   : 'text-gray-400 hover:text-white'
               }`}
               title="Agrupado por projeto"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               <span>Por Projeto</span>
@@ -606,30 +636,29 @@ export default function Registros() {
               
               return (
                 <div key={grupo.data} className="relative">
-                  <div className="flex flex-col">
-                    {/* Cabeçalho do Grupo de Dia */}
+                            {/* Cabeçalho do Grupo de Dia */}
                     <div 
-                      className="bg-[#1E2530] border-l-[3px] border-l-[#03A9F4] rounded-lg px-4 py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-4 cursor-pointer hover:bg-[#252d3a] transition-colors relative z-10"
+                      className="bg-[#1E2530] border-l-[3px] border-l-[#03A9F4] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-[#252d3a] transition-colors relative z-10"
                       onClick={() => toggleDia(grupo.data)}
                     >
-                      <div className="flex items-center gap-3">
-                        <svg className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <svg className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                         <div>
-                          <h3 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+                          <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
                             <span className="capitalize normal-case">{grupo.titulo}</span>
                           </h3>
-                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                          <p className="text-[10px] sm:text-xs text-gray-400 mt-1 flex items-center gap-1.5">
                             Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-4 justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
                         <div className="flex flex-col items-end">
-                          <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
-                          <span className="text-lg font-mono font-bold text-emerald-400">
+                          <span className="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
+                          <span className="text-sm sm:text-lg font-mono font-bold text-emerald-400">
                             {grupo.totalHoras.toFixed(2).replace('.', ',')}h
                           </span>
                         </div>
@@ -731,55 +760,64 @@ export default function Registros() {
                                 {/* Registros deste projeto */}
                                 <div className="flex flex-col gap-1">
                                   {itemProj.records.map((reg) => (
-                                    <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
-                                      {/* Horários */}
-                                      <div className="w-full md:w-[130px] shrink-0 text-left">
-                                        <span className="text-sm font-mono font-semibold text-gray-300">
-                                          {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
-                                        </span>
-                                      </div>
-
-                                      {/* Observação */}
-                                      <div className="flex-grow min-w-0 w-full text-left">
-                                        {reg.observacao ? (
-                                          <span 
-                                            className="text-sm text-gray-400 block truncate"
-                                            title={reg.observacao}
-                                          >
-                                            {reg.observacao}
+                                    <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
+                                      {/* Linha 1 no Mobile: [horário] */}
+                                      <div className="flex items-center justify-between md:contents w-full">
+                                        {/* Horários */}
+                                        <div className="shrink-0 text-left md:w-[130px]">
+                                          <span className="text-sm font-mono font-semibold text-gray-300">
+                                            {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
                                           </span>
-                                        ) : (
-                                          <span className="text-sm text-gray-600 italic"></span>
-                                        )}
+                                        </div>
                                       </div>
 
-                                      {/* Duração */}
-                                      <div className="w-full md:w-[80px] shrink-0 text-left md:text-right">
-                                        <span className="text-sm font-mono font-bold text-[#03A9F4]">
-                                          {reg.duracao.toFixed(2).replace('.', ',')}h
-                                        </span>
-                                      </div>
+                                      {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
+                                      <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                                        {/* Observação */}
+                                        <div className="flex-grow min-w-0 text-left">
+                                          {reg.observacao ? (
+                                            <span 
+                                              className="text-sm text-gray-400 block truncate"
+                                              title={reg.observacao}
+                                            >
+                                              {reg.observacao}
+                                            </span>
+                                          ) : (
+                                            <span className="text-sm text-gray-600 italic"></span>
+                                          )}
+                                        </div>
 
-                                      {/* Ações */}
-                                      <div className="w-full md:w-[60px] shrink-0 flex gap-1 justify-start md:justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                          onClick={() => abrirEditarRegistroModal(reg)}
-                                          className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
-                                          title="Editar Lançamento"
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                          </svg>
-                                        </button>
-                                        <button
-                                          onClick={() => handleExcluir(reg.id)}
-                                          className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
-                                          title="Excluir Lançamento"
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
-                                        </button>
+                                        {/* Duração + Botões */}
+                                        <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                          {/* Duração */}
+                                          <div className="shrink-0 md:w-[80px] md:text-right">
+                                            <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                              {reg.duracao.toFixed(2).replace('.', ',')}h
+                                            </span>
+                                          </div>
+
+                                          {/* Ações */}
+                                          <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={() => abrirEditarRegistroModal(reg)}
+                                              className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                              title="Editar Lançamento"
+                                            >
+                                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                              </svg>
+                                            </button>
+                                            <button
+                                              onClick={() => handleExcluir(reg.id)}
+                                              className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                              title="Excluir Lançamento"
+                                            >
+                                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
@@ -801,9 +839,9 @@ export default function Registros() {
                             else descStr = `${h}h ${m}min disponíveis`
 
                             return (
-                              <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-sm bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
+                              <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
                                 <span className="text-[10px]">○</span>
-                                <span className="font-mono">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
+                                <span className="font-mono text-[10px] sm:text-xs">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
                                 <span className="mx-1">·</span>
                                 <span>{descStr}</span>
                               </div>
@@ -821,89 +859,98 @@ export default function Registros() {
                           return (
                             <div 
                               key={reg.id} 
-                              className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row items-center gap-4 hover:bg-[#1a212a] transition-colors group"
+                              className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm"
                             >
-                              {/* Tag do Projeto */}
-                              <div className="w-full md:w-[120px] shrink-0">
-                                  {reg.projeto?.tipo === 'rotina' ? (
-                                    <span
-                                      title={projNome}
-                                      className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                      style={{ 
-                                        borderColor: projCor,
-                                        color: projCor
-                                      }}
+                              {/* Linha 1 no Mobile: [TAG] [horário] */}
+                              <div className="flex items-center justify-between md:contents w-full">
+                                {/* Tag do Projeto */}
+                                <div className="shrink-0 md:w-[120px]">
+                                    {reg.projeto?.tipo === 'rotina' ? (
+                                      <span
+                                        title={projNome}
+                                        className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                        style={{ 
+                                          borderColor: projCor,
+                                          color: projCor
+                                        }}
+                                      >
+                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                      </span>
+                                    ) : (
+                                      <span
+                                        title={projNome}
+                                        className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                        style={{ 
+                                          backgroundColor: `${projCor}12`, 
+                                          borderColor: `${projCor}44`,
+                                          color: projCor
+                                        }}
+                                      >
+                                        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                      </span>
+                                    )}
+                                </div>
+
+                                {/* Horários */}
+                                <div className="shrink-0 text-right md:text-center md:w-[130px]">
+                                  <span className="text-sm font-mono font-semibold text-gray-300">
+                                    {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
+                              <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                                {/* Observação */}
+                                <div className="flex-grow min-w-0 text-left">
+                                  {reg.observacao ? (
+                                    <span 
+                                      className="text-sm text-gray-400 block truncate"
+                                      title={reg.observacao}
                                     >
-                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                      {reg.observacao}
                                     </span>
                                   ) : (
-                                    <span
-                                      title={projNome}
-                                      className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                      style={{ 
-                                        backgroundColor: `${projCor}12`, 
-                                        borderColor: `${projCor}44`,
-                                        color: projCor
-                                      }}
-                                    >
-                                      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
-                                    </span>
+                                    <span className="text-sm text-gray-600 italic"></span>
                                   )}
-                              </div>
+                                </div>
 
-                              {/* Horários */}
-                              <div className="w-full md:w-[130px] shrink-0 text-left md:text-center">
-                                <span className="text-sm font-mono font-semibold text-gray-300">
-                                  {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
-                                </span>
-                              </div>
+                                {/* Duração + Botões */}
+                                <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                  {/* Duração */}
+                                  <div className="shrink-0 md:w-[80px] md:text-right">
+                                    <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                      {reg.duracao.toFixed(2).replace('.', ',')}h
+                                    </span>
+                                  </div>
 
-                              {/* Observação */}
-                              <div className="flex-grow min-w-0 w-full text-left">
-                                {reg.observacao ? (
-                                  <span 
-                                    className="text-sm text-gray-400 block truncate"
-                                    title={reg.observacao}
-                                  >
-                                    {reg.observacao}
-                                  </span>
-                                ) : (
-                                  <span className="text-sm text-gray-600 italic"></span>
-                                )}
-                              </div>
-
-                              {/* Duração */}
-                              <div className="w-full md:w-[80px] shrink-0 text-left md:text-right">
-                                <span className="text-sm font-mono font-bold text-[#03A9F4]">
-                                  {reg.duracao.toFixed(2).replace('.', ',')}h
-                                </span>
-                              </div>
-
-                              {/* Ações */}
-                              <div className="w-full md:w-[60px] shrink-0 flex gap-1 justify-start md:justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                  onClick={() => abrirEditarRegistroModal(reg)}
-                                  className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
-                                  title="Editar Lançamento"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => handleExcluir(reg.id)}
-                                  className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
-                                  title="Excluir Lançamento"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
+                                  {/* Ações */}
+                                  <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={() => abrirEditarRegistroModal(reg)}
+                                      className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                      title="Editar Lançamento"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleExcluir(reg.id)}
+                                      className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                      title="Excluir Lançamento"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )
