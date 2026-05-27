@@ -958,7 +958,6 @@ export default function Registros() {
                       )}
                     </div>
                   </div>
-                </div>
               )
             })}
           </div>
