@@ -786,12 +786,12 @@ export default function Resumo() {
                                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
                                     <div className="space-y-2">
                                       {proj.subcategorias.map((sub: any) => (
-                                        <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs">
-                                          <div className="flex items-center gap-2 flex-1 min-w-0 pr-4">
-                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                            <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
+                                        <div key={sub.id || 'sem_sub'} className="flex justify-between items-start text-xs">
+                                          <div className="flex items-start gap-2 flex-1 pr-4">
+                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                                            <span className="text-gray-300" title={sub.nome}>{sub.nome}</span>
                                           </div>
-                                          <div className="flex items-center gap-4 shrink-0">
+                                          <div className="flex items-center gap-4 shrink-0 pt-0.5">
                                             <span className="font-mono font-semibold text-white w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
                                             <span className="font-mono text-gray-500 w-10 text-right">{sub.percentual}%</span>
                                           </div>

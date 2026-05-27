@@ -135,8 +135,10 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
           .then(data => {
             if (montado) {
               setSubcategoriasDisponiveis(data)
-              // Se não for o projeto original da edição, resetar a subcategoria
-              if (!registro || (registro && registro.projeto_id !== projetoId)) {
+              // Se for o projeto original da edição e tiver subcategoria_id, restaurar
+              if (registro && registro.projeto_id === projetoId && registro.subcategoria_id) {
+                setSubcategoriaId(registro.subcategoria_id)
+              } else {
                 setSubcategoriaId('')
               }
             }
