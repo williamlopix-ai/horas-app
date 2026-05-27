@@ -75,7 +75,7 @@ export default function Projetos() {
     setFocarSubcategorias(false)
   }
 
-  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => {
+  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido' }) => {
     if (!user) return
 
     try {
@@ -97,7 +97,9 @@ export default function Projetos() {
           cor: dados.cor,
           tipo: dados.tipo,
           horas_contratadas: dados.horas_contratadas,
-          status: 'ativo'
+          status: 'ativo',
+          arquivado: false,
+          nome_original: null
         })
         showToast('Projeto criado!', 'success')
         

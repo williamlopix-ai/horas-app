@@ -6,7 +6,7 @@ import { getErrorMessage } from '../utils/errors'
 interface ModalProjetoProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' }) => Promise<void>
+  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido' }) => Promise<void>
   projeto?: Projeto | null
   focarSubcategorias?: boolean
 }
@@ -25,7 +25,7 @@ const PALETA_CORES = [
 export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSubcategorias }: ModalProjetoProps) {
   const [nome, setNome] = useState('')
   const [cor, setCor] = useState(PALETA_CORES[0])
-  const [status, setStatus] = useState<'ativo' | 'encerrado'>('ativo')
+  const [status, setStatus] = useState<'ativo' | 'encerrado' | 'excluido'>('ativo')
   const [tipo, setTipo] = useState<'projeto' | 'rotina'>('projeto')
   const [horasContratadas, setHorasContratadas] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)

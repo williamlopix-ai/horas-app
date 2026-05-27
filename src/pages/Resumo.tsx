@@ -831,9 +831,6 @@ export default function Resumo() {
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
-                              const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
-                              const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
-                              const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
                               const hasRegistros = proj.registros.length > 0;
                               
