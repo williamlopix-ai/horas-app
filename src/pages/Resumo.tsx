@@ -848,7 +848,7 @@ export default function Resumo() {
                                               <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                                                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
+                                                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                                                   <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
@@ -921,7 +921,7 @@ export default function Resumo() {
                                               <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                                                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
+                                                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                                                   <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
@@ -1005,7 +1005,7 @@ export default function Resumo() {
                                                 <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
                                                   <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                                                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                    <span className="text-gray-300 truncate" title={sub.nome}>{sub.nome}</span>
+                                                    <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                                                   </div>
                                                   <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                                                     <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
