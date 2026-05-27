@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { listarRegistros } from '../services/registros'
-import { listarProjetos, arquivarProjeto, desarquivarProjeto } from '../services/projetos'
+import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto } from '../types'
@@ -26,6 +26,7 @@ export default function Resumo() {
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
+  const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ id: string, nome: string } | null>(null)
   const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
     return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
   })
@@ -50,6 +51,18 @@ export default function Resumo() {
       await desarquivarProjeto(id)
       await carregarDados()
       showToast('Projeto desarquivado!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
+
+  const handleConfirmarExclusaoPermanente = async () => {
+    if (!projetoParaExcluir) return
+    try {
+      await excluirPermanentemente(projetoParaExcluir.id)
+      await carregarDados()
+      showToast('Projeto e lançamentos excluídos permanentemente!', 'success')
+      setProjetoParaExcluir(null)
     } catch (err: any) {
       showToast(getErrorMessage(err), 'error')
     }
@@ -974,10 +987,15 @@ export default function Resumo() {
                                         </div>
                                       </div>
                                     )}
-                                    <div className="pt-3 border-t border-gray-800/80 mt-auto">
+                                    <div className="pt-3 border-t border-gray-800/80 mt-auto flex flex-col gap-2">
                                       <button onClick={() => handleDesarquivar(proj.id)} className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50">
                                         Desarquivar Projeto
                                       </button>
+                                      {isExcluido && (
+                                        <button onClick={() => setProjetoParaExcluir({ id: proj.id, nome: projNome })} className="w-full py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-lg transition-all border border-red-500/20 hover:border-red-600">
+                                          Excluir permanentemente
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 )
@@ -1049,6 +1067,36 @@ export default function Resumo() {
           </div>
         )}
       </main>
+
+      {/* Modal de Confirmação de Exclusão Permanente */}
+      {projetoParaExcluir && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+              <span className="text-red-500">⚠</span> Atenção — Ação irreversível
+            </h3>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Todos os lançamentos vinculados a <strong className="text-white">{projetoParaExcluir.nome}</strong> serão excluídos permanentemente.
+              <br/><br/>
+              Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setProjetoParaExcluir(null)}
+                className="px-4 py-2 bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmarExclusaoPermanente}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 transition-all"
+              >
+                Excluir tudo permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

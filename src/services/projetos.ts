@@ -87,3 +87,19 @@ export async function excluirProjetoComRegistros(id: string, nome: string): Prom
     arquivado: false 
   })
 }
+
+export async function excluirPermanentemente(id: string): Promise<void> {
+  const { error: errorRegistros } = await supabase
+    .from('registros')
+    .delete()
+    .eq('projeto_id', id)
+
+  if (errorRegistros) throw errorRegistros
+
+  const { error: errorProjeto } = await supabase
+    .from('projetos')
+    .delete()
+    .eq('id', id)
+
+  if (errorProjeto) throw errorProjeto
+}

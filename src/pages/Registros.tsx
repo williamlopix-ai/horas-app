@@ -685,7 +685,7 @@ export default function Registros() {
                             const status = itemProj.projeto?.status
                             const isEncerrado = status === 'encerrado'
                             const isExcluido = status === 'excluido'
-                            const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : (itemProj.projeto?.cor || '#6B7280')
+                            const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (itemProj.projeto?.cor || '#6B7280')
                             const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
                             return (
@@ -695,19 +695,21 @@ export default function Registros() {
                                   <div className="flex items-center gap-2">
                                     {itemProj.projeto?.tipo === 'rotina' ? (
                                       <span
-                                        className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                        title={projNome}
+                                        className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                         style={{ 
                                           borderColor: projCor,
                                           color: projCor
                                         }}
                                       >
-                                        <span className="truncate">· {projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
                                       </span>
                                     ) : (
                                       <span
-                                        className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                        title={projNome}
+                                        className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                         style={{ 
                                           backgroundColor: `${projCor}12`, 
                                           borderColor: `${projCor}44`,
@@ -715,9 +717,9 @@ export default function Registros() {
                                         }}
                                       >
                                         <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                        <span className="truncate">{projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
                                       </span>
                                     )}
                                   </div>
@@ -813,7 +815,7 @@ export default function Registros() {
                           const status = reg.projeto?.status
                           const isEncerrado = status === 'encerrado'
                           const isExcluido = status === 'excluido'
-                          const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : (reg.projeto?.cor || '#6B7280')
+                          const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (reg.projeto?.cor || '#6B7280')
                           const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
 
                           return (
@@ -825,19 +827,21 @@ export default function Registros() {
                               <div className="w-full md:w-[120px] shrink-0">
                                   {reg.projeto?.tipo === 'rotina' ? (
                                     <span
-                                      className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      title={projNome}
+                                      className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{ 
                                         borderColor: projCor,
                                         color: projCor
                                       }}
                                     >
-                                      <span className="truncate">· {projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
                                   ) : (
                                     <span
-                                      className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      title={projNome}
+                                      className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{ 
                                         backgroundColor: `${projCor}12`, 
                                         borderColor: `${projCor}44`,
@@ -845,9 +849,9 @@ export default function Registros() {
                                       }}
                                     >
                                       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                      <span className="truncate">{projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Enc.</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excl.</span>}
+                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
                                   )}
                               </div>
