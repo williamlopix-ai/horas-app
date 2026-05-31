@@ -28,12 +28,12 @@ function formatYYYYMMDD(d: Date) {
 function formatWeekInterval(monday: Date) {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  
+
   const m1 = String(monday.getDate()).padStart(2, '0');
   const m2 = String(monday.getMonth() + 1).padStart(2, '0');
   const s1 = String(sunday.getDate()).padStart(2, '0');
   const s2 = String(sunday.getMonth() + 1).padStart(2, '0');
-  
+
   return `Seg ${m1}/${m2} a Dom ${s1}/${s2}`;
 }
 
@@ -52,7 +52,7 @@ export default function Timesheet() {
   const [registros, setRegistros] = useState<Registro[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
 
   const carregarDados = async () => {
@@ -60,21 +60,21 @@ export default function Timesheet() {
     try {
       setLoading(true)
       setError(null)
-      
+
       const projs = await listarProjetos(user.id, false)
       setProjetos(projs.filter(p => p.status === 'ativo' && p.codigo_externo && p.codigo_externo.trim() !== ''))
 
       const sunday = new Date(currentDate)
       sunday.setDate(currentDate.getDate() + 6)
-      
+
       const regs = await listarRegistros(user.id)
-      
+
       const startStr = formatYYYYMMDD(currentDate)
       const endStr = formatYYYYMMDD(sunday)
-      
+
       const regsSemana = regs.filter(r => r.data >= startStr && r.data <= endStr)
       setRegistros(regsSemana)
-      
+
     } catch (err: any) {
       console.error('Erro ao carregar timesheet:', err)
       setError(getErrorMessage(err))
@@ -116,7 +116,7 @@ export default function Timesheet() {
   const tableData = useMemo(() => {
     const rows = projetos.map(p => {
       const rowRegs = registros.filter(r => r.projeto_id === p.id)
-      
+
       const getDuracao = (date: Date) => {
         const dStr = formatYYYYMMDD(date)
         return rowRegs.filter(r => r.data === dStr).reduce((acc, r) => acc + r.duracao, 0)
@@ -158,7 +158,7 @@ export default function Timesheet() {
 
   const handleCopy = () => {
     let text = "Código\tNome\tSáb\tDom\tSeg\tTer\tQua\tQui\tSex\tTotal\n"
-    
+
     tableData.forEach(row => {
       text += `${row.codigo}\t${row.nome}\t${row.sab.toFixed(2).replace('.', ',')}\t${row.dom.toFixed(2).replace('.', ',')}\t${row.seg.toFixed(2).replace('.', ',')}\t${row.ter.toFixed(2).replace('.', ',')}\t${row.qua.toFixed(2).replace('.', ',')}\t${row.qui.toFixed(2).replace('.', ',')}\t${row.sex.toFixed(2).replace('.', ',')}\t${row.total.toFixed(2).replace('.', ',')}\n`
     })
@@ -168,9 +168,9 @@ export default function Timesheet() {
       .catch(() => showToast('Erro ao copiar grade.', 'error'))
   }
 
-  const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
+  const renderCell = (duracao: number, _dateStr: string, _projetoId: string) => {
     let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-gray-800/30 transition-colors "
-    
+
     if (duracao === 0) {
       className += "text-gray-500"
     } else {
@@ -201,7 +201,7 @@ export default function Timesheet() {
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
-      
+
       {/* Header Mobile */}
       <header className="lg:hidden bg-[#161B22] border-b border-gray-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-3">
@@ -225,7 +225,7 @@ export default function Timesheet() {
 
       {/* Overlay escuro no mobile */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -245,25 +245,23 @@ export default function Timesheet() {
         <nav className="flex-1 p-4 space-y-1.5">
           <Link
             to="/registros"
-            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-              isActive('/registros')
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${isActive('/registros')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
                 : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
-            }`}
+              }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Registros
           </Link>
-          
+
           <Link
             to="/resumo"
-            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-              isActive('/resumo')
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${isActive('/resumo')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
                 : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
-            }`}
+              }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -273,11 +271,10 @@ export default function Timesheet() {
 
           <Link
             to="/timesheet"
-            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-              isActive('/timesheet')
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${isActive('/timesheet')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
                 : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
-            }`}
+              }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -287,11 +284,10 @@ export default function Timesheet() {
 
           <Link
             to="/projetos"
-            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-              isActive('/projetos')
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${isActive('/projetos')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
                 : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
-            }`}
+              }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -301,11 +297,10 @@ export default function Timesheet() {
 
           <Link
             to="/ajustes"
-            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-              isActive('/ajustes')
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${isActive('/ajustes')
                 ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
                 : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
-            }`}
+              }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -333,7 +328,7 @@ export default function Timesheet() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
-        
+
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
@@ -439,7 +434,7 @@ export default function Timesheet() {
                       </td>
                     </tr>
                   ))}
-                  
+
                   {/* Linha de Totais */}
                   <tr className="bg-gray-900/40 border-t-2 border-gray-800">
                     <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
