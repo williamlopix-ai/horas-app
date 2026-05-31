@@ -6,7 +6,7 @@ import { getErrorMessage } from '../utils/errors'
 interface ModalProjetoProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido' }) => Promise<void>
+  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null }) => Promise<void>
   projeto?: Projeto | null
   focarSubcategorias?: boolean
 }
@@ -28,6 +28,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [status, setStatus] = useState<'ativo' | 'encerrado' | 'excluido'>('ativo')
   const [tipo, setTipo] = useState<'projeto' | 'rotina'>('projeto')
   const [horasContratadas, setHorasContratadas] = useState<string>('')
+  const [codigoExterno, setCodigoExterno] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,12 +56,14 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
         setStatus(projeto.status)
         setTipo(projeto.tipo || 'projeto')
         setHorasContratadas(projeto.horas_contratadas ? projeto.horas_contratadas.toString() : '')
+        setCodigoExterno(projeto.codigo_externo ?? '')
       } else {
         setNome('')
         setCor(PALETA_CORES[0])
         setStatus('ativo')
         setTipo('projeto')
         setHorasContratadas('')
+        setCodigoExterno('')
       }
       setError(null)
     }
@@ -142,7 +145,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
         cor,
         tipo,
         horas_contratadas: horasParsed,
-        status: projeto ? status : 'ativo'
+        status: projeto ? status : 'ativo',
+        codigo_externo: codigoExterno.trim() || null
       })
       onClose()
     } catch (err: any) {
@@ -248,6 +252,21 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                   placeholder="Ex: 100"
                   value={horasContratadas}
                   onChange={(e) => setHorasContratadas(e.target.value)}
+                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
+                />
+              </div>
+            )}
+
+            {tipo === 'projeto' && (
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Código no Timesheet (opcional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 0815301"
+                  value={codigoExterno}
+                  onChange={(e) => setCodigoExterno(e.target.value)}
                   className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
                 />
               </div>

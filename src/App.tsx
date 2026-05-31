@@ -8,6 +8,7 @@ import Projetos from './pages/Projetos'
 import Registros from './pages/Registros'
 import Resumo from './pages/Resumo'
 import Ajustes from './pages/Ajustes'
+import Timesheet from './pages/Timesheet'
 
 function App() {
   return (
@@ -44,6 +45,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Resumo />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/timesheet"
+              element={
+                <ProtectedRoute>
+                  <Timesheet />
                 </ProtectedRoute>
               }
             />

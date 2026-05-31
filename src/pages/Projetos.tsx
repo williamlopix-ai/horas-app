@@ -76,7 +76,7 @@ export default function Projetos() {
     setFocarSubcategorias(false)
   }
 
-  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido' }) => {
+  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null }) => {
     if (!user) return
 
     try {
@@ -87,7 +87,8 @@ export default function Projetos() {
           cor: dados.cor,
           tipo: dados.tipo,
           horas_contratadas: dados.horas_contratadas,
-          status: dados.status
+          status: dados.status,
+          codigo_externo: dados.codigo_externo
         })
         showToast('Projeto atualizado!', 'success')
       } else {
@@ -100,7 +101,8 @@ export default function Projetos() {
           horas_contratadas: dados.horas_contratadas,
           status: 'ativo',
           arquivado: false,
-          nome_original: null
+          nome_original: null,
+          codigo_externo: dados.codigo_externo
         })
         showToast('Projeto criado!', 'success')
         
@@ -232,6 +234,20 @@ export default function Projetos() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             Resumo
+          </Link>
+
+          <Link
+            to="/timesheet"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/timesheet')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Timesheet
           </Link>
 
           <Link

@@ -8,6 +8,7 @@ export interface Projeto {
   horas_contratadas: number | null
   arquivado: boolean
   nome_original: string | null
+  codigo_externo: string | null
   criado_em: string
 }
 

@@ -343,6 +343,20 @@ export default function Resumo() {
           </Link>
 
           <Link
+            to="/timesheet"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/timesheet')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Timesheet
+          </Link>
+
+          <Link
             to="/projetos"
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/projetos')

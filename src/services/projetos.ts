@@ -24,7 +24,12 @@ export async function listarProjetos(usuarioId: string, arquivado?: boolean): Pr
 export async function criarProjeto(dados: Omit<Projeto, 'id' | 'criado_em'>): Promise<Projeto> {
   const { data, error } = await supabase
     .from('projetos')
-    .insert([dados])
+    .insert([
+      {
+        ...dados,
+        codigo_externo: dados.codigo_externo
+      }
+    ])
     .select()
     .single()
 
@@ -41,7 +46,10 @@ export async function atualizarProjeto(
 ): Promise<Projeto> {
   const { data, error } = await supabase
     .from('projetos')
-    .update(dados)
+    .update({
+      ...dados,
+      codigo_externo: dados.codigo_externo
+    })
     .eq('id', id)
     .select()
     .single()
