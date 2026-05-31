@@ -5,6 +5,8 @@ import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configurac
 import { getErrorMessage } from '../utils/errors'
 import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
+import * as XLSX from 'xlsx'
+import { supabase } from '../lib/supabase'
 
 export default function Ajustes() {
   const { user, signOut } = useAuth()
@@ -23,6 +25,121 @@ export default function Ajustes() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+
+  // Auxiliar para formatar data (safe fuso-horário) de YYYY-MM-DD para DD/MM/AAAA
+  const formatarData = (dataStr: string | null) => {
+    if (!dataStr) return '—'
+    const partes = dataStr.split('-')
+    if (partes.length === 3) {
+      return `${partes[2]}/${partes[1]}/${partes[0]}`
+    }
+    return dataStr
+  }
+
+  // Lógica de exportação dos dados para Excel
+  const handleExport = async () => {
+    if (!user) return
+    try {
+      setExporting(true)
+
+      // 1. Buscar registros ordenados por data asc
+      const { data: registros, error: errorRegistros } = await supabase
+        .from('registros')
+        .select('data, hora_inicio, hora_fim, duracao, observacao, semana_inicio, projeto_id, projetos(nome, cor)')
+        .eq('usuario_id', user.id)
+        .order('data', { ascending: true })
+
+      if (errorRegistros) throw errorRegistros
+
+      // 2. Buscar projetos do usuário
+      const { data: projetos, error: errorProjetos } = await supabase
+        .from('projetos')
+        .select('nome, cor, tipo, status, horas_contratadas, codigo_externo, arquivado')
+        .eq('usuario_id', user.id)
+
+      if (errorProjetos) throw errorProjetos
+
+      // 3. Montar dados da Aba "Registros"
+      const sheetRegistrosData = (registros || []).map((reg: any) => {
+        let nomeProjeto = '—'
+        if (reg.projetos) {
+          if (Array.isArray(reg.projetos)) {
+            nomeProjeto = reg.projetos[0]?.nome || '—'
+          } else {
+            nomeProjeto = reg.projetos.nome || '—'
+          }
+        }
+
+        const duracaoFormatada = typeof reg.duracao === 'number'
+          ? reg.duracao.toFixed(2).replace('.', ',')
+          : '—'
+
+        return {
+          'Data': formatarData(reg.data),
+          'Projeto': nomeProjeto,
+          'Hora Início': reg.hora_inicio || '—',
+          'Hora Fim': reg.hora_fim || '—',
+          'Duração (h)': duracaoFormatada,
+          'Semana': formatarData(reg.semana_inicio),
+          'Observação': reg.observacao || ''
+        }
+      })
+
+      // 4. Montar dados da Aba "Projetos"
+      const sheetProjetosData = (projetos || []).map((proj: any) => {
+        const tipoMapped = proj.tipo === 'projeto' ? 'Projeto' : proj.tipo === 'rotina' ? 'Rotina' : proj.tipo || '—'
+        
+        const statusMapped = proj.status === 'ativo' ? 'Ativo'
+          : proj.status === 'encerrado' ? 'Encerrado'
+          : proj.status === 'excluido' ? 'Excluído'
+          : proj.status || '—'
+
+        const arquivadoMapped = proj.arquivado ? 'Sim' : 'Não'
+        const horasContratadasMapped = typeof proj.horas_contratadas === 'number'
+          ? proj.horas_contratadas
+          : '—'
+
+        return {
+          'Nome': proj.nome || '—',
+          'Tipo': tipoMapped,
+          'Status': statusMapped,
+          'Horas Contratadas': horasContratadasMapped,
+          'Código Externo': proj.codigo_externo || '—',
+          'Arquivado': arquivadoMapped
+        }
+      })
+
+      // 5. Montar dados da Aba "Configurações"
+      const sheetConfigData = [
+        { 'Campo': 'Meta Semanal', 'Valor': `${metaSemanal.toString().replace('.', ',')}h` },
+        { 'Campo': 'Início da Semana', 'Valor': inicioSemana === 'segunda' ? 'Segunda-feira' : 'Domingo' },
+        { 'Campo': 'Formato de Horas', 'Valor': formatoHoras === 'decimal' ? 'Decimal' : 'HH:MM' },
+        { 'Campo': 'Início do Dia', 'Valor': inicioDia || '—' },
+        { 'Campo': 'Fim do Dia', 'Valor': fimDia || '—' }
+      ]
+
+      // 6. Gerar e exportar o arquivo excel
+      const wsRegistros = XLSX.utils.json_to_sheet(sheetRegistrosData)
+      const wsProjetos = XLSX.utils.json_to_sheet(sheetProjetosData)
+      const wsConfig = XLSX.utils.json_to_sheet(sheetConfigData)
+
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, wsRegistros, 'Registros')
+      XLSX.utils.book_append_sheet(wb, wsProjetos, 'Projetos')
+      XLSX.utils.book_append_sheet(wb, wsConfig, 'Configurações')
+
+      const dataHoje = new Date().toISOString().slice(0, 10)
+      XLSX.writeFile(wb, `horas-backup-${dataHoje}.xlsx`)
+
+      showToast('Backup exportado com sucesso!', 'success')
+    } catch (err: any) {
+      console.error('Erro ao exportar backup:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   // Carregar configurações do usuário ao montar
   const carregarConfiguracoes = async () => {
@@ -248,7 +365,8 @@ export default function Ajustes() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSave} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
+          <>
+            <form onSubmit={handleSave} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
             
             {/* 1. Meta Semanal */}
             <div className="space-y-3">
@@ -408,7 +526,43 @@ export default function Ajustes() {
               </button>
             </div>
 
-          </form>
+            </form>
+
+            {/* Backup de Dados */}
+            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm mt-6">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Backup de Dados</h3>
+                <p className="text-xs text-gray-400">
+                  Exporte todos os seus registros, projetos e configurações para um arquivo Excel (.xlsx).
+                </p>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
+                >
+                  {exporting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Exportando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span>Exportar para Excel</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
