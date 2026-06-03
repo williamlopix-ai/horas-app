@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
+import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
 import { getErrorMessage } from '../utils/errors'
+import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import * as XLSX from 'xlsx'
@@ -20,6 +22,18 @@ export default function Ajustes() {
   const [formatoHoras, setFormatoHoras] = useState<'decimal' | 'hhmm'>('decimal')
   const [inicioDia, setInicioDia] = useState<string>('08:00')
   const [fimDia, setFimDia] = useState<string>('18:00')
+
+  // Estados de Exceções por Dia da Semana
+  const [horariosSemana, setHorariosSemana] = useState<HorarioSemana[]>([])
+  const [showNovoDia, setShowNovoDia] = useState(false)
+  const [novoDiaSemana, setNovoDiaSemana] = useState<number>(1)
+  const [novoInicioDia, setNovoInicioDia] = useState<string>('08:00')
+  const [novoFimDia, setNovoFimDia] = useState<string>('18:00')
+  const [savingDia, setSavingDia] = useState(false)
+
+  const DIAS_SEMANA = [
+    'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'
+  ]
 
   // Estados de UI/Feedback
   const [loading, setLoading] = useState(true)
@@ -147,12 +161,16 @@ export default function Ajustes() {
     try {
       setLoading(true)
       setError(null)
-      const config = await buscarConfiguracoes(user.id)
+      const [config, horariosSemanaData] = await Promise.all([
+        buscarConfiguracoes(user.id),
+        listarHorariosSemana(user.id)
+      ])
       setMetaSemanal(config.meta_semanal)
       setInicioSemana(config.inicio_semana)
       setFormatoHoras(config.formato_horas)
       setInicioDia(config.inicio_dia || '08:00')
       setFimDia(config.fim_dia || '18:00')
+      setHorariosSemana(horariosSemanaData)
     } catch (err: any) {
       console.error('Erro ao buscar configurações:', err)
       setError(getErrorMessage(err))
@@ -189,6 +207,40 @@ export default function Ajustes() {
       setSaving(false)
     }
   }
+
+  const handleAddDiaSemana = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    try {
+      setSavingDia(true)
+      const novoHorario = await salvarHorarioSemana(user.id, novoDiaSemana, novoInicioDia, novoFimDia)
+      setHorariosSemana(prev => {
+        const filtrado = prev.filter(h => h.dia_semana !== novoDiaSemana)
+        return [...filtrado, novoHorario].sort((a, b) => a.dia_semana - b.dia_semana)
+      })
+      setShowNovoDia(false)
+      showToast('Horário salvo com sucesso!', 'success')
+    } catch (err: any) {
+      console.error('Erro ao salvar horário da semana:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingDia(false)
+    }
+  }
+
+  const handleRemoverDia = async (id: string) => {
+    try {
+      await removerHorarioSemana(id)
+      setHorariosSemana(prev => prev.filter(h => h.id !== id))
+      showToast('Horário removido com sucesso!', 'success')
+    } catch (err: any) {
+      console.error('Erro ao remover horário:', err)
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
+
+  const diasDisponiveis = DIAS_SEMANA.map((nome, index) => ({ nome, index }))
+    .filter(d => !horariosSemana.some(h => h.dia_semana === d.index))
 
   // Incremento e Decremento da Meta Semanal
   const incrementarMeta = () => {
@@ -503,6 +555,119 @@ export default function Ajustes() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* 5. Exceções por Dia da Semana */}
+            <div className="space-y-4 pt-4 border-t border-gray-800/80">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Exceções por Dia da Semana</h3>
+                <p className="text-xs text-[#8B949E] mt-1">Defina horários fixos para dias específicos da semana. Valem para novos lançamentos.</p>
+              </div>
+
+              {/* Lista de dias configurados */}
+              {horariosSemana.length > 0 && (
+                <div className="space-y-2">
+                  {horariosSemana.map(h => (
+                    <div key={h.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-xl p-3">
+                      <div>
+                        <div className="text-sm font-semibold text-white">{DIAS_SEMANA[h.dia_semana]}</div>
+                        <div className="text-xs text-[#8B949E]">{h.inicio_dia} às {h.fim_dia}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoverDia(h.id)}
+                        className="p-2 text-gray-500 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-colors focus:outline-none"
+                        title="Remover"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Form de Adicionar Novo Dia */}
+              {showNovoDia ? (
+                <div className="bg-[#0B0E14] border border-gray-800 rounded-xl p-4 space-y-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Dia da Semana
+                    </label>
+                    <select
+                      value={novoDiaSemana}
+                      onChange={(e) => setNovoDiaSemana(Number(e.target.value))}
+                      className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                    >
+                      {diasDisponiveis.map(d => (
+                        <option key={d.index} value={d.index}>{d.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        Início
+                      </label>
+                      <input
+                        type="time"
+                        value={novoInicioDia}
+                        onChange={(e) => setNovoInicioDia(e.target.value)}
+                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        Fim
+                      </label>
+                      <input
+                        type="time"
+                        value={novoFimDia}
+                        onChange={(e) => setNovoFimDia(e.target.value)}
+                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNovoDia(false)}
+                      className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddDiaSemana}
+                      disabled={savingDia || diasDisponiveis.length === 0}
+                      className="flex-1 py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all focus:outline-none disabled:opacity-50"
+                    >
+                      {savingDia ? 'Salvando...' : 'Salvar'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                horariosSemana.length < 6 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (diasDisponiveis.length > 0) {
+                        setNovoDiaSemana(diasDisponiveis[0].index)
+                        setShowNovoDia(true)
+                      }
+                    }}
+                    className="flex items-center gap-2 text-[#03A9F4] hover:text-[#0288D1] text-sm font-bold transition-colors focus:outline-none"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Adicionar dia
+                  </button>
+                )
+              )}
             </div>
 
             {/* Ação de Salvar */}

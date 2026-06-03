@@ -45,6 +45,15 @@ export interface Registro {
   criado_em: string
 }
 
+export interface HorarioSemana {
+  id: string
+  usuario_id: string
+  dia_semana: number
+  inicio_dia: string
+  fim_dia: string
+  created_at?: string
+}
+
 export interface HorarioDia {
   id: string
   usuario_id: string

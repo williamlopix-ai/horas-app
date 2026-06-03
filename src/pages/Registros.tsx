@@ -11,8 +11,9 @@ import {
 import { listarProjetos } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosDias, salvarHorarioDia } from '../services/horarios'
+import { listarHorariosSemana } from '../services/horariosSemana'
 import { getErrorMessage } from '../utils/errors'
-import type { Registro, Projeto, HorarioDia } from '../types'
+import type { Registro, Projeto, HorarioDia, HorarioSemana } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalHorarioDia from '../components/ModalHorarioDia'
 import { Skeleton } from '../components/Skeleton'
@@ -67,6 +68,7 @@ export default function Registros() {
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
+  const [horariosSemana, setHorariosSemana] = useState<HorarioSemana[]>([])
   
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -115,6 +117,10 @@ export default function Registros() {
       // 3. Carregar Exceções de Horários
       const excecoes = await listarHorariosDias(user.id)
       setHorariosExcecoes(excecoes)
+
+      // 3.5. Carregar Horários da Semana
+      const semHorarios = await listarHorariosSemana(user.id)
+      setHorariosSemana(semHorarios)
 
       // 4. Carregar Registros
       const regs = await listarRegistros(user.id)
@@ -228,10 +234,22 @@ export default function Registros() {
 
   // Pega os limites do dia (se houver exceção usa, senão usa config default)
   const getLimitesDia = (dataStr: string) => {
+    // 1. Exceção por data específica
     const excecao = horariosExcecoes.find(h => h.data === dataStr)
     if (excecao) {
       return { inicio: excecao.inicio_dia, fim: excecao.fim_dia, customizado: true }
     }
+
+    // 2. Exceção por dia da semana
+    const [ano, mes, dia] = dataStr.split('-').map(Number)
+    const date = new Date(ano, mes - 1, dia)
+    const diaSemana = date.getDay() // 0=Dom,1=Seg,...,6=Sáb
+    const horarioSemana = horariosSemana.find(h => h.dia_semana === diaSemana)
+    if (horarioSemana) {
+      return { inicio: horarioSemana.inicio_dia, fim: horarioSemana.fim_dia, customizado: true }
+    }
+
+    // 3. Padrão global
     return { inicio: configDia.inicio, fim: configDia.fim, customizado: false }
   }
 
@@ -362,7 +380,7 @@ export default function Registros() {
         items
       }
     })
-  }, [registrosFiltrados, horariosExcecoes, configDia, viewMode])
+  }, [registrosFiltrados, horariosExcecoes, horariosSemana, configDia, viewMode])
 
   const isActive = (path: string) => location.pathname === path
 

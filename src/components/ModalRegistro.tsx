@@ -3,6 +3,9 @@ import { useAuth } from '../contexts/AuthContext'
 import { listarProjetos } from '../services/projetos'
 import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
+import { buscarHorarioDia } from '../services/horarios'
+import { buscarConfiguracoes } from '../services/configuracoes'
+import { listarHorariosSemana } from '../services/horariosSemana'
 import type { Registro, Projeto, Subcategoria } from '../types'
 
 interface ModalRegistroProps {
@@ -154,6 +157,56 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     }
     return () => { montado = false }
   }, [projetoId, projetos, registro])
+
+  // Efeito para buscar horário padrão pela hierarquia quando data muda (apenas criação)
+  useEffect(() => {
+    if (!isOpen || registro || !user || !data) return
+
+    let montado = true
+    const userId = user.id
+
+    async function buscarHorariosHierarquia() {
+      try {
+        // 1. Exceção por data específica
+        const horarioDia = await buscarHorarioDia(userId, data)
+        if (horarioDia) {
+          if (montado) {
+            setHoraInicio(horarioDia.inicio_dia)
+            setHoraFim(horarioDia.fim_dia)
+          }
+          return
+        }
+
+        // 2. Exceção por dia da semana
+        const [ano, mes, dia] = data.split('-').map(Number)
+        const date = new Date(ano, mes - 1, dia)
+        const diaSemana = date.getDay()
+
+        const horariosSemana = await listarHorariosSemana(userId)
+        const horarioSemana = horariosSemana.find(h => h.dia_semana === diaSemana)
+        if (horarioSemana) {
+          if (montado) {
+            setHoraInicio(horarioSemana.inicio_dia)
+            setHoraFim(horarioSemana.fim_dia)
+          }
+          return
+        }
+
+        // 3. Padrão global
+        const config = await buscarConfiguracoes(userId)
+        if (config && montado) {
+          setHoraInicio(config.inicio_dia || '09:00')
+          setHoraFim(config.fim_dia || '18:00')
+        }
+      } catch (err) {
+        console.error('Erro ao buscar hierarquia de horários:', err)
+      }
+    }
+
+    buscarHorariosHierarquia()
+
+    return () => { montado = false }
+  }, [isOpen, registro, user, data])
 
   // Validações em tempo real
   const validacaoErro = useMemo(() => {
