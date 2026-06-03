@@ -229,9 +229,9 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   }
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div
-        className="bg-[#161B22] border border-gray-800 rounded-2xl w-[95%] sm:w-full max-w-2xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="bg-[#161B22] border border-gray-800 rounded-2xl w-full mx-4 sm:mx-0 max-w-2xl max-h-[90dvh] overflow-y-auto overscroll-contain touch-pan-y p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Botão Fechar */}
