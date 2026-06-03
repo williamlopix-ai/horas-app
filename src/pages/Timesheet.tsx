@@ -54,6 +54,7 @@ export default function Timesheet() {
   const [error, setError] = useState<string | null>(null)
 
   const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
+  const [filtroCodigo, setFiltroCodigo] = useState('')
 
   const carregarDados = async () => {
     if (!user) return
@@ -114,7 +115,12 @@ export default function Timesheet() {
   }, [currentDate])
 
   const tableData = useMemo(() => {
-    const rows = projetos.map(p => {
+    const query = filtroCodigo.trim().toLowerCase()
+    const filteredProjetos = query
+      ? projetos.filter(p => p.codigo_externo?.toLowerCase().includes(query))
+      : projetos
+
+    const rows = filteredProjetos.map(p => {
       const rowRegs = registros.filter(r => r.projeto_id === p.id)
 
       const getDuracao = (date: Date) => {
@@ -141,7 +147,7 @@ export default function Timesheet() {
     })
 
     return rows.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
-  }, [projetos, registros, days])
+  }, [projetos, registros, days, filtroCodigo])
 
   const totals = useMemo(() => {
     return tableData.reduce((acc, row) => ({
@@ -357,17 +363,44 @@ export default function Timesheet() {
           </div>
         )}
 
-        {/* Navegação Semanal */}
-        <div className="flex justify-center items-center gap-4 bg-[#161B22] border border-gray-800 rounded-2xl p-4">
-          <button onClick={prevWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <span className="text-base font-bold text-white min-w-[200px] text-center">
-            {formatWeekInterval(currentDate)}
-          </span>
-          <button onClick={nextWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-          </button>
+        {/* Navegação Semanal e Filtro por Código */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#161B22] border border-gray-800 rounded-2xl p-4">
+          {/* Filtro por Código */}
+          <div className="relative w-full md:w-72">
+            <input
+              type="text"
+              placeholder="Filtrar por código..."
+              value={filtroCodigo}
+              onChange={(e) => setFiltroCodigo(e.target.value)}
+              className="bg-[#0B0E14] border border-gray-800 rounded-xl pl-4 pr-10 py-2.5 text-sm text-[#FFFFFF] placeholder-[#8B949E] focus:outline-none focus:border-[#03A9F4] w-full"
+            />
+            {filtroCodigo && (
+              <button
+                type="button"
+                onClick={() => setFiltroCodigo('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors text-lg"
+                title="Limpar filtro"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Navegação Semanal */}
+          <div className="flex items-center justify-center gap-4 w-full md:w-auto md:flex-1 md:justify-center">
+            <button onClick={prevWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span className="text-base font-bold text-white min-w-[200px] text-center select-none">
+              {formatWeekInterval(currentDate)}
+            </span>
+            <button onClick={nextWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+
+          {/* Espaçador para centralizar a navegação no desktop */}
+          <div className="hidden md:block w-72" />
         </div>
 
         {/* Tabela ou Estado Vazio */}
@@ -378,7 +411,7 @@ export default function Timesheet() {
                 <SkeletonRow key={i} />
               ))}
             </div>
-          ) : tableData.length === 0 ? (
+          ) : projetos.length === 0 ? (
             <div className="p-12 text-center max-w-lg mx-auto space-y-4">
               <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-gray-400 mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -395,6 +428,24 @@ export default function Timesheet() {
               >
                 Gerenciar Projetos
               </Link>
+            </div>
+          ) : tableData.length === 0 ? (
+            <div className="p-12 text-center max-w-lg mx-auto space-y-4">
+              <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white">Nenhum resultado encontrado</h3>
+              <p className="text-sm text-gray-400">
+                Não encontramos nenhum projeto com o código "{filtroCodigo}".
+              </p>
+              <button
+                onClick={() => setFiltroCodigo('')}
+                className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
+              >
+                Limpar Filtro
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">
