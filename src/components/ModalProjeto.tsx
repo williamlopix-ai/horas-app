@@ -6,7 +6,7 @@ import { getErrorMessage } from '../utils/errors'
 interface ModalProjetoProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null }) => Promise<void>
+  onSave: (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null; billable: boolean }) => Promise<void>
   projeto?: Projeto | null
   focarSubcategorias?: boolean
 }
@@ -29,6 +29,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [tipo, setTipo] = useState<'projeto' | 'rotina'>('projeto')
   const [horasContratadas, setHorasContratadas] = useState<string>('')
   const [codigoExterno, setCodigoExterno] = useState<string>('')
+  const [billable, setBillable] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,6 +58,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
         setTipo(projeto.tipo || 'projeto')
         setHorasContratadas(projeto.horas_contratadas ? projeto.horas_contratadas.toString() : '')
         setCodigoExterno(projeto.codigo_externo ?? '')
+        setBillable((projeto as any).billable ?? false)
       } else {
         setNome('')
         setCor(PALETA_CORES[0])
@@ -64,6 +66,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
         setTipo('projeto')
         setHorasContratadas('')
         setCodigoExterno('')
+        setBillable(false)
       }
       setError(null)
     }
@@ -121,6 +124,13 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
     }
   }
 
+  const handleCodigoExternoChange = (val: string) => {
+    setCodigoExterno(val)
+    if (!val.trim()) {
+      setBillable(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!nome.trim()) {
@@ -146,7 +156,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
         tipo,
         horas_contratadas: horasParsed,
         status: projeto ? status : 'ativo',
-        codigo_externo: codigoExterno.trim() || null
+        codigo_externo: codigoExterno.trim() || null,
+        billable: codigoExterno.trim() ? billable : false
       })
       onClose()
     } catch (err: any) {
@@ -266,9 +277,31 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                   type="text"
                   placeholder="Ex: 0815301"
                   value={codigoExterno}
-                  onChange={(e) => setCodigoExterno(e.target.value)}
+                  onChange={(e) => handleCodigoExternoChange(e.target.value)}
                   className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
                 />
+              </div>
+            )}
+
+            {tipo === 'projeto' && codigoExterno.trim() !== '' && (
+              <div className="flex items-center justify-between p-3 bg-[#161B22] border border-gray-800 rounded-xl">
+                <div>
+                  <span className="block text-sm font-semibold text-white">Billable</span>
+                  <span className="block text-xs text-gray-400">Projeto faturável</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBillable(!billable)}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 focus:outline-none ${
+                    billable ? 'bg-[#03A9F4]' : 'bg-[#1E2A38]'
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                      billable ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
             )}
 

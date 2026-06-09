@@ -76,7 +76,7 @@ export default function Projetos() {
     setFocarSubcategorias(false)
   }
 
-  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null }) => {
+  const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null; billable: boolean }) => {
     if (!user) return
 
     try {
@@ -88,8 +88,9 @@ export default function Projetos() {
           tipo: dados.tipo,
           horas_contratadas: dados.horas_contratadas,
           status: dados.status,
-          codigo_externo: dados.codigo_externo
-        })
+          codigo_externo: dados.codigo_externo,
+          billable: dados.billable
+        } as any)
         showToast('Projeto atualizado!', 'success')
       } else {
         // Criar novo projeto
@@ -102,8 +103,9 @@ export default function Projetos() {
           status: 'ativo',
           arquivado: false,
           nome_original: null,
-          codigo_externo: dados.codigo_externo
-        })
+          codigo_externo: dados.codigo_externo,
+          billable: dados.billable
+        } as any)
         showToast('Projeto criado!', 'success')
         
         // Se for do tipo 'projeto', exibe dialog para oferecer subcategorias
