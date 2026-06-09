@@ -201,3 +201,71 @@ export async function listarHistoricoMargem(): Promise<MetaBillableMargem[]> {
     return []
   }
 }
+
+export interface MetaBillableMargemMensal {
+  id: string
+  margem_minima: number
+  mes_inicio: string
+  criado_em: string
+}
+
+export async function buscarMargemMinimaVigenteMensal(mesRef: string): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('metas_billable_margem_mensal')
+      .select('margem_minima')
+      .lte('mes_inicio', mesRef)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+
+    if (error) throw error
+
+    if (data && data.length > 0) {
+      return Number(data[0].margem_minima)
+    }
+
+    return 92.00
+  } catch (error) {
+    console.error('Erro em buscarMargemMinimaVigenteMensal:', error)
+    return 92.00
+  }
+}
+
+export async function salvarMargemMinimaMensal(margem: number, mesInicio: string): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Usuário não autenticado')
+
+    const { error } = await supabase
+      .from('metas_billable_margem_mensal')
+      .insert([
+        {
+          usuario_id: user.id,
+          margem_minima: margem,
+          mes_inicio: mesInicio
+        }
+      ])
+
+    if (error) throw error
+  } catch (error) {
+    console.error('Erro em salvarMargemMinimaMensal:', error)
+    throw error
+  }
+}
+
+export async function listarHistoricoMargemMensal(): Promise<MetaBillableMargemMensal[]> {
+  try {
+    const { data, error } = await supabase
+      .from('metas_billable_margem_mensal')
+      .select('id, margem_minima, mes_inicio, criado_em')
+      .order('criado_em', { ascending: false })
+
+    if (error) throw error
+
+    return data || []
+  } catch (error) {
+    console.error('Erro em listarHistoricoMargemMensal:', error)
+    return []
+  }
+}
+

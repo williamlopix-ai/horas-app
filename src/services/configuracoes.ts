@@ -6,7 +6,8 @@ const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
   inicio_semana: 'segunda',
   formato_horas: 'decimal',
   inicio_dia: '08:00',
-  fim_dia: '18:00'
+  fim_dia: '18:00',
+  saldo_inicio_semana: null
 }
 
 export async function buscarConfiguracoes(

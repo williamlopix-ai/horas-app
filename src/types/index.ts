@@ -20,6 +20,7 @@ export interface Configuracao {
   formato_horas: 'decimal' | 'hhmm'
   inicio_dia: string
   fim_dia: string
+  saldo_inicio_semana?: string | null
 }
 
 export interface Subcategoria {

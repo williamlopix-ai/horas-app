@@ -3,6 +3,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
+import {
+  salvarMetaBillableSemanal, listarHistoricoMetasSemanal,
+  salvarMetaBillableMensal, listarHistoricoMetasMensal,
+  salvarMargemMinima, listarHistoricoMargem,
+  type MetaBillableSemanal, type MetaBillableMensal, type MetaBillableMargem
+} from '../services/metas_billable'
 import { getErrorMessage } from '../utils/errors'
 import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
@@ -22,6 +28,7 @@ export default function Ajustes() {
   const [formatoHoras, setFormatoHoras] = useState<'decimal' | 'hhmm'>('decimal')
   const [inicioDia, setInicioDia] = useState<string>('08:00')
   const [fimDia, setFimDia] = useState<string>('18:00')
+  const [saldoInicioSemana, setSaldoInicioSemana] = useState<string>('')
 
   // Estados de Exceções por Dia da Semana
   const [horariosSemana, setHorariosSemana] = useState<HorarioSemana[]>([])
@@ -40,6 +47,41 @@ export default function Ajustes() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+
+  // Estados Billable
+  const [metaBillableSemanal, setMetaBillableSemanal] = useState<number>(0)
+  const [historicoMetaSemanal, setHistoricoMetaSemanal] = useState<MetaBillableSemanal[]>([])
+  const [savingMetaSemanal, setSavingMetaSemanal] = useState(false)
+
+  const [metaBillableMensal, setMetaBillableMensal] = useState<number>(0)
+  const [historicoMetaMensal, setHistoricoMetaMensal] = useState<MetaBillableMensal[]>([])
+  const [savingMetaMensal, setSavingMetaMensal] = useState(false)
+
+  const [margemMinima, setMargemMinima] = useState<number>(92.00)
+  const [historicoMargem, setHistoricoMargem] = useState<MetaBillableMargem[]>([])
+  const [savingMargem, setSavingMargem] = useState(false)
+
+  const [semanaInicioMetaSemanal, setSemanaInicioMetaSemanal] = useState<string>(() => {
+    const data = new Date()
+    const dia = data.getDay()
+    const diff = data.getDate() - dia + (dia === 0 ? -6 : 1)
+    return new Date(data.setDate(diff)).toISOString().slice(0, 10)
+  })
+  const [verTodasMetaSemanal, setVerTodasMetaSemanal] = useState(false)
+
+  const [mesInicioMetaMensal, setMesInicioMetaMensal] = useState<string>(() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  })
+  const [verTodasMetaMensal, setVerTodasMetaMensal] = useState(false)
+
+  const [semanaInicioMargem, setSemanaInicioMargem] = useState<string>(() => {
+    const data = new Date()
+    const dia = data.getDay()
+    const diff = data.getDate() - dia + (dia === 0 ? -6 : 1)
+    return new Date(data.setDate(diff)).toISOString().slice(0, 10)
+  })
+  const [verTodasMargem, setVerTodasMargem] = useState(false)
 
   // Auxiliar para formatar data (safe fuso-horário) de YYYY-MM-DD para DD/MM/AAAA
   const formatarData = (dataStr: string | null) => {
@@ -161,16 +203,37 @@ export default function Ajustes() {
     try {
       setLoading(true)
       setError(null)
-      const [config, horariosSemanaData] = await Promise.all([
+      const [
+        config,
+        horariosSemanaData,
+        histMetaSemanal,
+        histMetaMensal,
+        histMargem
+      ] = await Promise.all([
         buscarConfiguracoes(user.id),
-        listarHorariosSemana(user.id)
+        listarHorariosSemana(user.id),
+        listarHistoricoMetasSemanal(),
+        listarHistoricoMetasMensal(),
+        listarHistoricoMargem()
       ])
+      
       setMetaSemanal(config.meta_semanal)
       setInicioSemana(config.inicio_semana)
       setFormatoHoras(config.formato_horas)
       setInicioDia(config.inicio_dia || '08:00')
       setFimDia(config.fim_dia || '18:00')
+      setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
       setHorariosSemana(horariosSemanaData)
+
+      if (histMetaSemanal.length > 0) setMetaBillableSemanal(histMetaSemanal[0].meta)
+      setHistoricoMetaSemanal(histMetaSemanal)
+
+      if (histMetaMensal.length > 0) setMetaBillableMensal(histMetaMensal[0].meta)
+      setHistoricoMetaMensal(histMetaMensal)
+
+      if (histMargem.length > 0) setMargemMinima(histMargem[0].margem_minima)
+      setHistoricoMargem(histMargem)
+
     } catch (err: any) {
       console.error('Erro ao buscar configurações:', err)
       setError(getErrorMessage(err))
@@ -182,6 +245,60 @@ export default function Ajustes() {
   useEffect(() => {
     carregarConfiguracoes()
   }, [user])
+
+  function ajustarParaSegunda(dataStr: string): string {
+    const [year, month, day] = dataStr.split('-').map(Number)
+    const data = new Date(year, month - 1, day)
+    const diaSemana = data.getDay()
+    const diasAteSegunda = diaSemana === 0 ? 6 : diaSemana - 1
+    data.setDate(data.getDate() - diasAteSegunda)
+    const yyyy = data.getFullYear()
+    const mm = String(data.getMonth() + 1).padStart(2, '0')
+    const dd = String(data.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  const handleSalvarMetaBillableSemanal = async () => {
+    try {
+      setSavingMetaSemanal(true)
+      await salvarMetaBillableSemanal(metaBillableSemanal, ajustarParaSegunda(semanaInicioMetaSemanal))
+      const hist = await listarHistoricoMetasSemanal()
+      setHistoricoMetaSemanal(hist)
+      showToast('Meta semanal billable salva!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingMetaSemanal(false)
+    }
+  }
+
+  const handleSalvarMetaBillableMensal = async () => {
+    try {
+      setSavingMetaMensal(true)
+      await salvarMetaBillableMensal(metaBillableMensal, mesInicioMetaMensal + '-01')
+      const hist = await listarHistoricoMetasMensal()
+      setHistoricoMetaMensal(hist)
+      showToast('Meta mensal billable salva!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingMetaMensal(false)
+    }
+  }
+
+  const handleSalvarMargem = async () => {
+    try {
+      setSavingMargem(true)
+      await salvarMargemMinima(margemMinima, ajustarParaSegunda(semanaInicioMargem))
+      const hist = await listarHistoricoMargem()
+      setHistoricoMargem(hist)
+      showToast('Margem mínima salva!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingMargem(false)
+    }
+  }
 
   // Lidar com Salvamento
   const handleSave = async (e: React.FormEvent) => {
@@ -196,7 +313,8 @@ export default function Ajustes() {
         inicio_semana: inicioSemana,
         formato_horas: formatoHoras,
         inicio_dia: inicioDia,
-        fim_dia: fimDia
+        fim_dia: fimDia,
+        saldo_inicio_semana: saldoInicioSemana || null
       })
 
       showToast('Configurações salvas!', 'success')
@@ -340,6 +458,20 @@ export default function Ajustes() {
           </Link>
 
           <Link
+            to="/billable"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/billable')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Billable
+          </Link>
+
+          <Link
             to="/projetos"
             className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               isActive('/projetos')
@@ -423,8 +555,8 @@ export default function Ajustes() {
             {/* 1. Meta Semanal */}
             <div className="space-y-3">
               <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Semanal</h3>
-                <p className="text-xs text-gray-400">Defina o total de horas de trabalho estipulado por semana.</p>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
+                <p className="text-xs text-gray-400">Defina o total de horas disponíveis por semana. A meta billable é calculada a partir deste valor.</p>
               </div>
               <div className="flex items-center gap-2 max-w-[200px]">
                 <button
@@ -670,6 +802,31 @@ export default function Ajustes() {
               )}
             </div>
 
+            {/* 6. Saldo Acumulado - Data de Início */}
+            <div className="space-y-3 pt-4 border-t border-gray-800/80">
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
+                <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
+              </div>
+              <div className="flex flex-col gap-1.5 max-w-[200px]">
+                <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  A partir de
+                </label>
+                <input
+                  id="saldoInicioSemana"
+                  type="date"
+                  value={saldoInicioSemana}
+                  onChange={(e) => setSaldoInicioSemana(e.target.value)}
+                  className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
+                />
+                {saldoInicioSemana && (
+                  <span className="text-xs text-[#8B949E]">
+                    Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Ação de Salvar */}
             <div className="pt-4 border-t border-gray-800/80">
               <button
@@ -692,6 +849,265 @@ export default function Ajustes() {
             </div>
 
             </form>
+
+            {/* Configurações Billable */}
+            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm mt-6">
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Configurações Billable</h2>
+                <p className="text-sm text-gray-400">Gerencie suas metas e margens de horas billable.</p>
+              </div>
+
+              {/* Meta Semanal Billable */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Semanal Billable</h3>
+                  <p className="text-xs text-gray-400">Total de horas billable esperadas na semana.</p>
+                </div>
+                
+                {/* Linha 1: Valores e Data */}
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Meta (horas)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={metaBillableSemanal}
+                      onChange={(e) => setMetaBillableSemanal(parseFloat(e.target.value) || 0)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      A partir de
+                    </label>
+                    <input
+                      type="date"
+                      value={semanaInicioMetaSemanal}
+                      onChange={(e) => setSemanaInicioMetaSemanal(e.target.value)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                    />
+                    {semanaInicioMetaSemanal && (
+                      <span className="text-xs text-[#8B949E]">
+                        Semana de {formatarData(ajustarParaSegunda(semanaInicioMetaSemanal))} (Seg)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Linha 2: Salvar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSalvarMetaBillableSemanal}
+                    disabled={savingMetaSemanal}
+                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {savingMetaSemanal ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+
+                {/* Histórico */}
+                {historicoMetaSemanal.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Histórico
+                    </p>
+                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                      {(verTodasMetaSemanal ? historicoMetaSemanal : historicoMetaSemanal.slice(0, 3)).map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-2">
+                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                          <div>
+                            <span className="text-sm text-white font-semibold">{h.meta}h</span>
+                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
+                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {historicoMetaSemanal.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVerTodasMetaSemanal(v => !v)}
+                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                      >
+                        {verTodasMetaSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoMetaSemanal.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Meta Mensal Billable */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Mensal Billable</h3>
+                  <p className="text-xs text-gray-400">Total de horas billable esperadas no mês.</p>
+                </div>
+
+                {/* Linha 1: Valores e Data */}
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Meta (horas)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={metaBillableMensal}
+                      onChange={(e) => setMetaBillableMensal(parseFloat(e.target.value) || 0)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      A partir de
+                    </label>
+                    <input
+                      type="month"
+                      value={mesInicioMetaMensal}
+                      onChange={(e) => setMesInicioMetaMensal(e.target.value)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                    />
+                  </div>
+                </div>
+
+                {/* Linha 2: Salvar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSalvarMetaBillableMensal}
+                    disabled={savingMetaMensal}
+                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {savingMetaMensal ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+
+                {/* Histórico */}
+                {historicoMetaMensal.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Histórico
+                    </p>
+                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                      {(verTodasMetaMensal ? historicoMetaMensal : historicoMetaMensal.slice(0, 3)).map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-2">
+                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                          <div>
+                            <span className="text-sm text-white font-semibold">{h.meta}h</span>
+                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
+                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {historicoMetaMensal.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVerTodasMetaMensal(v => !v)}
+                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                      >
+                        {verTodasMetaMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMetaMensal.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Margem Mínima Billable */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Margem Mínima Billable</h3>
+                  <p className="text-xs text-gray-400">Percentual de margem aceitável (ex: 92.00).</p>
+                </div>
+
+                {/* Linha 1: Valores e Data */}
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Margem (%)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={margemMinima}
+                        onChange={(e) => setMargemMinima(parseFloat(e.target.value) || 0)}
+                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                      />
+                      <span className="text-white font-bold">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      A partir de
+                    </label>
+                    <input
+                      type="date"
+                      value={semanaInicioMargem}
+                      onChange={(e) => setSemanaInicioMargem(e.target.value)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                    />
+                    {semanaInicioMargem && (
+                      <span className="text-xs text-[#8B949E]">
+                        Semana de {formatarData(ajustarParaSegunda(semanaInicioMargem))} (Seg)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Linha 2: Salvar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSalvarMargem}
+                    disabled={savingMargem}
+                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {savingMargem ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+
+                {/* Histórico */}
+                {historicoMargem.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Histórico
+                    </p>
+                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                      {(verTodasMargem ? historicoMargem : historicoMargem.slice(0, 3)).map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-2">
+                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                          <div>
+                            <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
+                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
+                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {historicoMargem.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVerTodasMargem(v => !v)}
+                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                      >
+                        {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Backup de Dados */}
             <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm mt-6">
