@@ -4,10 +4,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
 import {
-  salvarMetaBillableMensal, listarHistoricoMetasMensal,
   salvarMargemMinima, listarHistoricoMargem,
   salvarMargemMinimaMensal, listarHistoricoMargemMensal,
-  type MetaBillableMensal, type MetaBillableMargem, type MetaBillableMargemMensal
+  type MetaBillableMargem, type MetaBillableMargemMensal
 } from '../services/metas_billable'
 import {
   salvarHorasBaseSemanal, listarHistoricoHorasBaseSemanal,
@@ -81,10 +80,6 @@ export default function Ajustes() {
   const [savingHorasBaseMensal, setSavingHorasBaseMensal] = useState(false)
   const [verTodasHorasBaseMensal, setVerTodasHorasBaseMensal] = useState(false)
 
-  const [metaBillableMensal, setMetaBillableMensal] = useState<number>(0)
-  const [historicoMetaMensal, setHistoricoMetaMensal] = useState<MetaBillableMensal[]>([])
-  const [savingMetaMensal, setSavingMetaMensal] = useState(false)
-
   const [margemMinima, setMargemMinima] = useState<number>(92.00)
   const [historicoMargem, setHistoricoMargem] = useState<MetaBillableMargem[]>([])
   const [savingMargem, setSavingMargem] = useState(false)
@@ -96,8 +91,7 @@ export default function Ajustes() {
   const [savingMargemMensal, setSavingMargemMensal] = useState(false)
   const [verTodasMargemMensal, setVerTodasMargemMensal] = useState(false)
 
-  const [mesInicioMetaMensal, setMesInicioMetaMensal] = useState<string>(() => getMesAtualStr())
-  const [verTodasMetaMensal, setVerTodasMetaMensal] = useState(false)
+
 
   const [semanaInicioMargem, setSemanaInicioMargem] = useState<string>(() => getSemanaAtual())
   const [verTodasMargem, setVerTodasMargem] = useState(false)
@@ -225,7 +219,6 @@ export default function Ajustes() {
       const [
         config,
         horariosSemanaData,
-        histMetaMensal,
         histMargem,
         histHorasBaseSemanal,
         histHorasBaseMensal,
@@ -233,7 +226,6 @@ export default function Ajustes() {
       ] = await Promise.all([
         buscarConfiguracoes(user.id),
         listarHorariosSemana(user.id),
-        listarHistoricoMetasMensal(),
         listarHistoricoMargem(),
         listarHistoricoHorasBaseSemanal(),
         listarHistoricoHorasBaseMensal(),
@@ -247,9 +239,6 @@ export default function Ajustes() {
       setFimDia(config.fim_dia || '18:00')
       setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
       setHorariosSemana(horariosSemanaData)
-
-      if (histMetaMensal.length > 0) setMetaBillableMensal(histMetaMensal[0].meta)
-      setHistoricoMetaMensal(histMetaMensal)
 
       if (histMargem.length > 0) setMargemMinima(histMargem[0].margem_minima)
       setHistoricoMargem(histMargem)
@@ -329,20 +318,6 @@ export default function Ajustes() {
       showToast(getErrorMessage(err), 'error')
     } finally {
       setSavingMargemMensal(false)
-    }
-  }
-
-  const handleSalvarMetaBillableMensal = async () => {
-    try {
-      setSavingMetaMensal(true)
-      await salvarMetaBillableMensal(metaBillableMensal, mesInicioMetaMensal + '-01')
-      const hist = await listarHistoricoMetasMensal()
-      setHistoricoMetaMensal(hist)
-      showToast('Meta mensal billable salva!', 'success')
-    } catch (err: any) {
-      showToast(getErrorMessage(err), 'error')
-    } finally {
-      setSavingMetaMensal(false)
     }
   }
 
@@ -822,31 +797,6 @@ export default function Ajustes() {
               )}
             </div>
 
-            {/* 6. Saldo Acumulado - Data de Início */}
-            <div className="space-y-3 pt-4 border-t border-gray-800/80">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
-                <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
-              </div>
-              <div className="flex flex-col gap-1.5 max-w-[200px]">
-                <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  A partir de
-                </label>
-                <input
-                  id="saldoInicioSemana"
-                  type="date"
-                  value={saldoInicioSemana}
-                  onChange={(e) => setSaldoInicioSemana(e.target.value)}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
-                />
-                {saldoInicioSemana && (
-                  <span className="text-xs text-[#8B949E]">
-                    Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
-                  </span>
-                )}
-              </div>
-            </div>
-
             {/* Ação de Salvar */}
             <div className="pt-4 border-t border-gray-800/80">
               <button
@@ -1040,89 +990,10 @@ export default function Ajustes() {
                 )}
               </div>
 
-              {/* Meta Mensal Billable */}
+              {/* % da Meta Semanal */}
               <div className="space-y-4 pt-4 border-t border-gray-800/80">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Mensal Billable</h3>
-                  <p className="text-xs text-gray-400">Total de horas billable esperadas no mês.</p>
-                </div>
-
-                {/* Linha 1: Valores e Data */}
-                <div className="flex flex-wrap gap-4 items-end">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Meta (horas)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      value={metaBillableMensal}
-                      onChange={(e) => setMetaBillableMensal(parseFloat(e.target.value) || 0)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      A partir de
-                    </label>
-                    <input
-                      type="month"
-                      value={mesInicioMetaMensal}
-                      onChange={(e) => setMesInicioMetaMensal(e.target.value)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                    />
-                  </div>
-                </div>
-
-                {/* Linha 2: Salvar */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleSalvarMetaBillableMensal}
-                    disabled={savingMetaMensal}
-                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {savingMetaMensal ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-
-                {/* Histórico */}
-                {historicoMetaMensal.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Histórico
-                    </p>
-                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasMetaMensal ? historicoMetaMensal : historicoMetaMensal.slice(0, 3)).map((h, idx) => (
-                        <div key={h.id} className="flex items-start gap-2">
-                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                          <div>
-                            <span className="text-sm text-white font-semibold">{h.meta}h</span>
-                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
-                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {historicoMetaMensal.length > 3 && (
-                      <button
-                        type="button"
-                        onClick={() => setVerTodasMetaMensal(v => !v)}
-                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
-                      >
-                        {verTodasMetaMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMetaMensal.length})`}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Margem Mínima Billable */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Margem Mínima Billable</h3>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Semanal</h3>
                   <p className="text-xs text-gray-400">Percentual de margem aceitável (ex: 92.00).</p>
                 </div>
 
@@ -1207,10 +1078,10 @@ export default function Ajustes() {
                 )}
               </div>
 
-              {/* Margem Mínima Mensal */}
+              {/* % da Meta Mensal */}
               <div className="space-y-4 pt-4 border-t border-gray-800/80">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Margem Mínima Mensal</h3>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Mensal</h3>
                   <p className="text-xs text-gray-400">Percentual mínimo aceitável de horas billable em relação à base mensal.</p>
                 </div>
 
@@ -1288,6 +1159,31 @@ export default function Ajustes() {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Saldo Acumulado - Data de Início */}
+              <div className="space-y-3 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
+                  <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
+                </div>
+                <div className="flex flex-col gap-1.5 max-w-[200px]">
+                  <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    A partir de
+                  </label>
+                  <input
+                    id="saldoInicioSemana"
+                    type="date"
+                    value={saldoInicioSemana}
+                    onChange={(e) => setSaldoInicioSemana(e.target.value)}
+                    className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
+                  />
+                  {saldoInicioSemana && (
+                    <span className="text-xs text-[#8B949E]">
+                      Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
