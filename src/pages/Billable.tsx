@@ -1061,8 +1061,8 @@ export default function Billable() {
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loadingMensal ? (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="animate-pulse bg-[#161B22] rounded-xl p-6 h-32 border border-gray-800/50 flex flex-col justify-between">
                       <div className="h-3 bg-gray-800 rounded w-2/3" />
                       <div className="h-8 bg-gray-800 rounded w-1/2 mt-4" />
@@ -1071,11 +1071,33 @@ export default function Billable() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" key={currentMonth.getTime()}>
-                  {/* Card 1 — HORAS FEITAS */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentMonth.getTime()}>
+                  {/* Card 1 — META DO MÊS */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '0ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                      META DO MÊS
+                    </span>
+                    <span className="text-3xl font-bold text-white mt-2 flex items-baseline gap-2">
+                      <AnimatedNumber
+                        value={metaRealMensal}
+                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
+                      />
+                      <span className="text-xs text-[#8B949E] font-normal">
+                        ({margemMinimaMensalVal}%)
+                      </span>
+                    </span>
+                    <span className="text-xs text-[#8B949E]">
+                      {horasBaseMensalVal.toFixed(2).replace('.', ',')}h base
+                    </span>
+                  </div>
+
+                  {/* Card 2 — HORAS FEITAS */}
+                  <div
+                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '60ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
                       HORAS FEITAS
@@ -1089,29 +1111,31 @@ export default function Billable() {
                     <div className="h-5" />
                   </div>
 
-                  {/* Card 2 — HORA BASE DO MÊS */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '60ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      HORA BASE DO MÊS
-                    </span>
-                    <span className="text-3xl font-bold text-white mt-2">
-                      <AnimatedNumber
-                        value={metaRealMensal}
-                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
-                      />
-                    </span>
-                    <div className="text-xs text-[#8B949E] mt-2">
-                      ({horasBaseMensalVal.toFixed(2).replace('.', ',')}h × {margemMinimaMensalVal}%)
-                    </div>
-                  </div>
-
-                  {/* Card 3 — SALDO DO MÊS */}
+                  {/* Card 3 — % DA META */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '120ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                      % DA META
+                    </span>
+                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
+                      {metaRealMensal > 0 ? (
+                        <AnimatedNumber
+                          value={pctMetaMensal}
+                          formatter={(v) => `${Math.round(v)}%`}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                    <div className="h-5" />
+                  </div>
+
+                  {/* Card 4 — SALDO DO MÊS */}
+                  <div
+                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '180ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
                       SALDO DO MÊS
@@ -1134,50 +1158,20 @@ export default function Billable() {
                       )}
                     </div>
                   </div>
-
-                  {/* Card 4 — % DA META */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '180ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      % DA META
-                    </span>
-                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
-                      {metaRealMensal > 0 ? (
-                        <AnimatedNumber
-                          value={pctMetaMensal}
-                          formatter={(v) => `${Math.round(v)}%`}
-                        />
-                      ) : (
-                        "—"
-                      )}
-                    </span>
-                    <div className="h-5" />
-                  </div>
-
-                  {/* Card 5 — SALDO ACUMULADO MENSAL */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '240ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      SALDO ACUMULADO
-                    </span>
-                    <span className={`text-3xl font-bold mt-2 ${saldoAcumuladoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
-                      <AnimatedNumber
-                        value={saldoAcumuladoMensal}
-                        formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(2).replace('.', ',')}h`}
-                      />
-                    </span>
-                    <div className="mt-2">
-                      {!saldoInicioSemana && (
-                        <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
+
+              {/* Saldo Acumulado — linha discreta */}
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-xs text-[#8B949E]">Saldo acumulado:</span>
+                {saldoInicioSemana ? (
+                  <span className={`text-xs font-semibold ${saldoAcumuladoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                    {saldoAcumuladoMensal > 0 ? '+' : ''}{saldoAcumuladoMensal.toFixed(2).replace('.', ',')}h
+                  </span>
+                ) : (
+                  <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
+                )}
+              </div>
 
               {/* Barra de progresso mensal */}
               <div className="w-full bg-[#161B22] border border-[#1E2A38] rounded-xl p-4">
