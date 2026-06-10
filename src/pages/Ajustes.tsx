@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { Link, useLocation } from 'react-router-dom'
 import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
@@ -51,6 +52,7 @@ export default function Ajustes() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [openBillableSection, setOpenBillableSection] = useState<string | null>(null)
 
   // Helpers
   const getSemanaAtual = () => {
@@ -829,361 +831,412 @@ export default function Ajustes() {
 
               {/* Horas Base Semanal */}
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
-                  <p className="text-xs text-gray-400">Total de horas disponíveis por semana. Usada como base para todos os cálculos.</p>
-                </div>
-                
-                {/* Linha 1: Valores e Data */}
-                <div className="flex flex-wrap gap-4 items-end">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Horas
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      value={horasBaseSemanal}
-                      onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                    />
+                <button
+                  type="button"
+                  onClick={() => setOpenBillableSection(openBillableSection === 'horasBaseSemanal' ? null : 'horasBaseSemanal')}
+                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
+                    <p className="text-xs text-gray-400">Total de horas disponíveis por semana. Usada como base para todos os cálculos.</p>
                   </div>
+                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseSemanal' ? 'rotate-0' : '-rotate-90'}`} />
+                </button>
+                {openBillableSection === 'horasBaseSemanal' && (
+                  <div className="space-y-4">
+                    {/* Linha 1: Valores e Data */}
+                    <div className="flex flex-wrap gap-4 items-end">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Horas
+                        </label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={horasBaseSemanal}
+                          onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                        />
+                      </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      A partir de
-                    </label>
-                    <input
-                      type="date"
-                      value={semanaInicioHorasBase}
-                      onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                    />
-                    {semanaInicioHorasBase && (
-                      <span className="text-xs text-[#8B949E]">
-                        Semana de {formatarData(ajustarParaSegunda(semanaInicioHorasBase))} (Seg)
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Linha 2: Salvar */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleSalvarHorasBaseSemanal}
-                    disabled={savingHorasBaseSemanal}
-                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-
-                {/* Histórico */}
-                {historicoHorasBaseSemanal.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Histórico
-                    </p>
-                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
-                        <div key={h.id} className="flex items-start gap-2">
-                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                          <div>
-                            <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
-                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
-                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          A partir de
+                        </label>
+                        <input
+                          type="date"
+                          value={semanaInicioHorasBase}
+                          onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                        />
+                        {semanaInicioHorasBase && (
+                          <span className="text-xs text-[#8B949E]">
+                            Semana de {formatarData(ajustarParaSegunda(semanaInicioHorasBase))} (Seg)
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {historicoHorasBaseSemanal.length > 3 && (
+
+                    {/* Linha 2: Salvar */}
+                    <div>
                       <button
                         type="button"
-                        onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
-                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                        onClick={handleSalvarHorasBaseSemanal}
+                        disabled={savingHorasBaseSemanal}
+                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                       >
-                        {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
+                        {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
                       </button>
+                    </div>
+
+                    {/* Histórico */}
+                    {historicoHorasBaseSemanal.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Histórico
+                        </p>
+                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                          {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
+                            <div key={h.id} className="flex items-start gap-2">
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <div>
+                                <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
+                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
+                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {historicoHorasBaseSemanal.length > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
+                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                          >
+                            {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Horas Base Mensal */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Mensal</h3>
-                  <p className="text-xs text-gray-400">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
-                </div>
-                
-                {/* Linha 1: Valores e Data */}
-                <div className="flex flex-wrap gap-4 items-end">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Horas
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      value={horasBaseMensal}
-                      onChange={(e) => setHorasBaseMensal(parseFloat(e.target.value) || 0)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                    />
+              <div className="pt-4 border-t border-gray-800/80">
+                <button
+                  type="button"
+                  onClick={() => setOpenBillableSection(openBillableSection === 'horasBaseMensal' ? null : 'horasBaseMensal')}
+                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Mensal</h3>
+                    <p className="text-xs text-gray-400">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
                   </div>
+                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                </button>
+                {openBillableSection === 'horasBaseMensal' && (
+                  <div className="space-y-4 mt-4">
+                    {/* Linha 1: Valores e Data */}
+                    <div className="flex flex-wrap gap-4 items-end">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Horas
+                        </label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={horasBaseMensal}
+                          onChange={(e) => setHorasBaseMensal(parseFloat(e.target.value) || 0)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                        />
+                      </div>
 
-                  <div className="flex flex-col gap-1">
-                     <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      A partir de
-                    </label>
-                    <input
-                      type="month"
-                      value={mesInicioHorasBase}
-                      onChange={(e) => setMesInicioHorasBase(e.target.value)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                    />
-                  </div>
-                </div>
-
-                {/* Linha 2: Salvar */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleSalvarHorasBaseMensal}
-                    disabled={savingHorasBaseMensal}
-                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {savingHorasBaseMensal ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-
-                {/* Histórico */}
-                {historicoHorasBaseMensal.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Histórico
-                    </p>
-                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasHorasBaseMensal ? historicoHorasBaseMensal : historicoHorasBaseMensal.slice(0, 3)).map((h, idx) => (
-                        <div key={h.id} className="flex items-start gap-2">
-                           <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                           <div>
-                            <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
-                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
-                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          A partir de
+                        </label>
+                        <input
+                          type="month"
+                          value={mesInicioHorasBase}
+                          onChange={(e) => setMesInicioHorasBase(e.target.value)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                        />
+                      </div>
                     </div>
-                    {historicoHorasBaseMensal.length > 3 && (
+
+                    {/* Linha 2: Salvar */}
+                    <div>
                       <button
                         type="button"
-                        onClick={() => setVerTodasHorasBaseMensal(v => !v)}
-                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                        onClick={handleSalvarHorasBaseMensal}
+                        disabled={savingHorasBaseMensal}
+                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                       >
-                        {verTodasHorasBaseMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseMensal.length})`}
+                        {savingHorasBaseMensal ? 'Salvando...' : 'Salvar'}
                       </button>
+                    </div>
+
+                    {/* Histórico */}
+                    {historicoHorasBaseMensal.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Histórico
+                        </p>
+                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                          {(verTodasHorasBaseMensal ? historicoHorasBaseMensal : historicoHorasBaseMensal.slice(0, 3)).map((h, idx) => (
+                            <div key={h.id} className="flex items-start gap-2">
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <div>
+                                <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
+                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
+                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {historicoHorasBaseMensal.length > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setVerTodasHorasBaseMensal(v => !v)}
+                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                          >
+                            {verTodasHorasBaseMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseMensal.length})`}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* % da Meta Semanal */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Semanal</h3>
-                  <p className="text-xs text-gray-400">Percentual de margem aceitável (ex: 92.00).</p>
-                </div>
-
-                {/* Linha 1: Valores e Data */}
-                <div className="flex flex-wrap gap-4 items-end">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Margem (%)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="100"
-                        value={margemMinima}
-                        onChange={(e) => setMargemMinima(parseFloat(e.target.value) || 0)}
-                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                      />
-                      <span className="text-white font-bold">%</span>
-                    </div>
+              <div className="pt-4 border-t border-gray-800/80">
+                <button
+                  type="button"
+                  onClick={() => setOpenBillableSection(openBillableSection === 'metaSemanal' ? null : 'metaSemanal')}
+                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Semanal</h3>
+                    <p className="text-xs text-gray-400">Percentual de margem aceitável (ex: 92.00).</p>
                   </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      A partir de
-                    </label>
-                    <input
-                      type="date"
-                      value={semanaInicioMargem}
-                      onChange={(e) => setSemanaInicioMargem(e.target.value)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                    />
-                    {semanaInicioMargem && (
-                      <span className="text-xs text-[#8B949E]">
-                        Semana de {formatarData(ajustarParaSegunda(semanaInicioMargem))} (Seg)
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Linha 2: Salvar */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleSalvarMargem}
-                    disabled={savingMargem}
-                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {savingMargem ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-
-                {/* Histórico */}
-                {historicoMargem.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Histórico
-                    </p>
-                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasMargem ? historicoMargem : historicoMargem.slice(0, 3)).map((h, idx) => (
-                        <div key={h.id} className="flex items-start gap-2">
-                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                          <div>
-                            <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
-                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
-                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                          </div>
+                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
+                </button>
+                {openBillableSection === 'metaSemanal' && (
+                  <div className="space-y-4 mt-4">
+                    {/* Linha 1: Valores e Data */}
+                    <div className="flex flex-wrap gap-4 items-end">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Margem (%)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                            value={margemMinima}
+                            onChange={(e) => setMargemMinima(parseFloat(e.target.value) || 0)}
+                            className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                          />
+                          <span className="text-white font-bold">%</span>
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          A partir de
+                        </label>
+                        <input
+                          type="date"
+                          value={semanaInicioMargem}
+                          onChange={(e) => setSemanaInicioMargem(e.target.value)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                        />
+                        {semanaInicioMargem && (
+                          <span className="text-xs text-[#8B949E]">
+                            Semana de {formatarData(ajustarParaSegunda(semanaInicioMargem))} (Seg)
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {historicoMargem.length > 3 && (
+
+                    {/* Linha 2: Salvar */}
+                    <div>
                       <button
                         type="button"
-                        onClick={() => setVerTodasMargem(v => !v)}
-                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                        onClick={handleSalvarMargem}
+                        disabled={savingMargem}
+                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                       >
-                        {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
+                        {savingMargem ? 'Salvando...' : 'Salvar'}
                       </button>
+                    </div>
+
+                    {/* Histórico */}
+                    {historicoMargem.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Histórico
+                        </p>
+                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                          {(verTodasMargem ? historicoMargem : historicoMargem.slice(0, 3)).map((h, idx) => (
+                            <div key={h.id} className="flex items-start gap-2">
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <div>
+                                <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
+                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
+                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {historicoMargem.length > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setVerTodasMargem(v => !v)}
+                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                          >
+                            {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* % da Meta Mensal */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Mensal</h3>
-                  <p className="text-xs text-gray-400">Percentual mínimo aceitável de horas billable em relação à base mensal.</p>
-                </div>
-
-                {/* Linha 1: Valores e Data */}
-                <div className="flex flex-wrap gap-4 items-end">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Margem (%)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        step="1"
-                        min="1"
-                        max="100"
-                        value={margemMinimaMensal}
-                        onChange={(e) => setMargemMinimaMensal(parseFloat(e.target.value) || 0)}
-                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                      />
-                      <span className="text-white font-bold">%</span>
-                    </div>
+              <div className="pt-4 border-t border-gray-800/80">
+                <button
+                  type="button"
+                  onClick={() => setOpenBillableSection(openBillableSection === 'metaMensal' ? null : 'metaMensal')}
+                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Mensal</h3>
+                    <p className="text-xs text-gray-400">Percentual mínimo aceitável de horas billable em relação à base mensal.</p>
                   </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      A partir de
-                    </label>
-                    <input
-                      type="month"
-                      value={mesInicioMargemMensal}
-                      onChange={(e) => setMesInicioMargemMensal(e.target.value)}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                    />
-                  </div>
-                </div>
-
-                {/* Linha 2: Salvar */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleSalvarMargemMensal}
-                    disabled={savingMargemMensal}
-                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                  >
-                    {savingMargemMensal ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-
-                {/* Histórico */}
-                {historicoMargemMensal.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Histórico
-                    </p>
-                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasMargemMensal ? historicoMargemMensal : historicoMargemMensal.slice(0, 3)).map((h, idx) => (
-                        <div key={h.id} className="flex items-start gap-2">
-                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                          <div>
-                            <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
-                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
-                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                          </div>
+                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                </button>
+                {openBillableSection === 'metaMensal' && (
+                  <div className="space-y-4 mt-4">
+                    {/* Linha 1: Valores e Data */}
+                    <div className="flex flex-wrap gap-4 items-end">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Margem (%)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="1"
+                            min="1"
+                            max="100"
+                            value={margemMinimaMensal}
+                            onChange={(e) => setMargemMinimaMensal(parseFloat(e.target.value) || 0)}
+                            className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                          />
+                          <span className="text-white font-bold">%</span>
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          A partir de
+                        </label>
+                        <input
+                          type="month"
+                          value={mesInicioMargemMensal}
+                          onChange={(e) => setMesInicioMargemMensal(e.target.value)}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                        />
+                      </div>
                     </div>
-                    {historicoMargemMensal.length > 3 && (
+
+                    {/* Linha 2: Salvar */}
+                    <div>
                       <button
                         type="button"
-                        onClick={() => setVerTodasMargemMensal(v => !v)}
-                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                        onClick={handleSalvarMargemMensal}
+                        disabled={savingMargemMensal}
+                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                       >
-                        {verTodasMargemMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMargemMensal.length})`}
+                        {savingMargemMensal ? 'Salvando...' : 'Salvar'}
                       </button>
+                    </div>
+
+                    {/* Histórico */}
+                    {historicoMargemMensal.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Histórico
+                        </p>
+                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                          {(verTodasMargemMensal ? historicoMargemMensal : historicoMargemMensal.slice(0, 3)).map((h, idx) => (
+                            <div key={h.id} className="flex items-start gap-2">
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <div>
+                                <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
+                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
+                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {historicoMargemMensal.length > 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setVerTodasMargemMensal(v => !v)}
+                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                          >
+                            {verTodasMargemMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMargemMensal.length})`}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Saldo Acumulado - Data de Início */}
-              <div className="space-y-3 pt-4 border-t border-gray-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
-                  <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
-                </div>
-                <div className="flex flex-col gap-1.5 max-w-[200px]">
-                  <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                    A partir de
-                  </label>
-                  <input
-                    id="saldoInicioSemana"
-                    type="date"
-                    value={saldoInicioSemana}
-                    onChange={(e) => setSaldoInicioSemana(e.target.value)}
-                    className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
-                  />
-                  {saldoInicioSemana && (
-                    <span className="text-xs text-[#8B949E]">
-                      Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
-                    </span>
-                  )}
-                </div>
+              <div className="pt-4 border-t border-gray-800/80">
+                <button
+                  type="button"
+                  onClick={() => setOpenBillableSection(openBillableSection === 'saldoAcumulado' ? null : 'saldoAcumulado')}
+                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
+                    <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
+                  </div>
+                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'saldoAcumulado' ? 'rotate-0' : '-rotate-90'}`} />
+                </button>
+                {openBillableSection === 'saldoAcumulado' && (
+                  <div className="space-y-3 mt-4">
+                    <div className="flex flex-col gap-1.5 max-w-[200px]">
+                      <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        A partir de
+                      </label>
+                      <input
+                        id="saldoInicioSemana"
+                        type="date"
+                        value={saldoInicioSemana}
+                        onChange={(e) => setSaldoInicioSemana(e.target.value)}
+                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
+                      />
+                      {saldoInicioSemana && (
+                        <span className="text-xs text-[#8B949E]">
+                          Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
