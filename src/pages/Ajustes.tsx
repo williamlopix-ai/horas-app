@@ -4,11 +4,16 @@ import { Link, useLocation } from 'react-router-dom'
 import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
 import {
-  salvarMetaBillableSemanal, listarHistoricoMetasSemanal,
   salvarMetaBillableMensal, listarHistoricoMetasMensal,
   salvarMargemMinima, listarHistoricoMargem,
-  type MetaBillableSemanal, type MetaBillableMensal, type MetaBillableMargem
+  salvarMargemMinimaMensal, listarHistoricoMargemMensal,
+  type MetaBillableMensal, type MetaBillableMargem, type MetaBillableMargemMensal
 } from '../services/metas_billable'
+import {
+  salvarHorasBaseSemanal, listarHistoricoHorasBaseSemanal,
+  salvarHorasBaseMensal, listarHistoricoHorasBaseMensal,
+  type HorasBaseSemanal, type HorasBaseMensal
+} from '../services/horas_base'
 import { getErrorMessage } from '../utils/errors'
 import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
@@ -48,10 +53,33 @@ export default function Ajustes() {
   const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
 
+  // Helpers
+  const getSemanaAtual = () => {
+    const data = new Date()
+    const dia = data.getDay()
+    const diff = data.getDate() - dia + (dia === 0 ? -6 : 1)
+    return new Date(data.setDate(diff)).toISOString().slice(0, 10)
+  }
+
+  const getMesAtualStr = () => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }
+
   // Estados Billable
-  const [metaBillableSemanal, setMetaBillableSemanal] = useState<number>(0)
-  const [historicoMetaSemanal, setHistoricoMetaSemanal] = useState<MetaBillableSemanal[]>([])
-  const [savingMetaSemanal, setSavingMetaSemanal] = useState(false)
+  // Horas Base Semanal
+  const [horasBaseSemanal, setHorasBaseSemanal] = useState<number>(42.5)
+  const [semanaInicioHorasBase, setSemanaInicioHorasBase] = useState<string>(() => getSemanaAtual())
+  const [historicoHorasBaseSemanal, setHistoricoHorasBaseSemanal] = useState<HorasBaseSemanal[]>([])
+  const [savingHorasBaseSemanal, setSavingHorasBaseSemanal] = useState(false)
+  const [verTodasHorasBaseSemanal, setVerTodasHorasBaseSemanal] = useState(false)
+
+  // Horas Base Mensal
+  const [horasBaseMensal, setHorasBaseMensal] = useState<number>(170)
+  const [mesInicioHorasBase, setMesInicioHorasBase] = useState<string>(() => getMesAtualStr())
+  const [historicoHorasBaseMensal, setHistoricoHorasBaseMensal] = useState<HorasBaseMensal[]>([])
+  const [savingHorasBaseMensal, setSavingHorasBaseMensal] = useState(false)
+  const [verTodasHorasBaseMensal, setVerTodasHorasBaseMensal] = useState(false)
 
   const [metaBillableMensal, setMetaBillableMensal] = useState<number>(0)
   const [historicoMetaMensal, setHistoricoMetaMensal] = useState<MetaBillableMensal[]>([])
@@ -61,26 +89,17 @@ export default function Ajustes() {
   const [historicoMargem, setHistoricoMargem] = useState<MetaBillableMargem[]>([])
   const [savingMargem, setSavingMargem] = useState(false)
 
-  const [semanaInicioMetaSemanal, setSemanaInicioMetaSemanal] = useState<string>(() => {
-    const data = new Date()
-    const dia = data.getDay()
-    const diff = data.getDate() - dia + (dia === 0 ? -6 : 1)
-    return new Date(data.setDate(diff)).toISOString().slice(0, 10)
-  })
-  const [verTodasMetaSemanal, setVerTodasMetaSemanal] = useState(false)
+  // Margem Mínima Mensal
+  const [margemMinimaMensal, setMargemMinimaMensal] = useState<number>(92)
+  const [mesInicioMargemMensal, setMesInicioMargemMensal] = useState<string>(() => getMesAtualStr())
+  const [historicoMargemMensal, setHistoricoMargemMensal] = useState<MetaBillableMargemMensal[]>([])
+  const [savingMargemMensal, setSavingMargemMensal] = useState(false)
+  const [verTodasMargemMensal, setVerTodasMargemMensal] = useState(false)
 
-  const [mesInicioMetaMensal, setMesInicioMetaMensal] = useState<string>(() => {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [mesInicioMetaMensal, setMesInicioMetaMensal] = useState<string>(() => getMesAtualStr())
   const [verTodasMetaMensal, setVerTodasMetaMensal] = useState(false)
 
-  const [semanaInicioMargem, setSemanaInicioMargem] = useState<string>(() => {
-    const data = new Date()
-    const dia = data.getDay()
-    const diff = data.getDate() - dia + (dia === 0 ? -6 : 1)
-    return new Date(data.setDate(diff)).toISOString().slice(0, 10)
-  })
+  const [semanaInicioMargem, setSemanaInicioMargem] = useState<string>(() => getSemanaAtual())
   const [verTodasMargem, setVerTodasMargem] = useState(false)
 
   // Auxiliar para formatar data (safe fuso-horário) de YYYY-MM-DD para DD/MM/AAAA
@@ -206,15 +225,19 @@ export default function Ajustes() {
       const [
         config,
         horariosSemanaData,
-        histMetaSemanal,
         histMetaMensal,
-        histMargem
+        histMargem,
+        histHorasBaseSemanal,
+        histHorasBaseMensal,
+        histMargemMensal
       ] = await Promise.all([
         buscarConfiguracoes(user.id),
         listarHorariosSemana(user.id),
-        listarHistoricoMetasSemanal(),
         listarHistoricoMetasMensal(),
-        listarHistoricoMargem()
+        listarHistoricoMargem(),
+        listarHistoricoHorasBaseSemanal(),
+        listarHistoricoHorasBaseMensal(),
+        listarHistoricoMargemMensal()
       ])
       
       setMetaSemanal(config.meta_semanal)
@@ -225,14 +248,20 @@ export default function Ajustes() {
       setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
       setHorariosSemana(horariosSemanaData)
 
-      if (histMetaSemanal.length > 0) setMetaBillableSemanal(histMetaSemanal[0].meta)
-      setHistoricoMetaSemanal(histMetaSemanal)
-
       if (histMetaMensal.length > 0) setMetaBillableMensal(histMetaMensal[0].meta)
       setHistoricoMetaMensal(histMetaMensal)
 
       if (histMargem.length > 0) setMargemMinima(histMargem[0].margem_minima)
       setHistoricoMargem(histMargem)
+
+      if (histHorasBaseSemanal.length > 0) setHorasBaseSemanal(histHorasBaseSemanal[0].horas_base)
+      setHistoricoHorasBaseSemanal(histHorasBaseSemanal)
+
+      if (histHorasBaseMensal.length > 0) setHorasBaseMensal(histHorasBaseMensal[0].horas_base)
+      setHistoricoHorasBaseMensal(histHorasBaseMensal)
+
+      if (histMargemMensal.length > 0) setMargemMinimaMensal(histMargemMensal[0].margem_minima)
+      setHistoricoMargemMensal(histMargemMensal)
 
     } catch (err: any) {
       console.error('Erro ao buscar configurações:', err)
@@ -258,17 +287,48 @@ export default function Ajustes() {
     return `${yyyy}-${mm}-${dd}`
   }
 
-  const handleSalvarMetaBillableSemanal = async () => {
+  const handleSalvarHorasBaseSemanal = async () => {
+    if (horasBaseSemanal <= 0) return
     try {
-      setSavingMetaSemanal(true)
-      await salvarMetaBillableSemanal(metaBillableSemanal, ajustarParaSegunda(semanaInicioMetaSemanal))
-      const hist = await listarHistoricoMetasSemanal()
-      setHistoricoMetaSemanal(hist)
-      showToast('Meta semanal billable salva!', 'success')
+      setSavingHorasBaseSemanal(true)
+      await salvarHorasBaseSemanal(horasBaseSemanal, ajustarParaSegunda(semanaInicioHorasBase))
+      const hist = await listarHistoricoHorasBaseSemanal()
+      setHistoricoHorasBaseSemanal(hist)
+      showToast('Horas base semanal salvas!', 'success')
     } catch (err: any) {
       showToast(getErrorMessage(err), 'error')
     } finally {
-      setSavingMetaSemanal(false)
+      setSavingHorasBaseSemanal(false)
+    }
+  }
+
+  const handleSalvarHorasBaseMensal = async () => {
+    if (horasBaseMensal <= 0) return
+    try {
+      setSavingHorasBaseMensal(true)
+      await salvarHorasBaseMensal(horasBaseMensal, mesInicioHorasBase + '-01')
+      const hist = await listarHistoricoHorasBaseMensal()
+      setHistoricoHorasBaseMensal(hist)
+      showToast('Horas base mensal salvas!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingHorasBaseMensal(false)
+    }
+  }
+
+  const handleSalvarMargemMensal = async () => {
+    if (margemMinimaMensal < 1 || margemMinimaMensal > 100) return
+    try {
+      setSavingMargemMensal(true)
+      await salvarMargemMinimaMensal(margemMinimaMensal, mesInicioMargemMensal + '-01')
+      const hist = await listarHistoricoMargemMensal()
+      setHistoricoMargemMensal(hist)
+      showToast('Margem mínima mensal salva!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSavingMargemMensal(false)
     }
   }
 
@@ -360,14 +420,7 @@ export default function Ajustes() {
   const diasDisponiveis = DIAS_SEMANA.map((nome, index) => ({ nome, index }))
     .filter(d => !horariosSemana.some(h => h.dia_semana === d.index))
 
-  // Incremento e Decremento da Meta Semanal
-  const incrementarMeta = () => {
-    setMetaSemanal((prev) => +(prev + 0.5).toFixed(1))
-  }
 
-  const decrementarMeta = () => {
-    setMetaSemanal((prev) => (prev > 0.5 ? +(prev - 0.5).toFixed(1) : 0.5))
-  }
 
   const isActive = (path: string) => location.pathname === path
 
@@ -552,40 +605,7 @@ export default function Ajustes() {
           <>
             <form onSubmit={handleSave} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
             
-            {/* 1. Meta Semanal */}
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
-                <p className="text-xs text-gray-400">Defina o total de horas disponíveis por semana. A meta billable é calculada a partir deste valor.</p>
-              </div>
-              <div className="flex items-center gap-2 max-w-[200px]">
-                <button
-                  type="button"
-                  onClick={decrementarMeta}
-                  className="w-10 h-10 bg-[#0B0E14] hover:bg-gray-800 border border-gray-800 text-white font-bold text-lg rounded-xl flex items-center justify-center focus:outline-none select-none transition-colors"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  value={metaSemanal}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    setMetaSemanal(isNaN(val) ? 0 : val)
-                  }}
-                  className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-xl py-2 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4]"
-                />
-                <button
-                  type="button"
-                  onClick={incrementarMeta}
-                  className="w-10 h-10 bg-[#0B0E14] hover:bg-gray-800 border border-gray-800 text-white font-bold text-lg rounded-xl flex items-center justify-center focus:outline-none select-none transition-colors"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+
 
             {/* 2. Início da Semana */}
             <div className="space-y-3">
@@ -857,25 +877,25 @@ export default function Ajustes() {
                 <p className="text-sm text-gray-400">Gerencie suas metas e margens de horas billable.</p>
               </div>
 
-              {/* Meta Semanal Billable */}
+              {/* Horas Base Semanal */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Semanal Billable</h3>
-                  <p className="text-xs text-gray-400">Total de horas billable esperadas na semana.</p>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
+                  <p className="text-xs text-gray-400">Total de horas disponíveis por semana. Usada como base para todos os cálculos.</p>
                 </div>
                 
                 {/* Linha 1: Valores e Data */}
                 <div className="flex flex-wrap gap-4 items-end">
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Meta (horas)
+                      Horas
                     </label>
                     <input
                       type="number"
                       step="0.5"
                       min="0"
-                      value={metaBillableSemanal}
-                      onChange={(e) => setMetaBillableSemanal(parseFloat(e.target.value) || 0)}
+                      value={horasBaseSemanal}
+                      onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
                       className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
                     />
                   </div>
@@ -886,13 +906,13 @@ export default function Ajustes() {
                     </label>
                     <input
                       type="date"
-                      value={semanaInicioMetaSemanal}
-                      onChange={(e) => setSemanaInicioMetaSemanal(e.target.value)}
+                      value={semanaInicioHorasBase}
+                      onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
                       className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
                     />
-                    {semanaInicioMetaSemanal && (
+                    {semanaInicioHorasBase && (
                       <span className="text-xs text-[#8B949E]">
-                        Semana de {formatarData(ajustarParaSegunda(semanaInicioMetaSemanal))} (Seg)
+                        Semana de {formatarData(ajustarParaSegunda(semanaInicioHorasBase))} (Seg)
                       </span>
                     )}
                   </div>
@@ -902,39 +922,118 @@ export default function Ajustes() {
                 <div>
                   <button
                     type="button"
-                    onClick={handleSalvarMetaBillableSemanal}
-                    disabled={savingMetaSemanal}
+                    onClick={handleSalvarHorasBaseSemanal}
+                    disabled={savingHorasBaseSemanal}
                     className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                   >
-                    {savingMetaSemanal ? 'Salvando...' : 'Salvar'}
+                    {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
                   </button>
                 </div>
 
                 {/* Histórico */}
-                {historicoMetaSemanal.length > 0 && (
+                {historicoHorasBaseSemanal.length > 0 && (
                   <div className="space-y-2 mt-2">
                     <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
                       Histórico
                     </p>
                     <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                      {(verTodasMetaSemanal ? historicoMetaSemanal : historicoMetaSemanal.slice(0, 3)).map((h, idx) => (
+                      {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
                         <div key={h.id} className="flex items-start gap-2">
                           <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
                           <div>
-                            <span className="text-sm text-white font-semibold">{h.meta}h</span>
+                            <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
                             <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
                             <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    {historicoMetaSemanal.length > 3 && (
+                    {historicoHorasBaseSemanal.length > 3 && (
                       <button
                         type="button"
-                        onClick={() => setVerTodasMetaSemanal(v => !v)}
+                        onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
                         className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
                       >
-                        {verTodasMetaSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoMetaSemanal.length})`}
+                        {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Horas Base Mensal */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Mensal</h3>
+                  <p className="text-xs text-gray-400">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
+                </div>
+                
+                {/* Linha 1: Valores e Data */}
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Horas
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={horasBaseMensal}
+                      onChange={(e) => setHorasBaseMensal(parseFloat(e.target.value) || 0)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                     <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      A partir de
+                    </label>
+                    <input
+                      type="month"
+                      value={mesInicioHorasBase}
+                      onChange={(e) => setMesInicioHorasBase(e.target.value)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                    />
+                  </div>
+                </div>
+
+                {/* Linha 2: Salvar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSalvarHorasBaseMensal}
+                    disabled={savingHorasBaseMensal}
+                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {savingHorasBaseMensal ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+
+                {/* Histórico */}
+                {historicoHorasBaseMensal.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Histórico
+                    </p>
+                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                      {(verTodasHorasBaseMensal ? historicoHorasBaseMensal : historicoHorasBaseMensal.slice(0, 3)).map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-2">
+                           <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                           <div>
+                            <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
+                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
+                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {historicoHorasBaseMensal.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVerTodasHorasBaseMensal(v => !v)}
+                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                      >
+                        {verTodasHorasBaseMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseMensal.length})`}
                       </button>
                     )}
                   </div>
@@ -1102,6 +1201,89 @@ export default function Ajustes() {
                         className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
                       >
                         {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Margem Mínima Mensal */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Margem Mínima Mensal</h3>
+                  <p className="text-xs text-gray-400">Percentual mínimo aceitável de horas billable em relação à base mensal.</p>
+                </div>
+
+                {/* Linha 1: Valores e Data */}
+                <div className="flex flex-wrap gap-4 items-end">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Margem (%)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="1"
+                        min="1"
+                        max="100"
+                        value={margemMinimaMensal}
+                        onChange={(e) => setMargemMinimaMensal(parseFloat(e.target.value) || 0)}
+                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                      />
+                      <span className="text-white font-bold">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      A partir de
+                    </label>
+                    <input
+                      type="month"
+                      value={mesInicioMargemMensal}
+                      onChange={(e) => setMesInicioMargemMensal(e.target.value)}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                    />
+                  </div>
+                </div>
+
+                {/* Linha 2: Salvar */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleSalvarMargemMensal}
+                    disabled={savingMargemMensal}
+                    className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {savingMargemMensal ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+
+                {/* Histórico */}
+                {historicoMargemMensal.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Histórico
+                    </p>
+                    <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                      {(verTodasMargemMensal ? historicoMargemMensal : historicoMargemMensal.slice(0, 3)).map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-2">
+                          <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                          <div>
+                            <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
+                            <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
+                            <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {historicoMargemMensal.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setVerTodasMargemMensal(v => !v)}
+                        className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                      >
+                        {verTodasMargemMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMargemMensal.length})`}
                       </button>
                     )}
                   </div>

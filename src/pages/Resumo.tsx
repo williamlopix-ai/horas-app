@@ -4,12 +4,25 @@ import { Link, useLocation } from 'react-router-dom'
 import { listarRegistros } from '../services/registros'
 import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
+import { buscarHorasBaseSemanal } from '../services/horas_base'
 import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
+
+function getSemanaInicioParaData(dataStr: string): string {
+  const [year, month, day] = dataStr.split('-').map(Number)
+  const data = new Date(year, month - 1, day)
+  const diaSemana = data.getDay()
+  const diasAteSegunda = diaSemana === 0 ? 6 : diaSemana - 1
+  data.setDate(data.getDate() - diasAteSegunda)
+  const yyyy = data.getFullYear()
+  const mm = String(data.getMonth() + 1).padStart(2, '0')
+  const dd = String(data.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
 
 export default function Resumo() {
   const { user, signOut } = useAuth()
@@ -20,6 +33,7 @@ export default function Resumo() {
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
+  const [horasBasePorSemana, setHorasBasePorSemana] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
@@ -68,9 +82,6 @@ export default function Resumo() {
       showToast(getErrorMessage(err), 'error')
     }
   }
-
-  const metaDiaria = useMemo(() => metaSemanal / 5, [metaSemanal])
-
   const toggleRotina = (id: string) => {
     setRotinasExpandidas(prev => ({ ...prev, [id]: !prev[id] }))
   }
@@ -94,6 +105,19 @@ export default function Resumo() {
 
       const regs = await listarRegistros(user.id)
       setRegistros(regs)
+
+      // Extrair semanas únicas e buscar horas base para cada uma
+      const semanasUnicas = [...new Set(regs.map(r => r.semana_inicio).filter(Boolean))] as string[]
+      const basePromises = semanasUnicas.map(async (semana) => {
+        const hBase = await buscarHorasBaseSemanal(user.id, semana)
+        return { semana, hBase }
+      })
+      const baseResults = await Promise.all(basePromises)
+      const record: Record<string, number> = {}
+      baseResults.forEach(({ semana, hBase }) => {
+        record[semana] = hBase
+      })
+      setHorasBasePorSemana(record)
     } catch (err: any) {
       console.error('Erro ao carregar dados do resumo:', err)
       setError(getErrorMessage(err))
@@ -158,12 +182,21 @@ export default function Resumo() {
       .sort((a, b) => a.localeCompare(b))
       .map((semana) => {
         const totalHoras = grupos[semana]
-        const atingiuMeta = totalHoras >= metaSemanal
-        const percentual = Math.min(100, Math.round((totalHoras / metaSemanal) * 100))
-        const diferenca = totalHoras - metaSemanal
-        return { semana_inicio: semana, titulo: formatarTituloSemana(semana), totalHoras, atingiuMeta, percentual, diferenca }
+        const baseVigente = horasBasePorSemana[semana] ?? metaSemanal
+        const atingiuMeta = totalHoras >= baseVigente
+        const percentual = Math.min(100, Math.round((totalHoras / baseVigente) * 100))
+        const diferenca = totalHoras - baseVigente
+        return { 
+          semana_inicio: semana, 
+          titulo: formatarTituloSemana(semana), 
+          totalHoras, 
+          atingiuMeta, 
+          percentual, 
+          diferenca, 
+          metaVigente: baseVigente 
+        }
       })
-  }, [registros, metaSemanal])
+  }, [registros, metaSemanal, horasBasePorSemana])
 
   // 2. Diário
   const resumoDias = useMemo(() => {
@@ -175,12 +208,15 @@ export default function Resumo() {
       .sort((a, b) => a.localeCompare(b))
       .map((data) => {
         const totalHoras = grupos[data]
-        const atingiuMeta = totalHoras >= metaDiaria
-        const percentual = Math.min(100, Math.round((totalHoras / metaDiaria) * 100))
-        const diferenca = totalHoras - metaDiaria
-        return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca }
+        const semanaDodia = getSemanaInicioParaData(data)
+        const baseVigente = horasBasePorSemana[semanaDodia] ?? metaSemanal
+        const metaDiariaVigente = baseVigente / 5
+        const atingiuMeta = totalHoras >= metaDiariaVigente
+        const percentual = Math.min(100, Math.round((totalHoras / metaDiariaVigente) * 100))
+        const diferenca = totalHoras - metaDiariaVigente
+        return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca, metaDiariaVigente }
       })
-  }, [registros, metaDiaria])
+  }, [registros, metaSemanal, horasBasePorSemana])
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {
@@ -354,6 +390,20 @@ export default function Resumo() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             Timesheet
+          </Link>
+
+          <Link
+            to="/billable"
+            className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+              isActive('/billable')
+                ? 'bg-[#03A9F4]/10 text-[#03A9F4] shadow-sm'
+                : 'text-gray-400 hover:text-white hover:bg-[#1E2530]'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Billable
           </Link>
 
           <Link
@@ -561,7 +611,7 @@ export default function Resumo() {
                             </div>
                             <div>
                               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Meta</span>
-                              <span className="text-lg font-mono font-bold text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</span>
+                              <span className="text-lg font-mono font-bold text-gray-400">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span>
                             </div>
                             <div>
                               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Restante</span>
@@ -599,7 +649,7 @@ export default function Resumo() {
                           </div>
                           <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
                             <div>Trabalhado: <span className="font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Meta: <span className="font-mono text-gray-300">{metaSemanal.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-gray-300">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
                             <div>Concluído: <span className="font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</span></div>
                           </div>
@@ -632,7 +682,7 @@ export default function Resumo() {
                               <tr key={semana.semana_inicio} className="hover:bg-[#1E2530]/20 transition-colors">
                                 <td className="py-4 px-6 font-semibold text-white">{semana.titulo}</td>
                                 <td className="py-4 px-6 text-right font-mono font-semibold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-gray-400">{metaSemanal.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-gray-400">{semana.metaVigente.toFixed(2).replace('.', ',')}h</td>
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</td>
                                 <td className="py-4 px-6 text-center">
@@ -703,7 +753,7 @@ export default function Resumo() {
                           {/* Progresso */}
                           <div className="space-y-1.5">
                             <div className="flex justify-between items-center text-[10px] font-semibold">
-                              <span className="text-gray-400">Meta: {metaDiaria.toFixed(2).replace('.', ',')}h</span>
+                              <span className="text-gray-400">Meta: {dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span>
                               <span style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span>
                             </div>
                             <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
@@ -730,7 +780,7 @@ export default function Resumo() {
                           </div>
                           <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
                             <div>Trabalhado: <span className="font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Meta: <span className="font-mono text-gray-300">{metaDiaria.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-gray-300">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
                             <div>Concluído: <span className="font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span></div>
                           </div>
@@ -763,7 +813,7 @@ export default function Resumo() {
                               <tr key={dia.data} className="hover:bg-[#1E2530]/20 transition-colors">
                                 <td className="py-4 px-6 font-semibold text-white capitalize">{dia.titulo}</td>
                                 <td className="py-4 px-6 text-right font-mono font-semibold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-gray-400">{metaDiaria.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-gray-400">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</td>
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</td>
                                 <td className="py-4 px-6 text-center">

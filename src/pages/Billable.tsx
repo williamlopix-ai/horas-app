@@ -12,11 +12,12 @@ import {
   type BillablePorProjetoMensal 
 } from '../services/billable'
 import { 
-  buscarMetaBillableSemanal, 
   buscarMetaBillableMensal, 
-  buscarMargemMinimaVigente 
+  buscarMargemMinimaVigente,
+  buscarMargemMinimaVigenteMensal
 } from '../services/metas_billable'
 import { buscarConfiguracoes } from '../services/configuracoes'
+import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
 import { SkeletonRow } from '../components/Skeleton'
 
 // Helper functions for week/month start date and formatting
@@ -114,6 +115,7 @@ function AnimatedNumber({ value, formatter, duration = 400 }: AnimatedNumberProp
 }
 
 async function calcularSaldoAcumulado(
+  userId: string,
   saldoInicio: string,
   semanaAtual: string
 ): Promise<number> {
@@ -135,16 +137,53 @@ async function calcularSaldoAcumulado(
     promises.push(
       Promise.all([
         buscarTotalBillableSemanal(startStr, endStr),
-        buscarMetaBillableSemanal(startStr),
+        buscarHorasBaseSemanal(userId, startStr),
         buscarMargemMinimaVigente(startStr)
-      ]).then(([total, metaSemanalSemana, margemSemana]) => {
-        const metaRealSemana = Math.round(metaSemanalSemana * (margemSemana / 100) * 100) / 100
+      ]).then(([total, horasBaseSemana, margemSemana]) => {
+        const metaRealSemana = Math.round(horasBaseSemana * (margemSemana / 100) * 100) / 100
         return total - metaRealSemana
       })
     )
     
     current.setDate(current.getDate() + 7)
     weeksCount++
+  }
+  
+  const saldos = await Promise.all(promises)
+  const soma = saldos.reduce((acc, curr) => acc + curr, 0)
+  return Math.round(soma * 100) / 100
+}
+
+async function calcularSaldoAcumuladoMensal(
+  userId: string,
+  saldoInicio: string,
+  mesAtual: string
+): Promise<number> {
+  const [y, m] = saldoInicio.split('-').map(Number)
+  let current = new Date(y, m - 1, 1) // do mês do início para frente
+  
+  const [cy, cm] = mesAtual.split('-').map(Number)
+  const target = new Date(cy, cm - 1, 1)
+  
+  let monthsCount = 0
+  const promises = []
+  
+  while (current <= target && monthsCount < 60) { // Até 5 anos
+    const { mesInicio: startStr, mesFim: endStr } = getMonthRange(current)
+    
+    promises.push(
+      Promise.all([
+        buscarTotalBillableMensal(startStr, endStr),
+        buscarHorasBaseMensal(userId, startStr),
+        buscarMargemMinimaVigenteMensal(startStr)
+      ]).then(([total, horasBaseMensal, margemMensal]) => {
+        const metaReal = Math.round(horasBaseMensal * (margemMensal / 100) * 100) / 100
+        return total - metaReal
+      })
+    )
+    
+    current.setMonth(current.getMonth() + 1)
+    monthsCount++
   }
   
   const saldos = await Promise.all(promises)
@@ -183,7 +222,6 @@ export default function Billable() {
   const [billableProjetosMensal, setBillableProjetosMensal] = useState<BillablePorProjetoMensal[]>([])
   const [totalBillable, setTotalBillable] = useState(0)
   const [totalBillableMensal, setTotalBillableMensal] = useState(0)
-  const [metaSemanal, setMetaSemanal] = useState(40)
   const [metaMensal, setMetaMensal] = useState(160)
   const [margemMinima, setMargemMinima] = useState(92)
   const [horasBase, setHorasBase] = useState(42.5)
@@ -191,6 +229,12 @@ export default function Billable() {
   const [saldoSemana, setSaldoSemana] = useState(0)
   const [saldoAcumulado, setSaldoAcumulado] = useState(0)
   const [saldoInicioSemana, setSaldoInicioSemana] = useState<string | null>(null)
+
+  const [horasBaseMensalVal, setHorasBaseMensalVal] = useState(170)
+  const [margemMinimaMensalVal, setMargemMinimaMensalVal] = useState(92)
+  const [metaRealMensal, setMetaRealMensal] = useState(0)
+  const [saldoMensal, setSaldoMensal] = useState(0)
+  const [saldoAcumuladoMensal, setSaldoAcumuladoMensal] = useState(0)
 
   const carregarDados = async () => {
     if (!user) return
@@ -203,20 +247,19 @@ export default function Billable() {
       sunday.setDate(currentDate.getDate() + 6)
       const endStr = formatYYYYMMDD(sunday)
 
-      const [projetosData, totalBillableData, metaData, margemData, config] = await Promise.all([
+      const [projetosData, totalBillableData, margemData, horasBaseData, config] = await Promise.all([
         buscarHorasBillableSemanal(startStr, endStr),
         buscarTotalBillableSemanal(startStr, endStr),
-        buscarMetaBillableSemanal(startStr),
         buscarMargemMinimaVigente(startStr),
+        buscarHorasBaseSemanal(user.id, startStr),
         buscarConfiguracoes(user.id)
       ])
 
-      const horasBaseVal = config.meta_semanal
+      const horasBaseVal = horasBaseData
       const metaRealVal = Math.round(horasBaseVal * (margemData / 100) * 100) / 100
 
       setBillableProjetos(projetosData)
       setTotalBillable(totalBillableData)
-      setMetaSemanal(metaData)
       setMargemMinima(margemData)
       
       setHorasBase(horasBaseVal)
@@ -227,7 +270,7 @@ export default function Billable() {
       setSaldoInicioSemana(saldoInicio)
 
       if (saldoInicio) {
-        const acumulado = await calcularSaldoAcumulado(saldoInicio, startStr)
+        const acumulado = await calcularSaldoAcumulado(user.id, saldoInicio, startStr)
         setSaldoAcumulado(acumulado)
       } else {
         setSaldoAcumulado(0)
@@ -250,17 +293,34 @@ export default function Billable() {
 
       const { mesInicio, mesFim } = getMonthRange(currentMonth)
 
-      const [projetosData, totalBillableData, metaData, metaSemanalData] = await Promise.all([
+      const [projetosData, totalBillableData, metaData, horasBaseMensalData, margemMensalData, config] = await Promise.all([
         buscarHorasBillableMensal(mesInicio, mesFim),
         buscarTotalBillableMensal(mesInicio, mesFim),
         buscarMetaBillableMensal(mesInicio),
-        buscarMetaBillableSemanal(mesInicio)
+        buscarHorasBaseMensal(user.id, mesInicio),
+        buscarMargemMinimaVigenteMensal(mesInicio),
+        buscarConfiguracoes(user.id)
       ])
 
       setBillableProjetosMensal(projetosData)
       setTotalBillableMensal(totalBillableData)
       setMetaMensal(metaData)
-      setMetaSemanal(metaSemanalData)
+      
+      const metaRealMensalVal = Math.round(horasBaseMensalData * (margemMensalData / 100) * 100) / 100
+
+      setHorasBaseMensalVal(horasBaseMensalData)
+      setMargemMinimaMensalVal(margemMensalData)
+      setMetaRealMensal(metaRealMensalVal)
+      setSaldoMensal(Math.round((totalBillableData - metaRealMensalVal) * 100) / 100)
+      
+      const saldoInicio = config.saldo_inicio_semana ?? null
+      
+      if (saldoInicio) {
+        const acumuladoMensal = await calcularSaldoAcumuladoMensal(user.id, saldoInicio, mesInicio)
+        setSaldoAcumuladoMensal(acumuladoMensal)
+      } else {
+        setSaldoAcumuladoMensal(0)
+      }
     } catch (err: any) {
       console.error('Erro ao carregar dados mensais do billable:', err)
       const msg = getErrorMessage(err)
@@ -417,20 +477,7 @@ export default function Billable() {
 
   const pctMeta = metaReal > 0 ? Math.round((totalBillable / metaReal) * 100) : 0
 
-  const pctTotalMensal = metaMensal > 0 ? Math.round((totalBillableMensal / metaMensal) * 100) : 0
-  const diffValueMensal = totalBillableMensal >= metaMensal ? totalBillableMensal - metaMensal : metaMensal - totalBillableMensal
-  const isMetaAtingidaMensal = totalBillableMensal >= metaMensal
-
-  const formatCard4Mensal = (val: number) => {
-    if (Math.abs(totalBillableMensal - metaMensal) < 0.001) {
-      return '0,00h'
-    }
-    if (isMetaAtingidaMensal) {
-      return `+ ${val.toFixed(2).replace('.', ',')}h excedido`
-    } else {
-      return `${val.toFixed(2).replace('.', ',')}h`
-    }
-  }
+  const pctMetaMensal = metaRealMensal > 0 ? Math.round((totalBillableMensal / metaRealMensal) * 100) : 0
 
   const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
     if (duracao === 0) {
@@ -486,7 +533,7 @@ export default function Billable() {
 
   const getFooterClassMensal = (duracao: number) => {
     let className = "py-4 px-4 text-right font-mono text-sm font-bold border-x border-gray-800/30 "
-    const threshold = metaSemanal / 4
+    const threshold = horasBase / 4
     if (duracao === 0) {
       className += "text-[#8B949E]"
     } else if (duracao > 0 && duracao < threshold) {
@@ -719,8 +766,8 @@ export default function Billable() {
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loading ? (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="animate-pulse bg-[#161B22] rounded-xl p-6 h-32 border border-gray-800/50 flex flex-col justify-between">
                       <div className="h-3 bg-gray-800 rounded w-2/3" />
                       <div className="h-8 bg-gray-800 rounded w-1/2 mt-4" />
@@ -729,11 +776,33 @@ export default function Billable() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" key={currentDate.getTime()}>
-                  {/* Card 1 — HORAS FEITAS */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentDate.getTime()}>
+                  {/* Card 1 — META DA SEMANA */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '0ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                      META DA SEMANA
+                    </span>
+                    <span className="text-3xl font-bold text-white mt-2 flex items-baseline gap-2">
+                      <AnimatedNumber
+                        value={metaReal}
+                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
+                      />
+                      <span className="text-xs text-[#8B949E] font-normal">
+                        ({margemMinima}%)
+                      </span>
+                    </span>
+                    <span className="text-xs text-[#8B949E]">
+                      {horasBase.toFixed(2).replace('.', ',')}h base
+                    </span>
+                  </div>
+
+                  {/* Card 2 — HORAS FEITAS */}
+                  <div
+                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '60ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
                       HORAS FEITAS
@@ -747,29 +816,31 @@ export default function Billable() {
                     <div className="h-5" />
                   </div>
 
-                  {/* Card 2 — HORA BASE DA SEMANA */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '60ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      HORA BASE DA SEMANA
-                    </span>
-                    <span className="text-3xl font-bold text-white mt-2">
-                      <AnimatedNumber
-                        value={metaReal}
-                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
-                      />
-                    </span>
-                    <div className="text-xs text-[#8B949E] mt-2">
-                      ({horasBase.toFixed(2).replace('.', ',')}h × {margemMinima}%)
-                    </div>
-                  </div>
-
-                  {/* Card 3 — SALDO DA SEMANA */}
+                  {/* Card 3 — % DA META */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '120ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                      % DA META
+                    </span>
+                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
+                      {metaReal > 0 ? (
+                        <AnimatedNumber
+                          value={pctMeta}
+                          formatter={(v) => `${Math.round(v)}%`}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                    <div className="h-5" />
+                  </div>
+
+                  {/* Card 4 — SALDO DA SEMANA */}
+                  <div
+                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '180ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
                       SALDO DA SEMANA
@@ -792,50 +863,20 @@ export default function Billable() {
                       )}
                     </div>
                   </div>
-
-                  {/* Card 4 — % DA META */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '180ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      % DA META
-                    </span>
-                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
-                      {metaReal > 0 ? (
-                        <AnimatedNumber
-                          value={pctMeta}
-                          formatter={(v) => `${Math.round(v)}%`}
-                        />
-                      ) : (
-                        "—"
-                      )}
-                    </span>
-                    <div className="h-5" />
-                  </div>
-
-                  {/* Card 5 — SALDO ACUMULADO */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
-                    style={{ animationDelay: '240ms' }}
-                  >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      SALDO ACUMULADO
-                    </span>
-                    <span className={`text-3xl font-bold mt-2 ${saldoAcumulado >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
-                      <AnimatedNumber
-                        value={saldoAcumulado}
-                        formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(2).replace('.', ',')}h`}
-                      />
-                    </span>
-                    <div className="mt-2">
-                      {!saldoInicioSemana && (
-                        <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
+
+              {/* Saldo Acumulado — linha discreta */}
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-xs text-[#8B949E]">Saldo acumulado:</span>
+                {saldoInicioSemana ? (
+                  <span className={`text-xs font-semibold ${saldoAcumulado >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                    {saldoAcumulado > 0 ? '+' : ''}{saldoAcumulado.toFixed(2).replace('.', ',')}h
+                  </span>
+                ) : (
+                  <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
+                )}
+              </div>
 
               {/* Barra de progresso */}
               <div className="w-full bg-[#161B22] border border-[#1E2A38] rounded-xl p-4">
@@ -1005,7 +1046,7 @@ export default function Billable() {
                           <td className={getFooterClass(totals.sab)}>{totals.sab === 0 ? '—' : totals.sab.toFixed(2).replace('.', ',')}</td>
                           <td className={getFooterClass(totals.dom)}>{totals.dom === 0 ? '—' : totals.dom.toFixed(2).replace('.', ',')}</td>
                           <td className={`py-4 px-4 text-right font-mono text-base font-black ${
-                            totals.total >= metaSemanal ? 'text-[#4CAF50]' : 'text-[#F44336]'
+                            totals.total >= metaReal ? 'text-[#4CAF50]' : 'text-[#F44336]'
                           }`}>
                             {totals.total === 0 ? '—' : totals.total.toFixed(2).replace('.', ',')}
                           </td>
@@ -1020,8 +1061,8 @@ export default function Billable() {
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loadingMensal ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4].map((i) => (
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="animate-pulse bg-[#161B22] rounded-xl p-6 h-32 border border-gray-800/50 flex flex-col justify-between">
                       <div className="h-3 bg-gray-800 rounded w-2/3" />
                       <div className="h-8 bg-gray-800 rounded w-1/2 mt-4" />
@@ -1030,14 +1071,14 @@ export default function Billable() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentMonth.getTime()}>
-                  {/* Card 1 — Total Billable */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4" key={currentMonth.getTime()}>
+                  {/* Card 1 — HORAS FEITAS */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '0ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      TOTAL BILLABLE
+                      HORAS FEITAS
                     </span>
                     <span className="text-3xl font-bold text-white mt-2">
                       <AnimatedNumber
@@ -1048,74 +1089,146 @@ export default function Billable() {
                     <div className="h-5" />
                   </div>
 
-                  {/* Card 2 — % da Meta */}
+                  {/* Card 2 — HORA BASE DO MÊS */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '60ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      % DA META
+                      HORA BASE DO MÊS
                     </span>
-                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
+                    <span className="text-3xl font-bold text-white mt-2">
                       <AnimatedNumber
-                        value={pctTotalMensal}
-                        formatter={(v) => `${Math.round(v)}%`}
+                        value={metaRealMensal}
+                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
                       />
                     </span>
-                    <div className="h-5" />
+                    <div className="text-xs text-[#8B949E] mt-2">
+                      ({horasBaseMensalVal.toFixed(2).replace('.', ',')}h × {margemMinimaMensalVal}%)
+                    </div>
                   </div>
 
-                  {/* Card 3 — Meta Mensal */}
+                  {/* Card 3 — SALDO DO MÊS */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '120ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      META MENSAL
+                      SALDO DO MÊS
                     </span>
-                    <span className="text-3xl font-bold text-white mt-2">
+                    <span className={`text-3xl font-bold mt-2 ${saldoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
                       <AnimatedNumber
-                        value={metaMensal}
-                        formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
+                        value={saldoMensal}
+                        formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(2).replace('.', ',')}h`}
                       />
                     </span>
                     <div className="mt-2">
-                      {isMetaAtingidaMensal ? (
+                      {saldoMensal >= 0 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#4CAF50]/10 text-[#4CAF50]">
-                          ✓ Atingida
+                          ▲ Crédito
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F44336]/10 text-[#F44336]">
-                          ⚠ Não atingida
+                          ▼ Débito
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Card 4 — Horas Faltantes */}
+                  {/* Card 4 — % DA META */}
                   <div
                     className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '180ms' }}
                   >
                     <span className="text-xs uppercase tracking-widest text-[#8B949E]">
-                      FALTAM
+                      % DA META
                     </span>
-                    <span className={`text-3xl font-bold mt-2 ${
-                      Math.abs(totalBillableMensal - metaMensal) < 0.001
-                        ? 'text-[#8B949E]'
-                        : isMetaAtingidaMensal
-                          ? 'text-[#4CAF50]'
-                          : 'text-[#F44336]'
-                    }`}>
-                      <AnimatedNumber
-                        value={diffValueMensal}
-                        formatter={formatCard4Mensal}
-                      />
+                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
+                      {metaRealMensal > 0 ? (
+                        <AnimatedNumber
+                          value={pctMetaMensal}
+                          formatter={(v) => `${Math.round(v)}%`}
+                        />
+                      ) : (
+                        "—"
+                      )}
                     </span>
                     <div className="h-5" />
                   </div>
+
+                  {/* Card 5 — SALDO ACUMULADO MENSAL */}
+                  <div
+                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '240ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                      SALDO ACUMULADO
+                    </span>
+                    <span className={`text-3xl font-bold mt-2 ${saldoAcumuladoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                      <AnimatedNumber
+                        value={saldoAcumuladoMensal}
+                        formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(2).replace('.', ',')}h`}
+                      />
+                    </span>
+                    <div className="mt-2">
+                      {!saldoInicioSemana && (
+                        <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* Barra de progresso mensal */}
+              <div className="w-full bg-[#161B22] border border-[#1E2A38] rounded-xl p-4">
+                
+                {/* Cabeçalho */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                    PROGRESSO DA META
+                  </span>
+                  <span className="text-xs text-[#8B949E]">
+                    Meta: {metaRealMensal.toFixed(2).replace('.', ',')}h ({margemMinimaMensalVal}% de {horasBaseMensalVal.toFixed(2).replace('.', ',')}h)
+                  </span>
+                </div>
+
+                <div className="relative w-full mt-6 mb-1">
+                  <div
+                    className="absolute bottom-[calc(100%+6px)] text-xs font-bold transition-all duration-500"
+                    style={{
+                      left: `${Math.min(pctMetaMensal, 100)}%`,
+                      transform: 'translateX(-50%)',
+                      color: pctMetaMensal < 100 ? '#FF9800' : '#4CAF50'
+                    }}
+                  >
+                    {pctMetaMensal}%
+                  </div>
+
+                  {/* Barra */}
+                  <div className="relative w-full h-3 bg-[#0B0E14] rounded-full overflow-visible">
+                    <div
+                      className="absolute left-0 top-0 h-3 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(pctMetaMensal, 100)}%`,
+                        backgroundColor: pctMetaMensal < 100 ? '#FF9800' : '#4CAF50'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Texto de status */}
+                <div className="mt-3">
+                  {pctMetaMensal < 100 ? (
+                    <span className="text-xs text-[#FF9800]">
+                      ⚠ Faltam {(metaRealMensal - totalBillableMensal).toFixed(2).replace('.', ',')}h para atingir a meta
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[#4CAF50]">
+                      ✓ Meta atingida — +{(totalBillableMensal - metaRealMensal).toFixed(2).replace('.', ',')}h excedido
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {/* Navegador de mês */}
               <div className="flex items-center justify-center gap-4 py-2">
