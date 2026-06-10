@@ -4,11 +4,12 @@ import { ToastProvider } from './contexts/ToastContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-import Projetos from './pages/Projetos'
 import Registros from './pages/Registros'
 import Resumo from './pages/Resumo'
-import Ajustes from './pages/Ajustes'
 import Timesheet from './pages/Timesheet'
+import Billable from './pages/Billable'
+import Projetos from './pages/Projetos'
+import Ajustes from './pages/Ajustes'
 
 function App() {
   return (
@@ -54,6 +55,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Timesheet />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/billable"
+              element={
+                <ProtectedRoute>
+                  <Billable />
                 </ProtectedRoute>
               }
             />
