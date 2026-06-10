@@ -1,135 +1,252 @@
-markdown# Resumo da Sessão — Projeto HORAS
+\# Resumo da Sessão — Projeto HORAS
 
-**Data:** 10/06/2026  
-**Repo:** github.com/williamlopix-ai/horas-app (branch main)  
-**Produção:** horas-app-nine.vercel.app  
-**Stack:** React + TypeScript + Tailwind + Vite + Supabase + Vercel
 
----
 
-## Estado Atual — Estável ✅
+\*\*Data:\*\* 10/06/2026
+
+\*\*Repo:\*\* github.com/williamlopix-ai/horas-app (branch main)
+
+\*\*Produção:\*\* horas-app-nine.vercel.app
+
+\*\*Stack:\*\* React + TypeScript + Tailwind + Vite + Supabase + Vercel
+
+
+
+\---
+
+
+
+\## Estado Atual — Estável ✅
+
+
 
 Todas as funcionalidades estão funcionando em produção, incluindo desktop e mobile (PWA).
 
----
 
-## O que foi feito nesta sessão
 
-### 1. Correções de cálculo — Resumo e Billable
+\---
 
-#### Resumo.tsx
-- Aba Semanal: cada semana usa sua própria base horária vigente (`horasBasePorSemana`)
-- Aba Diário: cada dia usa `horasBase / 5` da semana correspondente via `getSemanaInicioParaData`
-- Fallback para `config.meta_semanal` quando não há registro em `horas_base_semanal`
-- Removido `metaDiaria` fixo — substituído por `metaDiariaVigente` por dia
 
-#### Billable.tsx
-- Corrigido `calcularSaldoAcumulado` — estava usando `buscarMetaBillableSemanal` (tabela errada), corrigido para `buscarHorasBaseSemanal`
-- Saldo acumulado validado: semana 08/06 (+1h) + semana 15/06 (-34h) = -33h ✅
-- Cards redesenhados: ordem META DA SEMANA → HORAS FEITAS → % DA META → SALDO DA SEMANA
-- SALDO ACUMULADO virou linha discreta abaixo dos cards
-- Card META DA SEMANA: sublabel `42,50h base` adicionado abaixo do valor
 
-### 2. Bug crítico de deploy resolvido
+\## O que foi feito nesta sessão
 
-**Causa raiz:** `Registros.tsx`, `Timesheet.tsx`, `Projetos.tsx` e `App.tsx` com o item Billable na sidebar nunca foram commitados. O Antigravity editou os arquivos localmente mas o `git add` não incluiu esses arquivos. O Vercel só faz deploy do que está no GitHub.
 
-**Agravante:** O service worker do PWA cacheou agressivamente o bundle antigo, impedindo a atualização mesmo após novos deploys.
 
-**Solução:**
-- Commitados os 4 arquivos com sidebar atualizada
-- Adicionado `cleanupOutdatedCaches: true` e `runtimeCaching` com `NetworkFirst` para JS no `vite.config.ts`
-- PWA reinstalado nos celulares para limpar cache antigo
+\### 1. Reorganização do Ajustes.tsx
 
-**Lição aprendida:** Sempre verificar `git status` antes de commitar para garantir que todos os arquivos modificados estão incluídos.
+\- Card principal: removido bloco "Saldo Acumulado — Data de Início"
 
----
+\- Card Billable: removida "Meta Mensal Billable" completamente
 
-## Commits desta sessão
-fix: cards Billable redesenhados (ordem + saldo acumulado linha discreta)
-fix: vigência buscarHorasBaseSemanal no calcularSaldoAcumulado
-feat: horas base semanal/mensal com histórico, saldo acumulado, cards Billable redesenhados
-fix: PWA service worker força atualização imediata (skipWaiting + clientsClaim)
-fix: PWA NetworkFirst para JS, cleanupOutdatedCaches
-fix: adicionar Billable na sidebar de todas as telas ← resolução do bug de produção
+\- Card Billable: renomeado "Margem Mínima Billable" → "% da Meta Semanal"
 
----
+\- Card Billable: renomeado "Margem Mínima Mensal" → "% da Meta Mensal"
 
-## Arquivos modificados nesta sessão
+\- Card Billable: "Saldo Acumulado — Data de Início" movido para o final do card Billable
+
+\- Limpeza de variáveis e funções órfãs após remoção (historicoMetaMensal, savingMetaMensal, metaBillableMensal, handleSalvarMetaBillableMensal e referências cascata)
+
+
+
+\### 2. Aba Mensal do Billable — layout igual ao Semanal
+
+\- Reduzido de 5 para 4 cards: META DO MÊS → HORAS FEITAS → % DA META → SALDO DO MÊS
+
+\- Card META DO MÊS ganhou sublabel com valor base (ex: "170,00h base")
+
+\- Card HORA BASE DO MÊS removido (valor migrado para sublabel)
+
+\- Card SALDO ACUMULADO removido — virou linha discreta abaixo dos cards
+
+
+
+\### 3. Accordion nas seções do card Billable (Ajustes)
+
+\- 5 seções transformadas em accordion: Horas Base Semanal, Horas Base Mensal, % da Meta Semanal, % da Meta Mensal, Saldo Acumulado — Data de Início
+
+\- Estado inicial: todas fechadas
+
+\- Ícone ChevronDown do Lucide React com transição suave (-rotate-90 fechado / rotate-0 aberto)
+
+\- Instalado lucide-react como dependência
+
+
+
+\### 4. Migração Antigravity → Claude Code
+
+\- Claude Code instalado via npx @anthropic-ai/claude-code
+
+\- Modelo: Sonnet 4.6 (Claude Pro)
+
+\- Comando para iniciar: npx @anthropic-ai/claude-code (na raiz do projeto)
+
+\- 'claude' direto não funciona no PowerShell padrão — usar npx
+
+
+
+\---
+
+
+
+\## Commits desta sessão
+
+refactor: reorganizar Ajustes.tsx — mover Saldo Acumulado para card Billable, remover Meta Mensal Billable, renomear margens
+
+refactor: aba Mensal do Billable — layout igual ao Semanal (4 cards + saldo acumulado linha discreta)
+
+refactor: accordion com ChevronDown Lucide nas seções do card Billable
+
+
+
+\---
+
+
+
+\## Arquivos modificados nesta sessão
+
+
 
 | Arquivo | O que mudou |
+
 |-|-|
-| `src/pages/Billable.tsx` | Ordem cards, saldo acumulado linha discreta, sublabel base, fix calcularSaldoAcumulado |
-| `src/pages/Resumo.tsx` | Meta semanal e diária por vigência, removido metaDiaria fixo |
-| `src/pages/Registros.tsx` | Item Billable adicionado na sidebar |
-| `src/pages/Timesheet.tsx` | Item Billable adicionado na sidebar |
-| `src/pages/Projetos.tsx` | Item Billable adicionado na sidebar |
-| `src/App.tsx` | Rota /billable registrada |
-| `vite.config.ts` | skipWaiting, clientsClaim, cleanupOutdatedCaches, NetworkFirst JS |
 
----
+| `src/pages/Ajustes.tsx` | Reorganização card Billable, limpeza de states órfãos, accordion com Lucide |
 
-## Estado atual das tabelas Supabase
+| `src/pages/Billable.tsx` | Aba Mensal: 4 cards + saldo acumulado linha discreta + sublabel base |
+
+| `package.json` | lucide-react adicionado |
+
+| `package-lock.json` | lucide-react adicionado |
+
+
+
+\---
+
+
+
+\## Estado atual das tabelas Supabase
+
+
 
 | Tabela | Descrição |
+
 |-|-|
-| `configuracoes` | Meta semanal, início semana, formato horas, horário padrão, `saldo_inicio_semana` |
-| `projetos` | Nome, cor, tipo, status, horas_contratadas, codigo_externo, `billable` |
-| `registros` | Data, hora_inicio, hora_fim, duracao, observacao, semana_inicio, projeto_id |
-| `subcategorias` | Nome, projeto_id, usuario_id |
-| `horarios_dia` | Exceção por data específica |
-| `horarios_semana` | Exceção por dia da semana |
-| `metas_billable_semanal` | Meta billable semanal com histórico de vigência |
-| `metas_billable_mensal` | Meta billable mensal com histórico de vigência |
-| `metas_billable_margem` | Margem mínima semanal com histórico de vigência |
-| `metas_billable_margem_mensal` | Margem mínima mensal com histórico de vigência |
-| `horas_base_semanal` | Horas base semanal com histórico de vigência |
-| `horas_base_mensal` | Horas base mensal com histórico de vigência |
 
----
+| `configuracoes` | Meta semanal, início semana, formato horas, horário padrão, `saldo\_inicio\_semana` |
 
-## Pendências e próximos passos
+| `projetos` | Nome, cor, tipo, status, horas\_contratadas, codigo\_externo, `billable` |
 
-### Alta prioridade
-- [ ] Aba Mensal do Billable — aplicar mesmas mudanças visuais do semanal (saldo acumulado como linha discreta, sublabel base mensal no card META DO MÊS)
-- [ ] Warning de `key` prop na tabela da grade Billable (cosmético)
+| `registros` | Data, hora\_inicio, hora\_fim, duracao, observacao, semana\_inicio, projeto\_id |
 
-### Média prioridade
-- [ ] Fase 2 da Timesheet: clicar numa célula → redirecionar para `/registros?data=YYYY-MM-DD&projeto_id=xxx` (código já comentado em `Timesheet.tsx`)
-- [ ] Revisar se `metas_billable_semanal` ainda tem utilidade ou pode ser removida do fluxo
+| `subcategorias` | Nome, projeto\_id, usuario\_id |
 
-### Horizonte
-- [ ] Notificações Push PWA via Supabase Edge Functions (guia em `PWA_GUIA_COMPLETO.md`)
-- [ ] Aplicar padrões PWA no app de finanças pessoais
+| `horarios\_dia` | Exceção por data específica |
 
----
+| `horarios\_semana` | Exceção por dia da semana |
 
-## Como reverter em emergência
+| `metas\_billable\_semanal` | Meta billable semanal com histórico de vigência |
 
-**Vercel (instantâneo):**
+| `metas\_billable\_mensal` | Meta billable mensal com histórico de vigência |
+
+| `metas\_billable\_margem` | Margem mínima semanal com histórico de vigência |
+
+| `metas\_billable\_margem\_mensal` | Margem mínima mensal com histórico de vigência |
+
+| `horas\_base\_semanal` | Horas base semanal com histórico de vigência |
+
+| `horas\_base\_mensal` | Horas base mensal com histórico de vigência |
+
+
+
+\---
+
+
+
+\## Pendências e próximos passos
+
+
+
+\### Alta prioridade
+
+\- \[ ] Fase 2 da Timesheet: clicar numa célula → redirecionar para `/registros?data=YYYY-MM-DD\&projeto\_id=xxx` (código já comentado em `Timesheet.tsx`)
+
+
+
+\### Média prioridade
+
+\- \[ ] Warning de `key` prop na tabela da grade Billable (cosmético)
+
+\- \[ ] Revisar se `metas\_billable\_semanal` ainda tem utilidade ou pode ser removida do fluxo
+
+
+
+\### Horizonte
+
+\- \[ ] Notificações Push PWA via Supabase Edge Functions (guia em `PWA\_GUIA\_COMPLETO.md`)
+
+\- \[ ] Aplicar padrões PWA no app de finanças pessoais
+
+
+
+\---
+
+
+
+\## Como reverter em emergência
+
+
+
+\*\*Vercel (instantâneo):\*\*
+
 Deployments → três pontinhos no deploy estável → "Instant Rollback"
 
-**Git (cria commit de reversão):**
+
+
+\*\*Git (cria commit de reversão):\*\*
+
 ```powershell
+
 git revert HEAD
+
 git push origin main
+
 ```
 
----
 
-## Regras imutáveis do projeto
 
-- **Notação centesimal:** `duração = horas_inteiras + (minutos / 60)`
-- **Meta semanal base:** configurável via `horas_base_semanal` (fallback: `configuracoes.meta_semanal`)
-- **Semana:** Segunda a Domingo
-- **RLS Supabase:** nunca desativar
-- **Commits:** sempre rodar `git status` antes para verificar arquivos; `npx tsc -b` antes de commitar
+\---
 
----
 
-## Arquivos de referência no repositório
 
-- `AGENTS.md` — guia técnico para agentes IA
-- `CHANGELOG.md` — histórico completo
-- `HANDOFF.md` — estado da última sessão
-- `PWA_GUIA_COMPLETO.md` — guia reutilizável de PWA + notificações push
+\## Regras imutáveis do projeto
+
+
+
+\- \*\*Notação centesimal:\*\* `duração = horas\_inteiras + (minutos / 60)`
+
+\- \*\*Meta semanal base:\*\* configurável via `horas\_base\_semanal` (fallback: `configuracoes.meta\_semanal`)
+
+\- \*\*Semana:\*\* Segunda a Domingo
+
+\- \*\*RLS Supabase:\*\* nunca desativar
+
+\- \*\*Commits:\*\* sempre rodar `git status` antes; `npx tsc -b` antes de commitar
+
+
+
+\---
+
+
+
+\## Arquivos de referência no repositório
+
+
+
+\- `AGENTS.md` — guia técnico para agentes IA
+
+\- `CHANGELOG.md` — histórico completo
+
+\- `HANDOFF.md` — estado da última sessão
+
+\- `PWA\_GUIA\_COMPLETO.md` — guia reutilizável de PWA + notificações push
+
