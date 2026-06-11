@@ -1,6 +1,6 @@
 # Resumo da Sessão — Projeto HORAS
 
-**Data:** 11/06/2026
+**Data:** 11/06/2026 (atualizado)
 **Repo:** github.com/williamlopix-ai/horas-app (branch main)
 **Produção:** horas-app-nine.vercel.app
 **Stack:** React + TypeScript + Tailwind + Vite + Supabase + Vercel
@@ -40,6 +40,35 @@ Deploy, atualização automática de PWA e performance de carregamento corrigido
 - Bundle: 964 KB único → maior chunk 282 KB (xlsx, carregado só em /ajustes)
 - Spinner de loading azul (#03A9F4) durante navegação entre rotas
 
+### SEO / PageSpeed ✅
+- index.html: lang="pt-BR" e meta description adicionados
+- public/robots.txt: criado com `User-agent: * / Allow: /`
+- Login.tsx e Cadastro.tsx: `<div>` raiz trocado por `<main>` (landmark semântico — páginas protegidas já tinham `<main>`)
+
+### Mobile / iOS UX ✅
+- src/index.css: `html { font-size: 16px }` — previne auto-zoom em inputs no iOS Safari
+- Projetos.tsx: cards mobile compactados (p-4→p-3, botões flex-row flex-wrap, w-full→w-auto)
+
+### Mobile Cards Projetos — Layout Grid ✅
+- Projetos.tsx: `<tr>` mobile trocado de `flex flex-col` para `grid grid-cols-[1fr_auto]`
+- Badge de status agora fica na mesma linha que o nome (col-2), botões abaixo com col-span-2
+- Separação visual: `mb-2 bg-[#161B22] rounded-xl` no `<tr>` — cards com fundo destacado e gap entre eles
+- `!border-t-0` cancela o `divide-y` do tbody (especificidade 0,2,0 — necessita !important)
+- Desktop intocado: nenhuma classe `md:` alterada
+
+### Rodada 4A — SEO e Acessibilidade ✅
+- index.html: lang="pt-BR" e meta description adicionados
+- public/robots.txt: criado com User-agent: * / Allow: /
+- Login.tsx e Cadastro.tsx: <div> raiz trocado por <main> (landmark semântico)
+
+### Rodada 4B — Mobile / iOS UX ✅
+- src/index.css: html { font-size: 16px } — previne auto-zoom em inputs no iOS Safari
+- Projetos.tsx: cards mobile redesenhados — grid grid-cols-[1fr_auto], badge de status na mesma linha que o nome, ring-1 ring-gray-700/50 como separador visual entre cards
+
+### Registros — Dias recolhidos por padrão ✅
+- src/pages/Registros.tsx: isExpanded invertido — chave ausente agora = false (recolhido)
+- toggleDia ajustado para consistência com nova lógica
+
 ---
 
 ## Commits desta sessão
@@ -47,6 +76,9 @@ Deploy, atualização automática de PWA e performance de carregamento corrigido
 fix: corrigir atualização PWA — headers no-cache Vercel, NetworkFirst navegação, banner de update
 fix: qualidade — importar calcularDuracaoCentesimal, corrigir horário padrão, labels Ajustes, remover rota legada, criar .env.example
 perf: code splitting por rota — bundle 964 KB → chunks de até 282 KB
+fix: SEO e acessibilidade — lang pt-BR, meta description, robots.txt, elemento main
+feat: cards de projetos mobile — grid layout, badge direita, ring separador
+feat: dias recolhidos por padrão em Registros
 
 ---
 
@@ -62,6 +94,13 @@ perf: code splitting por rota — bundle 964 KB → chunks de até 282 KB
 | `src/services/configuracoes.ts` | CONFIG_PADRAO: 09:00 / 18:30 |
 | `src/pages/Ajustes.tsx` | Labels dos accordions corrigidos |
 | `.env.example` | Criado com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY |
+| `index.html` | lang="pt-BR", meta description |
+| `public/robots.txt` | Criado |
+| `src/pages/Login.tsx` | `<div>` raiz → `<main>` |
+| `src/pages/Cadastro.tsx` | `<div>` raiz → `<main>` |
+| `src/index.css` | `html { font-size: 16px }` |
+| `src/pages/Projetos.tsx` | Cards mobile: compactação + grid layout (nome + badge na mesma linha) |
+| `src/pages/Registros.tsx` | Dias recolhidos por padrão |
 
 ---
 
