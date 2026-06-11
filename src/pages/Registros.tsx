@@ -259,7 +259,7 @@ export default function Registros() {
   // ===============================
 
   const toggleDia = (dataStr: string) => {
-    setDiasExpandidos(prev => ({ ...prev, [dataStr]: prev[dataStr] !== undefined ? !prev[dataStr] : false }))
+    setDiasExpandidos(prev => ({ ...prev, [dataStr]: prev[dataStr] !== true }))
   }
 
   // Extrair semanas únicas disponíveis
@@ -678,7 +678,7 @@ export default function Registros() {
         ) : (
           <div className="flex flex-col gap-6">
             {registrosAgrupadosPorData.map((grupo) => {
-              const isExpanded = diasExpandidos[grupo.data] !== false
+              const isExpanded = diasExpandidos[grupo.data] === true
               
               return (
                 <div key={grupo.data} className="relative">
