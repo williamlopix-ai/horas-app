@@ -6,6 +6,7 @@ import { getErrorMessage } from '../utils/errors'
 import { buscarHorarioDia } from '../services/horarios'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana } from '../services/horariosSemana'
+import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria } from '../types'
 
 interface ModalRegistroProps {
@@ -52,26 +53,6 @@ function formatarDuracaoHumana(horaInicio: string, horaFim: string): string {
   return `${horas}h${String(minutos).padStart(2, '0')}min`
 }
 
-// Função auxiliar para calcular a duração centesimal
-function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): number {
-  if (!horaInicio || !horaFim) return 0
-  const [h1, m1] = horaInicio.split(':').map(Number)
-  const [h2, m2] = horaFim.split(':').map(Number)
-
-  if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return 0
-
-  const totalMinutosInicio = h1 * 60 + m1
-  const totalMinutosFim = h2 * 60 + m2
-  const diferencaMinutos = totalMinutosFim - totalMinutosInicio
-
-  if (diferencaMinutos <= 0) return 0
-
-  const horasInteiras = Math.floor(diferencaMinutos / 60)
-  const minutosRestantes = diferencaMinutos % 60
-  
-  const duracao = horasInteiras + (minutosRestantes / 60)
-  return Math.round(duracao * 100) / 100
-}
 
 export default function ModalRegistro({ isOpen, onClose, onSave, registro, registrosExistentes = [] }: ModalRegistroProps) {
   const { user } = useAuth()

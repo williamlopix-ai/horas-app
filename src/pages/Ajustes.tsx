@@ -1020,8 +1020,8 @@ export default function Ajustes() {
                   className="w-full flex items-center justify-between text-left focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Semanal</h3>
-                    <p className="text-xs text-gray-400">Percentual de margem aceitável (ex: 92.00).</p>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta percentual semanal</h3>
+                    <p className="text-xs text-gray-400">Percentual de meta billable semanal a ser atingido.</p>
                   </div>
                   <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
@@ -1118,8 +1118,8 @@ export default function Ajustes() {
                   className="w-full flex items-center justify-between text-left focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">% da Meta Mensal</h3>
-                    <p className="text-xs text-gray-400">Percentual mínimo aceitável de horas billable em relação à base mensal.</p>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta percentual mensal</h3>
+                    <p className="text-xs text-gray-400">Percentual de meta billable mensal a ser atingido.</p>
                   </div>
                   <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>

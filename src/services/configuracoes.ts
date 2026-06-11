@@ -5,8 +5,8 @@ const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
   meta_semanal: 42.5,
   inicio_semana: 'segunda',
   formato_horas: 'decimal',
-  inicio_dia: '08:00',
-  fim_dia: '18:00',
+  inicio_dia: '09:00',
+  fim_dia: '18:30',
   saldo_inicio_semana: null
 }
 

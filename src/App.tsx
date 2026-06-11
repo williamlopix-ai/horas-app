@@ -24,14 +24,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
             
-            {/* Rota Protegida - Redireciona para /registros como padrão */}
-            <Route
-              path="/dashboard"
-              element={
-                <Navigate to="/registros" replace />
-              }
-            />
-
             <Route
               path="/registros"
               element={
