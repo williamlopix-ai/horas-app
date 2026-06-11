@@ -1,21 +1,28 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-import Registros from './pages/Registros'
-import Resumo from './pages/Resumo'
-import Timesheet from './pages/Timesheet'
-import Billable from './pages/Billable'
-import Projetos from './pages/Projetos'
-import Ajustes from './pages/Ajustes'
+
+const Registros = lazy(() => import('./pages/Registros'))
+const Resumo    = lazy(() => import('./pages/Resumo'))
+const Timesheet = lazy(() => import('./pages/Timesheet'))
+const Billable  = lazy(() => import('./pages/Billable'))
+const Projetos  = lazy(() => import('./pages/Projetos'))
+const Ajustes   = lazy(() => import('./pages/Ajustes'))
 
 function App() {
   return (
     <AuthProvider>
       <ToastProvider>
         <BrowserRouter>
+          <Suspense fallback={
+            <div className="fixed inset-0 bg-[#0B0E14] flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
+            </div>
+          }>
           <Routes>
             {/* Redirecionamento da raiz para /registros */}
             <Route path="/" element={<Navigate to="/registros" replace />} />
@@ -81,6 +88,7 @@ function App() {
             {/* Fallback para rotas não encontradas */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </ToastProvider>
     </AuthProvider>
