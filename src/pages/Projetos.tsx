@@ -411,10 +411,10 @@ export default function Projetos() {
                 </thead>
                 <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
                   {projetosFiltrados.map((projeto) => (
-                    <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group flex flex-col md:table-row p-4 md:p-0 gap-2.5 md:gap-0 border-b border-gray-800/40 md:border-b-0">
-                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6">
+                    <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0">
+                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
                         <div className="flex items-center gap-3">
-                          <span 
+                          <span
                             className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-sm"
                             style={{ backgroundColor: projeto.cor }}
                           />
@@ -423,7 +423,7 @@ export default function Projetos() {
                           </span>
                         </div>
                       </td>
-                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6">
+                      <td className="flex items-center md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
                         {projeto.status === 'ativo' ? (
                           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -441,11 +441,11 @@ export default function Projetos() {
                           </span>
                         )}
                       </td>
-                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
-                        <div className="flex flex-col sm:flex-row md:inline-flex gap-2 w-full md:w-auto">
+                      <td className="col-span-2 block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
+                        <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
                           {projeto.status === 'excluido' ? (
                             <>
-                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-full sm:w-auto text-center">
+                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-auto text-center">
                                 Excluído
                               </span>
                               <button
@@ -458,7 +458,7 @@ export default function Projetos() {
                                     showToast(getErrorMessage(err), 'error')
                                   }
                                 }}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-full sm:w-auto text-center justify-center"
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
                               >
                                 Arquivar
                               </button>
@@ -467,13 +467,13 @@ export default function Projetos() {
                             <>
                               <button
                                 onClick={() => abrirEditarProjetoModal(projeto)}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-full sm:w-auto text-center justify-center"
+                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
                               >
                                 Editar
                               </button>
                               <button
                                 onClick={() => handleAlternarStatus(projeto)}
-                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-full sm:w-auto text-center justify-center ${
+                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
                                   projeto.status === 'ativo'
                                     ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
                                     : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
@@ -483,7 +483,7 @@ export default function Projetos() {
                               </button>
                               <button
                                 onClick={() => handleExcluirProjeto(projeto)}
-                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-full sm:w-auto text-center justify-center"
+                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-auto text-center justify-center"
                               >
                                 Excluir
                               </button>
