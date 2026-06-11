@@ -54,7 +54,7 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-4 selection:bg-[#03A9F4] selection:text-white">
+    <main className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-4 selection:bg-[#03A9F4] selection:text-white">
       <div className="w-full max-w-md bg-[#161B22] rounded-2xl border border-gray-800 shadow-2xl p-8 space-y-6 transition-all duration-300">
         
         {/* Header */}
@@ -164,6 +164,6 @@ export default function Cadastro() {
         </div>
 
       </div>
-    </div>
+    </main>
   )
 }
