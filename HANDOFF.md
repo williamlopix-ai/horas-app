@@ -1,6 +1,6 @@
 # Resumo da Sessão — Projeto HORAS
 
-**Data:** 10/06/2026
+**Data:** 11/06/2026
 **Repo:** github.com/williamlopix-ai/horas-app (branch main)
 **Produção:** horas-app-nine.vercel.app
 **Stack:** React + TypeScript + Tailwind + Vite + Supabase + Vercel
@@ -10,7 +10,7 @@
 ## Estado Atual — Estável ✅
 
 Todas as funcionalidades estão funcionando em produção, incluindo desktop e mobile (PWA).
-Deploy e atualização automática de PWA corrigidos nesta sessão.
+Deploy, atualização automática de PWA e performance de carregamento corrigidos nesta sessão.
 
 ---
 
@@ -22,16 +22,31 @@ Deploy e atualização automática de PWA corrigidos nesta sessão.
 - Camada 3: TypeScript, build, dependências, SW gerado, rotas
 - Camada 4: checklist funcional manual — nenhuma regressão encontrada
 
-### Rodada 1 — Correção de Deploy PWA (concluída)
+### Rodada 1 — Correção de Deploy PWA ✅
 - vercel.json: headers no-cache para sw.js e manifest.webmanifest
 - vite.config.ts: includeAssets limpo, navigateFallback removido, rota NetworkFirst para navegação adicionada
 - src/main.tsx: listener controllerchange com banner "Nova versão disponível" + botão Atualizar
+
+### Rodada 2 — Qualidade ✅
+- ModalRegistro.tsx: calcularDuracaoCentesimal importado de registros.ts (cópia local removida)
+- configuracoes.ts: CONFIG_PADRAO corrigido para 09:00 / 18:30
+- Ajustes.tsx: labels dos accordions % DA META SEMANAL e % DA META MENSAL corrigidos
+- App.tsx: rota /dashboard legada removida
+- .env.example criado na raiz
+
+### Rodada 3 — Performance ✅
+- App.tsx: lazy() + Suspense para todas as páginas protegidas
+- vite.config.ts: manualChunks separando vendor-react, vendor-supabase, vendor-xlsx e páginas
+- Bundle: 964 KB único → maior chunk 282 KB (xlsx, carregado só em /ajustes)
+- Spinner de loading azul (#03A9F4) durante navegação entre rotas
 
 ---
 
 ## Commits desta sessão
 
 fix: corrigir atualização PWA — headers no-cache Vercel, NetworkFirst navegação, banner de update
+fix: qualidade — importar calcularDuracaoCentesimal, corrigir horário padrão, labels Ajustes, remover rota legada, criar .env.example
+perf: code splitting por rota — bundle 964 KB → chunks de até 282 KB
 
 ---
 
@@ -40,8 +55,13 @@ fix: corrigir atualização PWA — headers no-cache Vercel, NetworkFirst navega
 | Arquivo | O que mudou |
 |-|-|
 | `vercel.json` | Headers Cache-Control no-cache para sw.js e manifest.webmanifest |
-| `vite.config.ts` | includeAssets limpo, NetworkFirst para navegação, navigateFallback removido |
+| `vite.config.ts` | NetworkFirst navegação, manualChunks, includeAssets limpo |
 | `src/main.tsx` | Banner DOM de atualização PWA com controllerchange listener |
+| `src/App.tsx` | lazy() + Suspense nas páginas protegidas, rota /dashboard removida |
+| `src/components/ModalRegistro.tsx` | calcularDuracaoCentesimal importado de registros.ts |
+| `src/services/configuracoes.ts` | CONFIG_PADRAO: 09:00 / 18:30 |
+| `src/pages/Ajustes.tsx` | Labels dos accordions corrigidos |
+| `.env.example` | Criado com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY |
 
 ---
 
@@ -66,22 +86,11 @@ fix: corrigir atualização PWA — headers no-cache Vercel, NetworkFirst navega
 
 ## Pendências e próximos passos
 
-### Rodada 2 — Qualidade (próxima sessão)
-- [ ] M1 — restabelecer campo de meta semanal na UI do Ajustes (estado existe, input foi removido)
-- [ ] M2 — importar calcularDuracaoCentesimal no ModalRegistro em vez de duplicar
-- [ ] B2 — corrigir CONFIG_PADRAO: inicio_dia '08:00' → '09:00', fim_dia '18:00' → '18:30'
-- [ ] B11 — corrigir label "Percentual de margem aceitável" → "Meta percentual semanal" no Ajustes
-- [ ] B5 — criar .env.example na raiz com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
-- [ ] B6 — remover rota /dashboard legada do App.tsx
-
-### Rodada 3 — Performance (planejado)
-- [ ] Code splitting no bundle de 964 KB (vite.config.ts)
-
-### Alta prioridade (backlog)
-- [ ] Fase 2 da Timesheet: clicar numa célula → redirecionar para /registros?data=YYYY-MM-DD&projeto_id=xxx
+### Alta prioridade
+- [ ] Fase 2 da Timesheet: clicar numa célula → redirecionar para `/registros?data=YYYY-MM-DD&projeto_id=xxx` (código já comentado em `Timesheet.tsx`)
 
 ### Horizonte
-- [ ] Notificações Push PWA via Supabase Edge Functions (guia em PWA_GUIA_COMPLETO.md)
+- [ ] Notificações Push PWA via Supabase Edge Functions (guia em `PWA_GUIA_COMPLETO.md`)
 - [ ] Aplicar padrões PWA no app de finanças pessoais
 
 ---
