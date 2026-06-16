@@ -75,7 +75,13 @@ export default function Registros() {
 
   // Estados dos Filtros
   const [filtroProjetoId, setFiltroProjetoId] = useState<string>('todos')
-  const [filtroSemana, setFiltroSemana] = useState<string>('todas')
+  const [filtroSemana, setFiltroSemana] = useState<string>(() => {
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const d = String(now.getDate()).padStart(2, '0')
+    return getWeekKey(`${y}-${m}-${d}`)
+  })
   const [filtroDiaEspecifico, setFiltroDiaEspecifico] = useState<string>('')
   const [diasExpandidos, setDiasExpandidos] = useState<{ [key: string]: boolean }>({})
   const [viewMode, setViewMode] = useState<'lista' | 'projeto'>(() => {
