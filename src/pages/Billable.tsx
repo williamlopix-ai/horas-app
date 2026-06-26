@@ -420,7 +420,9 @@ export default function Billable() {
     })
 
     // Sort by code (codigo_externo) ascending
-    return rows.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    return rows
+      .filter(r => r.total > 0)
+      .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
   }, [billableProjetos, days])
 
   const totals = useMemo(() => {
@@ -463,7 +465,9 @@ export default function Billable() {
         total
       }
     })
-    return rows.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    return rows
+      .filter(r => r.total > 0)
+      .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
   }, [billableProjetosMensal, weeksSorted])
 
   const totalsMensal = useMemo(() => {

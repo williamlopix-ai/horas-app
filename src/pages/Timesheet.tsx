@@ -67,7 +67,7 @@ export default function Timesheet() {
       setError(null)
 
       const projs = await listarProjetos(user.id, false)
-      setProjetos(projs.filter(p => p.status === 'ativo' && p.codigo_externo && p.codigo_externo.trim() !== ''))
+      setProjetos(projs.filter(p => p.status !== 'excluido' && p.codigo_externo && p.codigo_externo.trim() !== ''))
 
       const sunday = new Date(currentDate)
       sunday.setDate(currentDate.getDate() + 6)
@@ -150,7 +150,9 @@ export default function Timesheet() {
       }
     })
 
-    return rows.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    return rows
+      .filter(r => r.total > 0)
+      .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
   }, [projetos, registros, days, filtroCodigo])
 
   const totals = useMemo(() => {

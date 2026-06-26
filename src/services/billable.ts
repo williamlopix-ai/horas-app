@@ -23,7 +23,7 @@ export async function buscarHorasBillableSemanal(
       .from('projetos')
       .select('id, nome, codigo_externo')
       .eq('billable', true)
-      .eq('status', 'ativo')
+      .neq('status', 'excluido')
       .not('codigo_externo', 'is', null)
 
     if (erroProjetos) throw erroProjetos
@@ -79,7 +79,7 @@ export async function buscarHorasBillableMensal(
       .from('projetos')
       .select('id, nome, codigo_externo')
       .eq('billable', true)
-      .eq('status', 'ativo')
+      .neq('status', 'excluido')
       .not('codigo_externo', 'is', null)
 
     if (erroProjetos) throw erroProjetos
@@ -137,7 +137,7 @@ export async function buscarTotalBillableSemanal(
       .from('projetos')
       .select('id')
       .eq('billable', true)
-      .eq('status', 'ativo')
+      .neq('status', 'excluido')
       .not('codigo_externo', 'is', null)
 
     if (erroProjetos) throw erroProjetos
@@ -171,7 +171,7 @@ export async function buscarTotalBillableMensal(
       .from('projetos')
       .select('id')
       .eq('billable', true)
-      .eq('status', 'ativo')
+      .neq('status', 'excluido')
       .not('codigo_externo', 'is', null)
 
     if (erroProjetos) throw erroProjetos
