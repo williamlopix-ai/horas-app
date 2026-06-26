@@ -63,3 +63,15 @@ export interface HorarioDia {
   inicio_dia: string
   fim_dia: string
 }
+
+export interface Lembrete {
+  id: string
+  usuario_id: string
+  titulo: string
+  descricao: string | null
+  data_alvo: string
+  projeto_id: string | null
+  status: 'pendente' | 'concluido' | 'descartado'
+  criado_em: string
+}
+
