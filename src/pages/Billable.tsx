@@ -987,20 +987,20 @@ export default function Billable() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto custom-scrollbar">
+                  <div className="overflow-auto max-h-[55vh] custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                       <thead>
                         <tr className="border-b border-gray-800 bg-[#161B22] text-xs uppercase text-[#8B949E] tracking-wider">
-                          <th className="py-4 px-4 font-bold min-w-[100px]">WO</th>
-                          <th className="py-4 px-4 font-bold w-full">Nome</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Seg</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Ter</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Qua</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Qui</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Sex</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Sáb</th>
-                          <th className="py-4 px-4 font-bold text-right w-20">Dom</th>
-                          <th className="py-4 px-4 font-bold text-right w-24">Total</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold min-w-[100px]">WO</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold w-full">Nome</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Seg</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Ter</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Qua</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Qui</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Sex</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Sáb</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-20">Dom</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-24">Total</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800/50">
@@ -1279,16 +1279,16 @@ export default function Billable() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto custom-scrollbar">
+                  <div className="overflow-auto max-h-[55vh] custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                       <thead>
                         <tr className="border-b border-gray-800 bg-[#161B22] text-xs uppercase text-[#8B949E] tracking-wider">
-                          <th className="py-4 px-4 font-bold min-w-[100px]">WO</th>
-                          <th className="py-4 px-4 font-bold w-full">Nome</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold min-w-[100px]">WO</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold w-full">Nome</th>
                           {weeksSorted.map((sem, idx) => (
-                            <th key={sem} className="py-4 px-4 font-bold text-right w-28">Semana {idx + 1}</th>
+                            <th key={sem} className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-28">Semana {idx + 1}</th>
                           ))}
-                          <th className="py-4 px-4 font-bold text-right w-24">Total</th>
+                          <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 font-bold text-right w-24">Total</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800/50">
