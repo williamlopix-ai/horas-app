@@ -464,17 +464,17 @@ export default function Timesheet() {
             <div className="overflow-auto max-h-[62vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                 <thead>
-                  <tr className="border-b-2 border-gray-800 bg-gray-900/30">
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[100px]">Código</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-full">Nome</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Sáb</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Dom</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Seg</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Ter</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qua</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qui</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Sex</th>
-                    <th className="sticky top-0 z-20 bg-[#161B22] py-4 px-4 text-xs font-bold text-[#03A9F4] uppercase tracking-wider text-right w-24">Total</th>
+                  <tr className="border-b-2 border-[#03A9F4]/30 bg-[#0D1117]">
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[100px]">Código</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-full">Nome</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Sáb</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Dom</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Seg</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Ter</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qua</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qui</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Sex</th>
+                    <th className="sticky top-0 z-20 bg-[#0D1117] py-4 px-4 text-xs font-bold text-[#03A9F4] uppercase tracking-wider text-right w-24">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/50">
