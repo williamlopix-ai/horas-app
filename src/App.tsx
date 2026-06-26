@@ -12,6 +12,7 @@ const Timesheet = lazy(() => import('./pages/Timesheet'))
 const Billable  = lazy(() => import('./pages/Billable'))
 const Projetos  = lazy(() => import('./pages/Projetos'))
 const Ajustes   = lazy(() => import('./pages/Ajustes'))
+const Lembretes = lazy(() => import('./pages/Lembretes'))
 
 function App() {
   return (
@@ -81,6 +82,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Ajustes />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/lembretes"
+              element={
+                <ProtectedRoute>
+                  <Lembretes />
                 </ProtectedRoute>
               }
             />
