@@ -205,6 +205,9 @@ export default function Billable() {
     d.setHours(0, 0, 0, 0)
     return d
   })
+  const [selectedRow, setSelectedRow] = useState<string | null>(null)
+  const toggleRow = (id: string) =>
+    setSelectedRow(prev => (prev === id ? null : id))
 
   // Slide state for week selector
   const [animationClass, setAnimationClass] = useState('')
@@ -1007,11 +1010,25 @@ export default function Billable() {
                         {tableData.map((row, index) => {
                           const rowBg = index % 2 === 0 ? 'bg-[#161B22]' : 'bg-[#0F1419]'
                           return (
-                            <tr key={row.projetoId} className={`${rowBg} hover:bg-[#1A2332] transition-colors group`}>
-                              <td className="py-3 px-4 font-mono text-sm text-[#8B949E]">
+                            <tr 
+                              key={row.projetoId} 
+                              className={`transition-colors group ${
+                                selectedRow === row.projetoId
+                                  ? 'bg-[#03A9F4]/20'
+                                  : `${rowBg} hover:bg-[#1A2332]`
+                              }`}
+                            >
+                              <td 
+                                className="py-3 px-4 font-mono text-sm text-[#8B949E] cursor-pointer select-none"
+                                onClick={() => toggleRow(row.projetoId)}
+                              >
                                 {row.codigo}
                               </td>
-                              <td className="py-3 px-4 text-white font-medium text-sm truncate max-w-[200px]" title={row.nome}>
+                              <td 
+                                className="py-3 px-4 text-white font-medium text-sm truncate max-w-[200px] cursor-pointer select-none" 
+                                title={row.nome}
+                                onClick={() => toggleRow(row.projetoId)}
+                              >
                                 {row.nome}
                                 <span className="bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] font-bold rounded-full px-2 py-0.5 ml-2 tracking-wider">
                                   BILLABLE
@@ -1295,11 +1312,25 @@ export default function Billable() {
                         {tableDataMensal.map((row, index) => {
                           const rowBg = index % 2 === 0 ? 'bg-[#161B22]' : 'bg-[#0F1419]'
                           return (
-                            <tr key={row.projetoId} className={`${rowBg} hover:bg-[#1A2332] transition-colors group`}>
-                              <td className="py-3 px-4 font-mono text-sm text-[#8B949E]">
+                            <tr 
+                              key={row.projetoId} 
+                              className={`transition-colors group ${
+                                selectedRow === row.projetoId
+                                  ? 'bg-[#03A9F4]/20'
+                                  : `${rowBg} hover:bg-[#1A2332]`
+                              }`}
+                            >
+                              <td 
+                                className="py-3 px-4 font-mono text-sm text-[#8B949E] cursor-pointer select-none"
+                                onClick={() => toggleRow(row.projetoId)}
+                              >
                                 {row.codigo}
                               </td>
-                              <td className="py-3 px-4 text-white font-medium text-sm truncate max-w-[200px]" title={row.nome}>
+                              <td 
+                                className="py-3 px-4 text-white font-medium text-sm truncate max-w-[200px] cursor-pointer select-none" 
+                                title={row.nome}
+                                onClick={() => toggleRow(row.projetoId)}
+                              >
                                 {row.nome}
                                 <span className="bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] font-bold rounded-full px-2 py-0.5 ml-2 tracking-wider">
                                   BILLABLE

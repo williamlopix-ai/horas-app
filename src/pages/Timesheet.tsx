@@ -55,6 +55,10 @@ export default function Timesheet() {
 
   const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
   const [filtroCodigo, setFiltroCodigo] = useState('')
+  const [selectedRow, setSelectedRow] = useState<string | null>(null)
+
+  const toggleRow = (id: string) =>
+    setSelectedRow(prev => (prev === id ? null : id))
 
   const carregarDados = async () => {
     if (!user) return
@@ -479,11 +483,25 @@ export default function Timesheet() {
                 </thead>
                 <tbody className="divide-y divide-gray-800/50">
                   {tableData.map((row) => (
-                    <tr key={row.projetoId} className="hover:bg-[#1E2530]/40 transition-colors group">
-                      <td className="py-3 px-4 font-mono text-sm text-gray-300">
+                    <tr 
+                      key={row.projetoId} 
+                      className={`transition-colors group ${
+                        selectedRow === row.projetoId
+                          ? 'bg-[#03A9F4]/20'
+                          : 'hover:bg-[#1E2530]/40'
+                      }`}
+                    >
+                      <td 
+                        className="py-3 px-4 font-mono text-sm text-gray-300 cursor-pointer select-none"
+                        onClick={() => toggleRow(row.projetoId)}
+                      >
                         {row.codigo}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-white truncate max-w-[200px]" title={row.nome}>
+                      <td 
+                        className="py-3 px-4 font-semibold text-white truncate max-w-[200px] cursor-pointer select-none" 
+                        title={row.nome}
+                        onClick={() => toggleRow(row.projetoId)}
+                      >
                         {row.nome}
                       </td>
                       {renderCell(row.sab, formatYYYYMMDD(days[5]), row.projetoId)}
