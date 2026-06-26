@@ -13,6 +13,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { Lembrete, Projeto } from '../types'
 import ModalLembrete from '../components/ModalLembrete'
 import { SkeletonCard } from '../components/Skeleton'
+import ModalConfirmacao from '../components/ModalConfirmacao'
 
 export default function Lembretes() {
   const { user } = useAuth()
@@ -27,6 +28,7 @@ export default function Lembretes() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [lembreteEmEdicao, setLembreteEmEdicao] = useState<Lembrete | null>(null)
   const [mostrarResolvidos, setMostrarResolvidos] = useState(false)
+  const [lembreteParaExcluir, setLembreteParaExcluir] = useState<Lembrete | null>(null)
 
   const carregarDados = async () => {
     if (!user) return
@@ -92,15 +94,17 @@ export default function Lembretes() {
     }
   }
 
-  const handleExcluirLembrete = async (id: string) => {
-    if (!window.confirm('Excluir lembrete? Esta ação não pode ser desfeita.')) return
+  const confirmarExclusao = async () => {
+    if (!lembreteParaExcluir) return
     try {
-      await excluirLembrete(id)
+      await excluirLembrete(lembreteParaExcluir.id)
       showToast('Lembrete excluído!', 'success')
       await carregarDados()
     } catch (err: any) {
       console.error('Erro ao excluir lembrete:', err)
       showToast(getErrorMessage(err), 'error')
+    } finally {
+      setLembreteParaExcluir(null)
     }
   }
 
@@ -231,7 +235,7 @@ export default function Lembretes() {
                   return (
                     <div
                       key={lembrete.id}
-                      className={`bg-[#161B22] border rounded-2xl p-5 shadow-sm hover:border-gray-700 transition-all flex flex-col justify-between min-h-[160px] animate-in fade-in zoom-in duration-200 ${
+                      className={`bg-[#161B22] border rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between min-h-[160px] animate-in fade-in zoom-in duration-200 ${
                         isVencido
                           ? 'border-l-4 border-l-[#F44336] border-gray-800'
                           : isHoje
@@ -313,7 +317,7 @@ export default function Lembretes() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleExcluirLembrete(lembrete.id)}
+                            onClick={() => setLembreteParaExcluir(lembrete)}
                             className="p-1.5 text-gray-400 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-all focus:outline-none"
                             title="Excluir"
                           >
@@ -349,7 +353,7 @@ export default function Lembretes() {
                     return (
                       <div
                         key={lembrete.id}
-                        className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 shadow-sm opacity-50 hover:opacity-80 transition-all flex flex-col justify-between min-h-[160px]"
+                        className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 shadow-sm opacity-50 [@media(hover:hover)]:hover:opacity-80 transition-all flex flex-col justify-between min-h-[160px]"
                       >
                         <div className="space-y-2">
                           {/* Tags e Data */}
@@ -406,7 +410,7 @@ export default function Lembretes() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleExcluirLembrete(lembrete.id)}
+                              onClick={() => setLembreteParaExcluir(lembrete)}
                               className="p-1.5 text-gray-400 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-all focus:outline-none"
                               title="Excluir permanentemente"
                             >
@@ -432,6 +436,16 @@ export default function Lembretes() {
         onSave={handleSalvarLembrete}
         lembrete={lembreteEmEdicao}
         projetos={projetos}
+      />
+
+      <ModalConfirmacao
+        isOpen={lembreteParaExcluir !== null}
+        titulo="Excluir lembrete"
+        mensagem="Esta ação não pode ser desfeita. Deseja realmente excluir este lembrete?"
+        textoConfirmar="Excluir"
+        perigo
+        onConfirmar={confirmarExclusao}
+        onCancelar={() => setLembreteParaExcluir(null)}
       />
     </div>
   )
