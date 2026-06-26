@@ -41,6 +41,7 @@ export default function Resumo() {
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
+  const [apenasBillable, setApenasBillable] = useState(true)
   const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ id: string, nome: string } | null>(null)
   const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
     return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
@@ -242,6 +243,7 @@ export default function Resumo() {
       let status = 'ativo'
       let arquivado = false
       let nome_original = null
+      let billable: boolean | null = false
 
       if (id !== 'sem_projeto') {
         const p = projetos.find(p => p.id === id)
@@ -252,6 +254,7 @@ export default function Resumo() {
           horas_contratadas = p.horas_contratadas
           status = p.status
           arquivado = p.arquivado
+          billable = p.billable
           nome_original = p.nome_original
         }
       }
@@ -288,7 +291,7 @@ export default function Resumo() {
         percentual: Math.round((s.duracao / totalHoras) * 100)
       }))
 
-      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original }
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original, billable }
       
       if (tipo === 'rotina') {
         arrayRotina.push(item)
@@ -303,6 +306,13 @@ export default function Resumo() {
       rotinas: arrayRotina.sort((a, b) => b.totalHoras - a.totalHoras)
     }
   }, [registros, projetos])
+
+  const projetosVisiveis = useMemo(
+    () => apenasBillable
+      ? resumoProjetos.projetos.filter(p => p.billable === true)
+      : resumoProjetos.projetos,
+    [resumoProjetos.projetos, apenasBillable]
+  )
 
   const isActive = (path: string) => location.pathname === path
 
@@ -842,18 +852,38 @@ export default function Resumo() {
                ========================================================================= */}
             {abaAtiva === 'projetos' && (
               <div className="space-y-8 animate-in fade-in duration-300">
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setApenasBillable(v => !v)}
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                  >
+                    <span
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        apenasBillable ? 'bg-[#03A9F4]' : 'bg-gray-600'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          apenasBillable ? 'translate-x-4' : 'translate-x-1'
+                        }`}
+                      />
+                    </span>
+                    Apenas billable
+                  </button>
+                </div>
                 {/* Seção Projetos */}
                 <div>
                   <h2 className="text-xl font-bold text-white mb-4">Projetos</h2>
-                  {resumoProjetos.projetos.length === 0 ? (
+                  {projetosVisiveis.length === 0 ? (
                     <div className="text-sm text-gray-500 bg-[#161B22] p-4 rounded-xl border border-gray-800">Nenhum projeto registrado.</div>
                   ) : (
                     <div className="space-y-10">
                       {/* Ativos */}
-                      {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).length > 0 && (
+                      {projetosVisiveis.filter(p => p.status === 'ativo' && !p.arquivado).length > 0 && (
                         <div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {resumoProjetos.projetos.filter(p => p.status === 'ativo' && !p.arquivado).map(proj => {
+                            {projetosVisiveis.filter(p => p.status === 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
                               const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
@@ -933,11 +963,11 @@ export default function Resumo() {
                       )}
 
                       {/* Inativos */}
-                      {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
+                      {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
                         <div>
                           <h2 className="text-lg font-bold text-gray-400 mb-4">Encerrados / Excluídos</h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {resumoProjetos.projetos.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
+                            {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
                               const hasRegistros = proj.registros.length > 0;
@@ -1011,19 +1041,19 @@ export default function Resumo() {
                       )}
 
                       {/* Arquivados */}
-                      {resumoProjetos.projetos.filter(p => p.arquivado).length > 0 && (
+                      {projetosVisiveis.filter(p => p.arquivado).length > 0 && (
                         <div className="border-t border-gray-800/80 pt-6">
                           <button 
                             onClick={() => setMostrarArquivados(!mostrarArquivados)}
                             className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 focus:outline-none"
                           >
                             <span className="text-xs">{mostrarArquivados ? '▼' : '▶'}</span>
-                            <h2 className="text-lg font-bold">Arquivados ({resumoProjetos.projetos.filter(p => p.arquivado).length})</h2>
+                            <h2 className="text-lg font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
                           </button>
                           
                           {mostrarArquivados && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                              {resumoProjetos.projetos.filter(p => p.arquivado).map(proj => {
+                              {projetosVisiveis.filter(p => p.arquivado).map(proj => {
                                 const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                 const isExpanded = projetosExpandidos[proj.id] || false;
                                 const hasRegistros = proj.registros.length > 0;

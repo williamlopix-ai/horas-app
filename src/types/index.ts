@@ -9,6 +9,7 @@ export interface Projeto {
   arquivado: boolean
   nome_original: string | null
   codigo_externo: string | null
+  billable: boolean | null
   criado_em: string
 }
 
