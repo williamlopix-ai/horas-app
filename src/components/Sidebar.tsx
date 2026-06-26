@@ -1,11 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { listarLembretes } from '../services/lembretes'
 
 export default function Sidebar() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [pendentesCount, setPendentesCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    let ativo = true
+    listarLembretes(user.id)
+      .then(lista => {
+        if (ativo) {
+          setPendentesCount(lista.filter(l => l.status === 'pendente').length)
+        }
+      })
+      .catch(() => { /* silencioso: badge é secundário, não quebra a navegação */ })
+    return () => { ativo = false }
+  }, [user])
 
   const isActive = (path: string) => location.pathname === path
 
@@ -141,7 +156,12 @@ export default function Sidebar() {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            Lembretes
+            <span className="flex-1">Lembretes</span>
+            {pendentesCount > 0 && (
+              <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#03A9F4] text-white text-[11px] font-bold">
+                {pendentesCount}
+              </span>
+            )}
           </Link>
         </nav>
 

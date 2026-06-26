@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
@@ -30,6 +30,19 @@ export default function Lembretes() {
   const [mostrarResolvidos, setMostrarResolvidos] = useState(false)
   const [lembreteParaExcluir, setLembreteParaExcluir] = useState<Lembrete | null>(null)
 
+  const avisoMostrado = useRef(false)
+
+  // Pegar data de hoje no formato local YYYY-MM-DD
+  const getHojeStr = () => {
+    const d = new Date()
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  const hoje = getHojeStr()
+
   const carregarDados = async () => {
     if (!user) return
     try {
@@ -41,6 +54,26 @@ export default function Lembretes() {
       ])
       setLembretes(dadosLembretes)
       setProjetos(dadosProjetos)
+
+      // Exibir aviso apenas uma vez na montagem inicial da tela
+      if (!avisoMostrado.current) {
+        const pendentesLembretes = dadosLembretes.filter(l => l.status === 'pendente')
+        const qtdHoje = pendentesLembretes.filter(l => l.data_alvo === hoje).length
+        const qtdVencidos = pendentesLembretes.filter(l => l.data_alvo < hoje).length
+
+        if (qtdHoje > 0 || qtdVencidos > 0) {
+          let msg = ''
+          if (qtdHoje > 0 && qtdVencidos > 0) {
+            msg = `Você tem ${qtdHoje} lembrete(s) para hoje e ${qtdVencidos} atrasado(s).`
+          } else if (qtdHoje > 0) {
+            msg = `Você tem ${qtdHoje} lembrete(s) para hoje.`
+          } else {
+            msg = `Você tem ${qtdVencidos} lembrete(s) atrasado(s).`
+          }
+          showToast(msg, 'info')
+        }
+        avisoMostrado.current = true
+      }
     } catch (err: any) {
       console.error('Erro ao carregar lembretes:', err)
       setError(getErrorMessage(err))
@@ -132,17 +165,6 @@ export default function Lembretes() {
     }
     return dataStr
   }
-
-  // Pegar data de hoje no formato local YYYY-MM-DD
-  const getHojeStr = () => {
-    const d = new Date()
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-
-  const hoje = getHojeStr()
 
   // Filtrar e ordenar lembretes
   const pendentes = lembretes
