@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import type { Projeto, Subcategoria } from '../types'
 import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
+import ModalConfirmacao from './ModalConfirmacao'
 
 interface ModalProjetoProps {
   isOpen: boolean
@@ -36,6 +37,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([])
   const [novaSubcategoria, setNovaSubcategoria] = useState('')
   const [carregandoSubcategorias, setCarregandoSubcategorias] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [nomeEditando, setNomeEditando] = useState('')
+  const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
   const subcategoriasRef = useRef<HTMLDivElement>(null)
 
   // Efeito para rolar suavemente até a seção de subcategorias caso solicitado
@@ -90,6 +94,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
     } else {
       setSubcategorias([])
       setNovaSubcategoria('')
+      setEditandoId(null)
+      setNomeEditando('')
+      setSubExcluindoId(null)
     }
   }, [isOpen, projeto, tipo])
 
@@ -110,12 +117,39 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
     }
   }
 
-  const handleRemoveSubcategoria = async (id: string) => {
-    if (!window.confirm("Excluir subcategoria? Registros vinculados perderão essa referência.")) return
+  const handleStartEdit = (sub: Subcategoria) => {
+    setEditandoId(sub.id)
+    setNomeEditando(sub.nome)
+  }
+
+  const handleCancelEdit = () => {
+    setEditandoId(null)
+    setNomeEditando('')
+  }
+
+  const handleSaveEdit = async (id: string) => {
+    if (!nomeEditando.trim()) return
     try {
       setCarregandoSubcategorias(true)
-      await subcategoriasService.excluirSubcategoria(id)
-      setSubcategorias(subcategorias.filter(sub => sub.id !== id))
+      const subAtualizada = await subcategoriasService.atualizarSubcategoria(id, nomeEditando.trim())
+      setSubcategorias(subcategorias.map(s => s.id === id ? subAtualizada : s))
+      setEditandoId(null)
+      setNomeEditando('')
+    } catch (err) {
+      console.error('Erro ao atualizar subcategoria', err)
+      setError('Erro ao atualizar subcategoria.')
+    } finally {
+      setCarregandoSubcategorias(false)
+    }
+  }
+
+  const handleConfirmarExclusaoSubcategoria = async () => {
+    if (!subExcluindoId) return
+    try {
+      setCarregandoSubcategorias(true)
+      await subcategoriasService.excluirSubcategoria(subExcluindoId)
+      setSubcategorias(subcategorias.filter(sub => sub.id !== subExcluindoId))
+      setSubExcluindoId(null)
     } catch (err) {
       console.error('Erro ao excluir subcategoria', err)
       setError('Erro ao excluir subcategoria.')
@@ -402,15 +436,69 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                   <ul className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                     {subcategorias.map(sub => (
                       <li key={sub.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2">
-                        <span className="text-sm text-gray-200">{sub.nome}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSubcategoria(sub.id)}
-                          className="text-gray-500 hover:text-red-400 p-1"
-                          title="Excluir"
-                        >
-                          ✕
-                        </button>
+                        {editandoId === sub.id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={nomeEditando}
+                              onChange={(e) => setNomeEditando(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSaveEdit(sub.id)
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  handleCancelEdit()
+                                }
+                              }}
+                              className="flex-1 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEdit(sub.id)}
+                              disabled={!nomeEditando.trim() || carregandoSubcategorias}
+                              className="text-emerald-400 hover:text-emerald-300 p-1 disabled:opacity-50"
+                              title="Confirmar"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEdit}
+                              className="text-gray-500 hover:text-gray-300 p-1"
+                              title="Cancelar"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-sm text-gray-200">{sub.nome}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(sub)}
+                                className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
+                                title="Editar"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSubExcluindoId(sub.id)}
+                                className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                                title="Excluir"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -449,6 +537,17 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
             </button>
           </div>
         </form>
+
+        {/* Modal de Confirmação de Exclusão de Subcategoria */}
+        <ModalConfirmacao
+          isOpen={subExcluindoId !== null}
+          titulo="Excluir Subcategoria"
+          mensagem="Excluir subcategoria? Registros vinculados perderão essa referência."
+          perigo={true}
+          textoConfirmar="Excluir"
+          onConfirmar={handleConfirmarExclusaoSubcategoria}
+          onCancelar={() => setSubExcluindoId(null)}
+        />
       </div>
     </div>
   )
