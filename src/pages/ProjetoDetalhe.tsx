@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
-import BreakdownSubcategorias from '../components/BreakdownSubcategorias'
+import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalConfirmacao from '../components/ModalConfirmacao'
 import { SkeletonCard } from '../components/Skeleton'
@@ -49,6 +49,18 @@ export default function ProjetoDetalhe() {
   const [faseExcluindoId, setFaseExcluindoId] = useState<string | null>(null)
   const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
   const [salvandoFase, setSalvandoFase] = useState(false)
+
+  // Estados de gestão de Subcategorias na página
+  const [editandoSubId, setEditandoSubId] = useState<string | null>(null)
+  const [nomeSubEditando, setNomeSubEditando] = useState('')
+  const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
+  const [adicionandoEmFaseId, setAdicionandoEmFaseId] = useState<string | null>(null)
+  const [novaSubNome, setNovaSubNome] = useState('')
+  const [adicionandoSemFase, setAdicionandoSemFase] = useState(false)
+  const [modoAlocacao, setModoAlocacao] = useState(false)
+  const [alocacoes, setAlocacoes] = useState<Record<string, string>>({})
+  const [salvandoAlocacoes, setSalvandoAlocacoes] = useState(false)
+  const [salvandoSub, setSalvandoSub] = useState(false)
 
   // Estados da seção Lançamentos / Modal de Registro
   const [isModalRegistroOpen, setIsModalRegistroOpen] = useState(false)
@@ -294,6 +306,348 @@ export default function ProjetoDetalhe() {
     }
   }
 
+  // Handlers para Subcategorias
+  const formatarHoras = (val: number) => {
+    const rounded = Math.round(val * 100) / 100
+    return rounded.toString().replace('.', ',')
+  }
+
+  const handleStartEditSub = (sub: SubcategoriaBreakdownItem) => {
+    if (modoAlocacao || !sub.id) return
+    setEditandoSubId(sub.id)
+    setNomeSubEditando(sub.nome)
+  }
+
+  const handleCancelEditSub = () => {
+    setEditandoSubId(null)
+    setNomeSubEditando('')
+  }
+
+  const handleSaveEditSub = async (subId: string) => {
+    if (!nomeSubEditando.trim()) return
+    try {
+      setSalvandoSub(true)
+      await subcategoriasService.atualizarSubcategoria(subId, nomeSubEditando.trim())
+      await carregarDados(true)
+      handleCancelEditSub()
+      showToast('Subcategoria salva!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao salvar subcategoria:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoSub(false)
+    }
+  }
+
+  const handleConfirmarExclusaoSub = async () => {
+    if (!subExcluindoId) return
+    try {
+      setSalvandoSub(true)
+      await subcategoriasService.excluirSubcategoria(subExcluindoId)
+      setSubExcluindoId(null)
+      await carregarDados(true)
+      showToast('Subcategoria excluída!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao excluir subcategoria:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoSub(false)
+    }
+  }
+
+  const handleConfirmAddSubcategoria = async (faseId: string | null) => {
+    if (!novaSubNome.trim() || !user || !projeto) return
+    try {
+      setSalvandoSub(true)
+      await subcategoriasService.criarSubcategoria(user.id, projeto.id, novaSubNome.trim(), faseId)
+      await carregarDados(true)
+      setNovaSubNome('')
+      setAdicionandoEmFaseId(null)
+      setAdicionandoSemFase(false)
+      showToast('Subcategoria criada!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao criar subcategoria:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoSub(false)
+    }
+  }
+
+  const handleEntrarModoAlocacao = () => {
+    handleCancelEditSub()
+    const inicial: Record<string, string> = {}
+    subcategorias.forEach(sub => {
+      inicial[sub.id] = sub.horas_alocadas !== null && sub.horas_alocadas !== undefined
+        ? (Number.isInteger(sub.horas_alocadas) ? sub.horas_alocadas.toString() : sub.horas_alocadas.toString().replace('.', ','))
+        : ''
+    })
+    setAlocacoes(inicial)
+    setModoAlocacao(true)
+  }
+
+  const handleCancelarAlocacoes = () => {
+    setModoAlocacao(false)
+    setAlocacoes({})
+  }
+
+  const handleSalvarAlocacoes = async () => {
+    try {
+      setSalvandoAlocacoes(true)
+      const alteracoes = subcategorias.filter(sub => {
+        const rawVal = alocacoes[sub.id] ?? ''
+        let novoValor: number | null = null
+        if (rawVal.trim()) {
+          const parsed = parseFloat(rawVal.replace(',', '.'))
+          if (!isNaN(parsed)) novoValor = parsed
+        }
+        return novoValor !== (sub.horas_alocadas ?? null)
+      })
+
+      if (alteracoes.length > 0) {
+        await Promise.all(
+          alteracoes.map(sub => {
+            const rawVal = alocacoes[sub.id] ?? ''
+            let novoValor: number | null = null
+            if (rawVal.trim()) {
+              const parsed = parseFloat(rawVal.replace(',', '.'))
+              if (!isNaN(parsed)) novoValor = parsed
+            }
+            return subcategoriasService.atualizarSubcategoria(sub.id, sub.nome, novoValor)
+          })
+        )
+        await carregarDados(true)
+        showToast('Alocações salvas com sucesso!', 'success')
+      }
+      setModoAlocacao(false)
+      setAlocacoes({})
+    } catch (err: unknown) {
+      console.error('Erro ao salvar alocações:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoAlocacoes(false)
+    }
+  }
+
+  const renderListaSubcategorias = (items: SubcategoriaBreakdownItem[]) => {
+    if (!items || items.length === 0) {
+      return (
+        <div className="text-xs text-gray-500 italic py-2">
+          Nenhuma subcategoria cadastrada.
+        </div>
+      )
+    }
+
+    const temAlgumaAlocacao = items.some(sub => {
+      if (sub.id === null) return false
+      if (modoAlocacao) {
+        const raw = alocacoes[sub.id] ?? ''
+        const parsed = parseFloat(raw.replace(',', '.'))
+        return !isNaN(parsed) && parsed > 0
+      }
+      return sub.horas_alocadas !== null && sub.horas_alocadas > 0
+    })
+
+    const somaSemAlocacao = items.reduce((acc, sub) => {
+      let temAloc = false
+      if (sub.id !== null) {
+        if (modoAlocacao) {
+          const raw = alocacoes[sub.id] ?? ''
+          const parsed = parseFloat(raw.replace(',', '.'))
+          temAloc = !isNaN(parsed) && parsed > 0
+        } else {
+          temAloc = sub.horas_alocadas !== null && sub.horas_alocadas > 0
+        }
+      }
+      if (!temAloc) {
+        return acc + sub.duracao
+      }
+      return acc
+    }, 0)
+
+    const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
+
+    return (
+      <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60 space-y-3">
+        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Subcategorias</span>
+        <div className="space-y-2.5">
+          {items.map((sub) => {
+            const isBaldeSemSub = sub.id === null
+            const rawAloc = modoAlocacao && !isBaldeSemSub ? (alocacoes[sub.id!] ?? '') : null
+            const horasAlocadasEfetivas = modoAlocacao && !isBaldeSemSub
+              ? (rawAloc && !isNaN(parseFloat(rawAloc.replace(',', '.'))) ? parseFloat(rawAloc.replace(',', '.')) : null)
+              : sub.horas_alocadas
+
+            const temAlocacao = !isBaldeSemSub && horasAlocadasEfetivas !== null && horasAlocadasEfetivas > 0
+            const excedeu = temAlocacao && sub.duracao > horasAlocadasEfetivas!
+            const percentualAlocado = temAlocacao ? Math.round((sub.duracao / horasAlocadasEfetivas!) * 100) : 0
+            const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / horasAlocadasEfetivas!) * 100)) : 0
+
+            const duracaoFormatada = `${sub.duracao.toFixed(2).replace('.', ',')}h`
+            const alocadoFormatado = temAlocacao
+              ? (Number.isInteger(horasAlocadasEfetivas)
+                  ? `${horasAlocadasEfetivas}h`
+                  : `${horasAlocadasEfetivas!.toString().replace('.', ',')}h`)
+              : ''
+
+            const isEditingThisSub = !modoAlocacao && !isBaldeSemSub && editandoSubId === sub.id
+
+            if (isEditingThisSub) {
+              return (
+                <div key={sub.id} className="flex items-center gap-2 w-full py-1">
+                  <input
+                    type="text"
+                    value={nomeSubEditando}
+                    onChange={(e) => setNomeSubEditando(e.target.value)}
+                    placeholder="Nome da subcategoria"
+                    disabled={salvandoSub}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleSaveEditSub(sub.id!)
+                      } else if (e.key === 'Escape') {
+                        e.preventDefault()
+                        handleCancelEditSub()
+                      }
+                    }}
+                    className="flex-1 bg-[#0B0E14] border border-gray-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEditSub(sub.id!)}
+                      disabled={!nomeSubEditando.trim() || salvandoSub}
+                      className="p-1 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      title="Confirmar"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEditSub}
+                      disabled={salvandoSub}
+                      className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                      title="Cancelar"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+
+            return (
+              <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
+                <div className="flex justify-between items-center text-xs gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                    <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                    {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && (
+                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
+                        sem alocação
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {modoAlocacao && !isBaldeSemSub ? (
+                      <>
+                        <span className="font-mono font-semibold text-white text-right text-xs">
+                          {duracaoFormatada}
+                        </span>
+                        <input
+                          type="text"
+                          value={alocacoes[sub.id!] ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setAlocacoes(prev => ({ ...prev, [sub.id!]: val }))
+                          }}
+                          placeholder="Horas"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleSalvarAlocacoes()
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault()
+                              handleCancelarAlocacoes()
+                            }
+                          }}
+                          className="w-24 bg-[#0B0E14] border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-mono font-semibold text-white text-right">
+                          {temAlocacao ? `${duracaoFormatada} / ${alocadoFormatado}` : duracaoFormatada}
+                        </span>
+                        {!temAlocacao && (
+                          <span className="font-mono w-10 text-right font-medium text-[#6B7280]">
+                            {sub.percentual ?? 0}%
+                          </span>
+                        )}
+                        {!isBaldeSemSub && (
+                          <div className="flex items-center gap-1 shrink-0 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditSub(sub)}
+                              disabled={salvandoSub || editandoSubId !== null}
+                              className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors disabled:opacity-50"
+                              title="Editar subcategoria"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSubExcluindoId(sub.id)}
+                              disabled={salvandoSub || editandoSubId !== null}
+                              className="p-1 text-gray-500 hover:text-[#F44336] transition-colors disabled:opacity-50"
+                              title="Excluir subcategoria"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {temAlocacao && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex-1 bg-[#0B0E14] h-1 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${larguraBarra}%`,
+                          backgroundColor: excedeu ? '#F44336' : '#03A9F4'
+                        }}
+                      />
+                    </div>
+                    <span
+                      className="font-mono text-[10px] w-10 text-right font-medium shrink-0"
+                      style={{ color: excedeu ? '#F44336' : '#6B7280' }}
+                    >
+                      {percentualAlocado}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {exibirRodape && (
+          <div className="mt-3 pt-2 border-t border-gray-800/60 text-[10px] text-[#8B949E] text-right font-mono">
+            {somaSemAlocacao.toFixed(2).replace('.', ',')}h sem alocação
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const temFasesComContrato = fases.some(f => f.horas_contratadas !== null && f.horas_contratadas > 0)
   const totalContratadoFases = fases.reduce((acc, f) => acc + (f.horas_contratadas || 0), 0)
@@ -423,16 +777,28 @@ export default function ProjetoDetalhe() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
-                {fases.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleAddFase}
-                    disabled={salvandoFase}
-                    className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
-                  >
-                    + Adicionar fase
-                  </button>
-                )}
+                <div className="flex items-center gap-3">
+                  {subcategorias.length > 0 && !modoAlocacao && (
+                    <button
+                      type="button"
+                      onClick={handleEntrarModoAlocacao}
+                      disabled={salvandoFase || salvandoSub}
+                      className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
+                    >
+                      Alocar horas
+                    </button>
+                  )}
+                  {fases.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleAddFase}
+                      disabled={salvandoFase || salvandoSub}
+                      className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
+                    >
+                      + Adicionar fase
+                    </button>
+                  )}
+                </div>
               </div>
               {fases.length > 0 ? (
                 <div className="space-y-4">
@@ -449,7 +815,7 @@ export default function ProjetoDetalhe() {
                     })
                     const comDuracao = subsMapeadas.filter(s => s.duracao > 0).sort((a, b) => b.duracao - a.duracao)
                     const semDuracao = subsMapeadas.filter(s => s.duracao === 0).sort((a, b) => a.nome.localeCompare(b.nome))
-                    const subcategoriasComPercentual = [...comDuracao, ...semDuracao].map(s => ({ ...s, percentual: usadoFase > 0 ? Math.round((s.duracao / usadoFase) * 100) : 0 }))
+                    const subcategoriasComPercentual: SubcategoriaBreakdownItem[] = [...comDuracao, ...semDuracao].map(s => ({ ...s, percentual: usadoFase > 0 ? Math.round((s.duracao / usadoFase) * 100) : 0 }))
                     const horasContratadasFormatadas = fase.horas_contratadas !== null && fase.horas_contratadas > 0 ? `${fase.horas_contratadas.toFixed(2).replace('.', ',')}h` : '—'
                     return (
                       <div key={fase.id} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
@@ -558,11 +924,162 @@ export default function ProjetoDetalhe() {
                           </div>
                         )}
                         <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
-                          <BreakdownSubcategorias subcategorias={subcategoriasComPercentual} />
+                          {renderListaSubcategorias(subcategoriasComPercentual)}
+
+                          {!modoAlocacao && (
+                            adicionandoEmFaseId === fase.id ? (
+                              <div className="flex items-center gap-2 mt-3">
+                                <input
+                                  type="text"
+                                  placeholder="Nova subcategoria..."
+                                  value={novaSubNome}
+                                  onChange={(e) => setNovaSubNome(e.target.value)}
+                                  disabled={salvandoSub}
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      handleConfirmAddSubcategoria(fase.id)
+                                    } else if (e.key === 'Escape') {
+                                      e.preventDefault()
+                                      setAdicionandoEmFaseId(null)
+                                      setNovaSubNome('')
+                                    }
+                                  }}
+                                  className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmAddSubcategoria(fase.id)}
+                                  disabled={!novaSubNome.trim() || salvandoSub}
+                                  className="bg-[#03A9F4] hover:bg-[#0288D1] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                                >
+                                  Adicionar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAdicionandoEmFaseId(null)
+                                    setNovaSubNome('')
+                                  }}
+                                  disabled={salvandoSub}
+                                  className="text-gray-500 hover:text-gray-300 p-1 text-xs transition-colors"
+                                  title="Cancelar"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAdicionandoEmFaseId(fase.id)
+                                  setNovaSubNome('')
+                                }}
+                                disabled={salvandoSub}
+                                className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors mt-3 block"
+                              >
+                                + adicionar subcategoria
+                              </button>
+                            )
+                          )}
+
+                          {fase.horas_contratadas !== null && fase.horas_contratadas !== undefined && (() => {
+                            const alocadoFase = modoAlocacao
+                              ? subsDaFase.reduce((acc, sub) => {
+                                  const rawVal = alocacoes[sub.id] ?? ''
+                                  let val = 0
+                                  if (rawVal.trim()) {
+                                    const parsed = parseFloat(rawVal.replace(',', '.'))
+                                    if (!isNaN(parsed)) val = parsed
+                                  }
+                                  return acc + val
+                                }, 0)
+                              : subsDaFase.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+
+                            const diffFase = Math.round((fase.horas_contratadas - alocadoFase) * 100) / 100
+                            if (diffFase > 0) {
+                              return (
+                                <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#FFC107] bg-[rgba(255,193,7,0.1)] text-[#FFC107] flex items-center gap-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span>Faltam {formatarHoras(diffFase)}h para alocar nesta fase</span>
+                                </div>
+                              )
+                            } else if (diffFase < 0) {
+                              return (
+                                <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  <span>{formatarHoras(Math.abs(diffFase))}h acima das horas da fase</span>
+                                </div>
+                              )
+                            } else {
+                              return (
+                                <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Totalmente alocado</span>
+                                </div>
+                              )
+                            }
+                          })()}
                         </div>
                       </div>
                     )
                   })}
+
+                  {/* Restauração do Bloco Sem Fase para registros e subcategorias órfãs */}
+                  {(() => {
+                    const idsSubsComFase = new Set(subcategorias.filter(s => s.fase_id).map(s => s.id))
+                    const regsSemFase = registros.filter(r => !r.subcategoria_id || !idsSubsComFase.has(r.subcategoria_id))
+                    const duracaoSemFase = regsSemFase.reduce((acc, r) => acc + r.duracao, 0)
+                    const subsSemFase = subcategorias.filter(s => !s.fase_id)
+
+                    if (duracaoSemFase === 0 && subsSemFase.length === 0) return null
+
+                    const subIdsSemFaseSet = new Set(subsSemFase.map(s => s.id))
+                    const semSubDuracaoFase = regsSemFase
+                      .filter(r => !r.subcategoria_id || !subIdsSemFaseSet.has(r.subcategoria_id))
+                      .reduce((acc, r) => acc + r.duracao, 0)
+
+                    const subsMapeadas = subsSemFase.map(sub => {
+                      const duracao = regsSemFase.filter(r => r.subcategoria_id === sub.id).reduce((acc, r) => acc + r.duracao, 0)
+                      return { id: sub.id, nome: sub.nome, duracao, horas_alocadas: sub.horas_alocadas ?? null }
+                    })
+                    const comDuracao = subsMapeadas.filter(s => s.duracao > 0).sort((a, b) => b.duracao - a.duracao)
+                    const semDuracao = subsMapeadas.filter(s => s.duracao === 0).sort((a, b) => a.nome.localeCompare(b.nome))
+                    const subcategoriasComPercentual: SubcategoriaBreakdownItem[] = [...comDuracao, ...semDuracao].map(s => ({
+                      ...s,
+                      percentual: duracaoSemFase > 0 ? Math.round((s.duracao / duracaoSemFase) * 100) : 0
+                    }))
+
+                    if (semSubDuracaoFase > 0) {
+                      subcategoriasComPercentual.push({
+                        id: null,
+                        nome: 'Sem subcategoria',
+                        duracao: semSubDuracaoFase,
+                        horas_alocadas: null,
+                        percentual: duracaoSemFase > 0 ? Math.round((semSubDuracaoFase / duracaoSemFase) * 100) : 0
+                      })
+                    }
+
+                    return (
+                      <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white text-base">Sem fase</span>
+                          <div className="font-mono text-sm font-semibold text-[#8B949E]">
+                            <span className="text-white font-bold">{duracaoSemFase.toFixed(2).replace('.', ',')}h</span> / —
+                          </div>
+                        </div>
+                        {renderListaSubcategorias(subcategoriasComPercentual)}
+                      </div>
+                    )
+                  })()}
+
                   <div className="pt-2 text-right">
                     <button
                       type="button"
@@ -576,8 +1093,13 @@ export default function ProjetoDetalhe() {
                 </div>
               ) : (
                 /* PROJETO SEM FASES */
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6">
+                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-3">
                   {(() => {
+                    const subIdsCadastradas = new Set(subcategorias.map(s => s.id))
+                    const duracaoSemSub = registros
+                      .filter(r => !r.subcategoria_id || !subIdsCadastradas.has(r.subcategoria_id))
+                      .reduce((acc, r) => acc + r.duracao, 0)
+
                     const subsMapeadas = subcategorias.map(sub => {
                       const duracao = registros
                         .filter(r => r.subcategoria_id === sub.id)
@@ -598,17 +1120,148 @@ export default function ProjetoDetalhe() {
                       .filter(s => s.duracao === 0)
                       .sort((a, b) => a.nome.localeCompare(b.nome))
 
-                    const subcategoriasComPercentual = [...comDuracao, ...semDuracao].map(s => ({
+                    const subcategoriasComPercentual: SubcategoriaBreakdownItem[] = [...comDuracao, ...semDuracao].map(s => ({
                       ...s,
                       percentual: totalLancado > 0
                         ? Math.round((s.duracao / totalLancado) * 100)
                         : 0
                     }))
 
-                    return (
-                      <BreakdownSubcategorias subcategorias={subcategoriasComPercentual} />
-                    )
+                    if (duracaoSemSub > 0) {
+                      subcategoriasComPercentual.push({
+                        id: null,
+                        nome: 'Sem subcategoria',
+                        duracao: duracaoSemSub,
+                        horas_alocadas: null,
+                        percentual: totalLancado > 0 ? Math.round((duracaoSemSub / totalLancado) * 100) : 0
+                      })
+                    }
+
+                    return renderListaSubcategorias(subcategoriasComPercentual)
                   })()}
+
+                  {!modoAlocacao && (
+                    adicionandoSemFase ? (
+                      <div className="flex items-center gap-2 mt-3">
+                        <input
+                          type="text"
+                          placeholder="Nova subcategoria..."
+                          value={novaSubNome}
+                          onChange={(e) => setNovaSubNome(e.target.value)}
+                          disabled={salvandoSub}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleConfirmAddSubcategoria(null)
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault()
+                              setAdicionandoSemFase(false)
+                              setNovaSubNome('')
+                            }
+                          }}
+                          className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleConfirmAddSubcategoria(null)}
+                          disabled={!novaSubNome.trim() || salvandoSub}
+                          className="bg-[#03A9F4] hover:bg-[#0288D1] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                        >
+                          Adicionar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdicionandoSemFase(false)
+                            setNovaSubNome('')
+                          }}
+                          disabled={salvandoSub}
+                          className="text-gray-500 hover:text-gray-300 p-1 text-xs transition-colors"
+                          title="Cancelar"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAdicionandoSemFase(true)
+                          setNovaSubNome('')
+                        }}
+                        disabled={salvandoSub}
+                        className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors mt-3 block"
+                      >
+                        + adicionar subcategoria
+                      </button>
+                    )
+                  )}
+
+                  {projeto.horas_contratadas !== null && projeto.horas_contratadas > 0 && subcategorias.length > 0 && (() => {
+                    const somaAlocada = modoAlocacao
+                      ? subcategorias.reduce((acc, sub) => {
+                          const rawVal = alocacoes[sub.id] ?? ''
+                          let val = 0
+                          if (rawVal.trim()) {
+                            const parsed = parseFloat(rawVal.replace(',', '.'))
+                            if (!isNaN(parsed)) val = parsed
+                          }
+                          return acc + val
+                        }, 0)
+                      : subcategorias.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+
+                    const diff = Math.round((projeto.horas_contratadas - somaAlocada) * 100) / 100
+                    if (diff > 0) {
+                      return (
+                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#FFC107] bg-[rgba(255,193,7,0.1)] text-[#FFC107] flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Faltam {formatarHoras(diff)}h para alocar nas subcategorias</span>
+                        </div>
+                      )
+                    } else if (diff < 0) {
+                      return (
+                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <span>{formatarHoras(Math.abs(diff))}h acima do contratado</span>
+                        </div>
+                      )
+                    } else {
+                      return (
+                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Totalmente alocado</span>
+                        </div>
+                      )
+                    }
+                  })()}
+                </div>
+              )}
+
+              {modoAlocacao && (
+                <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-gray-800/60">
+                  <button
+                    type="button"
+                    onClick={handleCancelarAlocacoes}
+                    disabled={salvandoAlocacoes}
+                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-lg transition-colors border border-gray-700 disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSalvarAlocacoes}
+                    disabled={salvandoAlocacoes}
+                    className="px-3 py-1.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {salvandoAlocacoes ? 'Salvando...' : 'Concluir'}
+                  </button>
                 </div>
               )}
             </div>
@@ -724,6 +1377,17 @@ export default function ProjetoDetalhe() {
             />
 
             <ModalConfirmacao
+              isOpen={subExcluindoId !== null}
+              titulo="Excluir Subcategoria"
+              mensagem="Excluir subcategoria? Registros vinculados perderão essa referência."
+              perigo={true}
+              textoConfirmar="Excluir"
+              textoCancelar="Cancelar"
+              onConfirmar={handleConfirmarExclusaoSub}
+              onCancelar={() => setSubExcluindoId(null)}
+            />
+
+            <ModalConfirmacao
               isOpen={faseExcluindoId !== null}
               titulo="Excluir Fase"
               mensagem="Excluir esta fase? As subcategorias dela ficarão sem fase."
@@ -750,4 +1414,3 @@ export default function ProjetoDetalhe() {
     </div>
   )
 }
-
