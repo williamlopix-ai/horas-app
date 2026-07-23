@@ -66,7 +66,7 @@ function BreakdownSubcategorias({ subcategorias }: { subcategorias: any[] }) {
                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
                   <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                  {!temAlocacao && sub.id !== null && (
+                  {temAlgumaAlocacao && !temAlocacao && sub.id !== null && (
                     <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
                       sem alocação
                     </span>
