@@ -5,6 +5,7 @@ import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
 import BreakdownSubcategorias from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
+import ModalConfirmacao from '../components/ModalConfirmacao'
 import { SkeletonCard } from '../components/Skeleton'
 import { listarProjetos } from '../services/projetos'
 import { listarRegistros, atualizarRegistro, calcularSemanaInicio } from '../services/registros'
@@ -41,15 +42,23 @@ export default function ProjetoDetalhe() {
 
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
 
+  // Estados de gestão de Fases na página
+  const [editandoFaseId, setEditandoFaseId] = useState<string | null>(null)
+  const [nomeFaseEditando, setNomeFaseEditando] = useState('')
+  const [horasFaseEditando, setHorasFaseEditando] = useState('')
+  const [faseExcluindoId, setFaseExcluindoId] = useState<string | null>(null)
+  const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
+  const [salvandoFase, setSalvandoFase] = useState(false)
+
   // Estados da seção Lançamentos / Modal de Registro
   const [isModalRegistroOpen, setIsModalRegistroOpen] = useState(false)
   const [editingRegistro, setEditingRegistro] = useState<RegistroComDetalhes | null>(null)
   const [semanasExpandidas, setSemanasExpandidas] = useState<Record<string, boolean>>({})
 
-  const carregarDados = async () => {
+  const carregarDados = async (silencioso = false) => {
     if (!user || !id) return
     try {
-      setLoading(true)
+      if (!silencioso) setLoading(true)
       setError(null)
 
       const [projs, todosRegs, subs, fas] = await Promise.all([
@@ -88,7 +97,7 @@ export default function ProjetoDetalhe() {
       console.error('Erro ao carregar detalhes do projeto:', err)
       setError(getErrorMessage(err))
     } finally {
-      setLoading(false)
+      if (!silencioso) setLoading(false)
     }
   }
 
@@ -167,12 +176,121 @@ export default function ProjetoDetalhe() {
     if (!editingRegistro) return
     try {
       await atualizarRegistro(editingRegistro.id, dados)
-      await carregarDados()
+      await carregarDados(true)
       fecharModalRegistro()
       showToast('Registro salvo!', 'success')
     } catch (err: unknown) {
       console.error('Erro ao salvar registro:', err)
       showToast(getErrorMessage(err), 'error')
+    }
+  }
+
+  const handleDividirEmFases = async () => {
+    if (!user || !projeto) return
+    try {
+      setSalvandoFase(true)
+      const h1 = projeto.horas_contratadas
+      const f1 = await fasesService.criarFase(user.id, projeto.id, 'Fase 1', 1, h1)
+      const f2 = await fasesService.criarFase(user.id, projeto.id, 'Fase 2', 2, null)
+
+      await subcategoriasService.atribuirFaseEmLote(projeto.id, f1.id)
+
+      await carregarDados(true)
+      setEditandoFaseId(f2.id)
+      setNomeFaseEditando(f2.nome)
+      setHorasFaseEditando('')
+    } catch (err: unknown) {
+      console.error('Erro ao dividir em fases:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
+    }
+  }
+
+  const handleAddFase = async () => {
+    if (!user || !projeto) return
+    try {
+      setSalvandoFase(true)
+      const novaOrdem = fases.length > 0 ? Math.max(...fases.map(f => f.ordem)) + 1 : 1
+      const novoNome = `Fase ${novaOrdem}`
+      const novaFase = await fasesService.criarFase(user.id, projeto.id, novoNome, novaOrdem, null)
+      await carregarDados(true)
+      setEditandoFaseId(novaFase.id)
+      setNomeFaseEditando(novaFase.nome)
+      setHorasFaseEditando('')
+    } catch (err: unknown) {
+      console.error('Erro ao adicionar fase:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
+    }
+  }
+
+  const handleStartEditFase = (fase: Fase) => {
+    setEditandoFaseId(fase.id)
+    setNomeFaseEditando(fase.nome)
+    setHorasFaseEditando(fase.horas_contratadas !== null && fase.horas_contratadas !== undefined ? fase.horas_contratadas.toString() : '')
+  }
+
+  const handleCancelEditFase = () => {
+    setEditandoFaseId(null)
+    setNomeFaseEditando('')
+    setHorasFaseEditando('')
+  }
+
+  const handleSaveEditFase = async (faseId: string) => {
+    if (!nomeFaseEditando.trim()) return
+    try {
+      setSalvandoFase(true)
+      let horasParsed: number | null = null
+      if (horasFaseEditando.trim()) {
+        const val = parseFloat(horasFaseEditando.replace(',', '.'))
+        if (!isNaN(val)) horasParsed = val
+      }
+      await fasesService.atualizarFase(faseId, {
+        nome: nomeFaseEditando.trim(),
+        horas_contratadas: horasParsed
+      })
+      await carregarDados(true)
+      setEditandoFaseId(null)
+      setNomeFaseEditando('')
+      setHorasFaseEditando('')
+    } catch (err: unknown) {
+      console.error('Erro ao atualizar fase:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
+    }
+  }
+
+  const handleConfirmarExclusaoFase = async () => {
+    if (!faseExcluindoId) return
+    try {
+      setSalvandoFase(true)
+      await fasesService.excluirFase(faseExcluindoId)
+      setFaseExcluindoId(null)
+      await carregarDados(true)
+    } catch (err: unknown) {
+      console.error('Erro ao excluir fase:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
+    }
+  }
+
+  const handleConfirmarRemoverDivisao = async () => {
+    if (!projeto) return
+    try {
+      setSalvandoFase(true)
+      await subcategoriasService.atribuirFaseEmLote(projeto.id, null)
+      await Promise.all(fases.map(f => fasesService.excluirFase(f.id)))
+      setConfirmandoRemoverDivisao(false)
+      await carregarDados(true)
+    } catch (err: unknown) {
+      console.error('Erro ao remover divisão em fases:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
     }
   }
 
@@ -269,6 +387,18 @@ export default function ProjetoDetalhe() {
                   <div className="h-full transition-all duration-500" style={{ width: `${percentualGeral}%`, backgroundColor: excedeuContratado ? '#F44336' : '#4CAF50' }} />
                 </div>
               )}
+              {fases.length === 0 && (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleDividirEmFases}
+                    disabled={salvandoFase}
+                    className="text-xs text-[#03A9F4] hover:underline font-semibold inline-flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    + Dividir em fases
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={`grid grid-cols-1 ${temContratado ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-6`}>
@@ -291,7 +421,19 @@ export default function ProjetoDetalhe() {
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
+                {fases.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleAddFase}
+                    disabled={salvandoFase}
+                    className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
+                  >
+                    + Adicionar fase
+                  </button>
+                )}
+              </div>
               {fases.length > 0 ? (
                 <div className="space-y-4">
                   {fases.map((fase) => {
@@ -300,6 +442,7 @@ export default function ProjetoDetalhe() {
                     const regsDaFase = registros.filter(r => r.subcategoria_id && setSubIds.has(r.subcategoria_id))
                     const usadoFase = regsDaFase.reduce((acc, r) => acc + r.duracao, 0)
                     const isExpanded = fasesExpandidas[fase.id] ?? false
+                    const isEditingThisFase = editandoFaseId === fase.id
                     const subsMapeadas = subsDaFase.map(sub => {
                       const duracao = regsDaFase.filter(r => r.subcategoria_id === sub.id).reduce((acc, r) => acc + r.duracao, 0)
                       return { id: sub.id, nome: sub.nome, duracao, horas_alocadas: sub.horas_alocadas ?? null }
@@ -310,25 +453,164 @@ export default function ProjetoDetalhe() {
                     const horasContratadasFormatadas = fase.horas_contratadas !== null && fase.horas_contratadas > 0 ? `${fase.horas_contratadas.toFixed(2).replace('.', ',')}h` : '—'
                     return (
                       <div key={fase.id} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                        <button type="button" onClick={() => toggleFase(fase.id)} className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors focus:outline-none">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                            <span className="font-bold text-white text-base truncate">{fase.nome}</span>
+                        {isEditingThisFase ? (
+                          <div className="p-5 flex items-center justify-between gap-3 bg-[#161B22] border-b border-gray-800/60">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <input
+                                type="text"
+                                value={nomeFaseEditando}
+                                onChange={(e) => setNomeFaseEditando(e.target.value)}
+                                placeholder="Nome da fase"
+                                disabled={salvandoFase}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    handleSaveEditFase(fase.id)
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault()
+                                    handleCancelEditFase()
+                                  }
+                                }}
+                                className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                                autoFocus
+                              />
+                              <input
+                                type="text"
+                                value={horasFaseEditando}
+                                onChange={(e) => setHorasFaseEditando(e.target.value)}
+                                placeholder="Horas"
+                                disabled={salvandoFase}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    handleSaveEditFase(fase.id)
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault()
+                                    handleCancelEditFase()
+                                  }
+                                }}
+                                className="w-24 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditFase(fase.id)}
+                                disabled={!nomeFaseEditando.trim() || salvandoFase}
+                                className="p-1.5 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                                title="Confirmar"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelEditFase}
+                                disabled={salvandoFase}
+                                className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors"
+                                title="Cancelar"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
-                          <div className="font-mono text-sm font-semibold text-[#8B949E]">
-                            <span className="text-white font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> / {horasContratadasFormatadas}
+                        ) : (
+                          <div className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors">
+                            <button
+                              type="button"
+                              onClick={() => toggleFase(fase.id)}
+                              disabled={editandoFaseId !== null}
+                              className="flex-1 flex items-center justify-between min-w-0 pr-4 text-left focus:outline-none disabled:cursor-default"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span className="font-bold text-white text-base truncate">{fase.nome}</span>
+                              </div>
+                              <div className="font-mono text-sm font-semibold text-[#8B949E] shrink-0 ml-2">
+                                <span className="text-white font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> / {horasContratadasFormatadas}
+                              </div>
+                            </button>
+                            <div className="flex items-center gap-1 shrink-0 border-l border-gray-800/80 pl-3">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditFase(fase)}
+                                disabled={salvandoFase || editandoFaseId !== null}
+                                className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors disabled:opacity-50"
+                                title="Editar fase"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFaseExcluindoId(fase.id)}
+                                disabled={salvandoFase || editandoFaseId !== null}
+                                className="p-1 text-gray-500 hover:text-[#F44336] transition-colors disabled:opacity-50"
+                                title="Excluir fase"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
-                        </button>
+                        )}
                         <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
                           <BreakdownSubcategorias subcategorias={subcategoriasComPercentual} />
                         </div>
                       </div>
                     )
                   })}
+                  <div className="pt-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmandoRemoverDivisao(true)}
+                      disabled={salvandoFase}
+                      className="text-xs text-[#F44336] hover:underline font-semibold transition-colors disabled:opacity-50"
+                    >
+                      Remover divisão em fases
+                    </button>
+                  </div>
                 </div>
-              ) : null}
+              ) : (
+                /* PROJETO SEM FASES */
+                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6">
+                  {(() => {
+                    const subsMapeadas = subcategorias.map(sub => {
+                      const duracao = registros
+                        .filter(r => r.subcategoria_id === sub.id)
+                        .reduce((acc, r) => acc + r.duracao, 0)
+                      return {
+                        id: sub.id,
+                        nome: sub.nome,
+                        duracao,
+                        horas_alocadas: sub.horas_alocadas ?? null
+                      }
+                    })
+
+                    const comDuracao = subsMapeadas
+                      .filter(s => s.duracao > 0)
+                      .sort((a, b) => b.duracao - a.duracao)
+
+                    const semDuracao = subsMapeadas
+                      .filter(s => s.duracao === 0)
+                      .sort((a, b) => a.nome.localeCompare(b.nome))
+
+                    const subcategoriasComPercentual = [...comDuracao, ...semDuracao].map(s => ({
+                      ...s,
+                      percentual: totalLancado > 0
+                        ? Math.round((s.duracao / totalLancado) * 100)
+                        : 0
+                    }))
+
+                    return (
+                      <BreakdownSubcategorias subcategorias={subcategoriasComPercentual} />
+                    )
+                  })()}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 pt-2">
@@ -440,9 +722,32 @@ export default function ProjetoDetalhe() {
               registro={editingRegistro}
               registrosExistentes={todosRegistros}
             />
+
+            <ModalConfirmacao
+              isOpen={faseExcluindoId !== null}
+              titulo="Excluir Fase"
+              mensagem="Excluir esta fase? As subcategorias dela ficarão sem fase."
+              perigo={true}
+              textoConfirmar="Excluir"
+              textoCancelar="Cancelar"
+              onConfirmar={handleConfirmarExclusaoFase}
+              onCancelar={() => setFaseExcluindoId(null)}
+            />
+
+            <ModalConfirmacao
+              isOpen={confirmandoRemoverDivisao}
+              titulo="Remover divisão em fases"
+              mensagem="Todas as fases serão excluídas e o projeto voltará ao modo simples. As horas contratadas do projeto serão mantidas."
+              perigo={true}
+              textoConfirmar="Remover"
+              textoCancelar="Cancelar"
+              onConfirmar={handleConfirmarRemoverDivisao}
+              onCancelar={() => setConfirmandoRemoverDivisao(false)}
+            />
           </div>
         )}
       </main>
     </div>
   )
 }
+
