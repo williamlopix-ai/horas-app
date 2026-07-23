@@ -42,6 +42,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [nomeEditando, setNomeEditando] = useState('')
   const [horasSubEditando, setHorasSubEditando] = useState('')
   const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
+  const [modoAlocacao, setModoAlocacao] = useState(false)
+  const [alocacoes, setAlocacoes] = useState<Record<string, string>>({})
+  const [salvandoAlocacoes, setSalvandoAlocacoes] = useState(false)
   const subcategoriasRef = useRef<HTMLDivElement>(null)
 
   const [fases, setFases] = useState<Fase[]>([])
@@ -114,6 +117,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setNomeEditando('')
       setHorasSubEditando('')
       setSubExcluindoId(null)
+      setModoAlocacao(false)
+      setAlocacoes({})
+      setSalvandoAlocacoes(false)
 
       setFases([])
       setEditandoFaseId(null)
@@ -134,7 +140,17 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
     return rounded.toString().replace('.', ',')
   }
 
-  const somaAlocada = subcategorias.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+  const somaAlocada = modoAlocacao
+    ? subcategorias.reduce((acc, sub) => {
+        const rawVal = alocacoes[sub.id] ?? ''
+        let val = 0
+        if (rawVal.trim()) {
+          const parsed = parseFloat(rawVal.replace(',', '.'))
+          if (!isNaN(parsed)) val = parsed
+        }
+        return acc + val
+      }, 0)
+    : subcategorias.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
 
   let totalContratadoSub: number | null = null
   if (fases.length > 0) {
@@ -325,6 +341,73 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setError('Erro ao excluir subcategoria.')
     } finally {
       setCarregandoSubcategorias(false)
+    }
+  }
+
+  const handleEntrarModoAlocacao = () => {
+    if (editandoId) {
+      handleCancelEdit()
+    }
+    const inicial: Record<string, string> = {}
+    subcategorias.forEach(sub => {
+      inicial[sub.id] = sub.horas_alocadas !== null && sub.horas_alocadas !== undefined ? sub.horas_alocadas.toString() : ''
+    })
+    setAlocacoes(inicial)
+    setModoAlocacao(true)
+  }
+
+  const handleCancelarAlocacoes = () => {
+    setModoAlocacao(false)
+    setAlocacoes({})
+  }
+
+  const handleSalvarAlocacoes = async () => {
+    try {
+      setSalvandoAlocacoes(true)
+      setError(null)
+
+      const alteracoes = subcategorias.filter(sub => {
+        const rawVal = alocacoes[sub.id] ?? ''
+        let novoValor: number | null = null
+        if (rawVal.trim()) {
+          const parsed = parseFloat(rawVal.replace(',', '.'))
+          if (!isNaN(parsed)) novoValor = parsed
+        }
+        return novoValor !== sub.horas_alocadas
+      })
+
+      if (alteracoes.length === 0) {
+        setModoAlocacao(false)
+        setAlocacoes({})
+        return
+      }
+
+      const resultados = await Promise.all(
+        alteracoes.map(sub => {
+          const rawVal = alocacoes[sub.id] ?? ''
+          let novoValor: number | null = null
+          if (rawVal.trim()) {
+            const parsed = parseFloat(rawVal.replace(',', '.'))
+            if (!isNaN(parsed)) novoValor = parsed
+          }
+          return subcategoriasService.atualizarSubcategoria(sub.id, sub.nome, novoValor)
+        })
+      )
+
+      setSubcategorias(prev =>
+        prev.map(sub => {
+          const atualizada = resultados.find(r => r.id === sub.id)
+          return atualizada || sub
+        })
+      )
+
+      setModoAlocacao(false)
+      setAlocacoes({})
+    } catch (err) {
+      console.error('Erro ao salvar alocações em lote', err)
+      setError('Erro ao salvar alocações das subcategorias.')
+    } finally {
+      setSalvandoAlocacoes(false)
     }
   }
 
@@ -719,33 +802,46 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
             {/* Subcategorias (Apenas para edição de projeto) */}
             {tipo === 'projeto' && projeto && (
               <div ref={subcategoriasRef} className="border-t border-gray-800 pt-4 mt-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Subcategorias
-                </label>
-                
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    placeholder="Nova subcategoria..."
-                    value={novaSubcategoria}
-                    onChange={(e) => setNovaSubcategoria(e.target.value)}
-                    className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        handleAddSubcategoria()
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSubcategoria}
-                    disabled={!novaSubcategoria.trim() || carregandoSubcategorias}
-                    className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
-                  >
-                    Adicionar
-                  </button>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Subcategorias
+                  </label>
+                  {subcategorias.length > 0 && !modoAlocacao && (
+                    <button
+                      type="button"
+                      onClick={handleEntrarModoAlocacao}
+                      className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors"
+                    >
+                      Alocar horas
+                    </button>
+                  )}
                 </div>
+                
+                {!modoAlocacao && (
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      placeholder="Nova subcategoria..."
+                      value={novaSubcategoria}
+                      onChange={(e) => setNovaSubcategoria(e.target.value)}
+                      className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAddSubcategoria()
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSubcategoria}
+                      disabled={!novaSubcategoria.trim() || carregandoSubcategorias}
+                      className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                )}
 
                 {carregandoSubcategorias && subcategorias.length === 0 ? (
                   <div className="text-sm text-gray-500 text-center py-2">Carregando...</div>
@@ -753,7 +849,30 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                   <ul className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                     {subcategorias.map(sub => (
                       <li key={sub.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2">
-                        {editandoId === sub.id ? (
+                        {modoAlocacao ? (
+                          <div className="flex items-center justify-between w-full gap-2">
+                            <span className="text-sm text-gray-200 truncate flex-1">{sub.nome}</span>
+                            <input
+                              type="text"
+                              value={alocacoes[sub.id] ?? ''}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                setAlocacoes(prev => ({ ...prev, [sub.id]: val }))
+                              }}
+                              placeholder="Horas"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSalvarAlocacoes()
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  handleCancelarAlocacoes()
+                                }
+                              }}
+                              className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                            />
+                          </div>
+                        ) : editandoId === sub.id ? (
                           <div className="flex items-center gap-2 w-full">
                             <input
                               type="text"
@@ -867,6 +986,27 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                     )
                   }
                 })()}
+
+                {modoAlocacao && (
+                  <div className="flex items-center justify-end gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={handleCancelarAlocacoes}
+                      disabled={salvandoAlocacoes}
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-lg transition-colors border border-gray-700 disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSalvarAlocacoes}
+                      disabled={salvandoAlocacoes}
+                      className="px-3 py-1.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {salvandoAlocacoes ? 'Salvando...' : 'Concluir'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
