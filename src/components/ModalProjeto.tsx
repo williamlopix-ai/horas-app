@@ -45,6 +45,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [modoAlocacao, setModoAlocacao] = useState(false)
   const [alocacoes, setAlocacoes] = useState<Record<string, string>>({})
   const [salvandoAlocacoes, setSalvandoAlocacoes] = useState(false)
+  const [fasesRecolhidas, setFasesRecolhidas] = useState<Record<string, boolean>>({})
+  const [adicionandoEmFaseId, setAdicionandoEmFaseId] = useState<string | null>(null)
+  const [novaSubFase, setNovaSubFase] = useState('')
   const subcategoriasRef = useRef<HTMLDivElement>(null)
 
   const [fases, setFases] = useState<Fase[]>([])
@@ -120,6 +123,9 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setModoAlocacao(false)
       setAlocacoes({})
       setSalvandoAlocacoes(false)
+      setFasesRecolhidas({})
+      setAdicionandoEmFaseId(null)
+      setNovaSubFase('')
 
       setFases([])
       setEditandoFaseId(null)
@@ -294,6 +300,135 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setCarregandoSubcategorias(false)
     }
   }
+
+  const handleConfirmAddSubcategoriaFase = async (faseId: string) => {
+    if (!novaSubFase.trim() || !projeto) return
+    try {
+      setCarregandoSubcategorias(true)
+      const sub = await subcategoriasService.criarSubcategoria(projeto.usuario_id, projeto.id, novaSubFase.trim(), faseId)
+      setSubcategorias(prev => [...prev, sub])
+      setNovaSubFase('')
+      setAdicionandoEmFaseId(null)
+    } catch (err) {
+      console.error('Erro ao adicionar subcategoria na fase', err)
+      setError('Erro ao adicionar subcategoria.')
+    } finally {
+      setCarregandoSubcategorias(false)
+    }
+  }
+
+  const renderLinhaSubcategoria = (sub: Subcategoria) => (
+    <li key={sub.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2">
+      {modoAlocacao ? (
+        <div className="flex items-center justify-between w-full gap-2">
+          <span className="text-sm text-gray-200 truncate flex-1">{sub.nome}</span>
+          <input
+            type="text"
+            value={alocacoes[sub.id] ?? ''}
+            onChange={(e) => {
+              const val = e.target.value
+              setAlocacoes(prev => ({ ...prev, [sub.id]: val }))
+            }}
+            placeholder="Horas"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSalvarAlocacoes()
+              } else if (e.key === 'Escape') {
+                e.preventDefault()
+                handleCancelarAlocacoes()
+              }
+            }}
+            className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+          />
+        </div>
+      ) : editandoId === sub.id ? (
+        <div className="flex items-center gap-2 w-full">
+          <input
+            type="text"
+            value={nomeEditando}
+            onChange={(e) => setNomeEditando(e.target.value)}
+            placeholder="Nome da subcategoria"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSaveEdit(sub.id)
+              } else if (e.key === 'Escape') {
+                e.preventDefault()
+                handleCancelEdit()
+              }
+            }}
+            className="flex-1 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+            autoFocus
+          />
+          <input
+            type="text"
+            value={horasSubEditando}
+            onChange={(e) => setHorasSubEditando(e.target.value)}
+            placeholder="Horas"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSaveEdit(sub.id)
+              } else if (e.key === 'Escape') {
+                e.preventDefault()
+                handleCancelEdit()
+              }
+            }}
+            className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+          />
+          <button
+            type="button"
+            onClick={() => handleSaveEdit(sub.id)}
+            disabled={!nomeEditando.trim() || carregandoSubcategorias}
+            className="text-emerald-400 hover:text-emerald-300 p-1 disabled:opacity-50"
+            title="Confirmar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleCancelEdit}
+            className="text-gray-500 hover:text-gray-300 p-1"
+            title="Cancelar"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <>
+          <span className="text-sm text-gray-200 truncate flex-1 mr-2">{sub.nome}</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs font-mono text-[#8B949E]">
+              {sub.horas_alocadas !== null && sub.horas_alocadas !== undefined ? `${formatarHoras(sub.horas_alocadas)}h` : '—'}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleStartEdit(sub)}
+                className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
+                title="Editar"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubExcluindoId(sub.id)}
+                className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                title="Excluir"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </li>
+  )
 
   const handleStartEdit = (sub: Subcategoria) => {
     setEditandoId(sub.id)
@@ -815,153 +950,188 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                       Alocar horas
                     </button>
                   )}
-                </div>
-                
-                {!modoAlocacao && (
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="text"
-                      placeholder="Nova subcategoria..."
-                      value={novaSubcategoria}
-                      onChange={(e) => setNovaSubcategoria(e.target.value)}
-                      className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAddSubcategoria()
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddSubcategoria}
-                      disabled={!novaSubcategoria.trim() || carregandoSubcategorias}
-                      className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
-                    >
-                      Adicionar
-                    </button>
-                  </div>
-                )}
+                </div>                {fases.length === 0 ? (
+                  <>
+                    {!modoAlocacao && (
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          placeholder="Nova subcategoria..."
+                          value={novaSubcategoria}
+                          onChange={(e) => setNovaSubcategoria(e.target.value)}
+                          className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddSubcategoria()
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddSubcategoria}
+                          disabled={!novaSubcategoria.trim() || carregandoSubcategorias}
+                          className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                        >
+                          Adicionar
+                        </button>
+                      </div>
+                    )}
 
-                {carregandoSubcategorias && subcategorias.length === 0 ? (
-                  <div className="text-sm text-gray-500 text-center py-2">Carregando...</div>
-                ) : subcategorias.length > 0 ? (
-                  <ul className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
-                    {subcategorias.map(sub => (
-                      <li key={sub.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2">
-                        {modoAlocacao ? (
-                          <div className="flex items-center justify-between w-full gap-2">
-                            <span className="text-sm text-gray-200 truncate flex-1">{sub.nome}</span>
-                            <input
-                              type="text"
-                              value={alocacoes[sub.id] ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value
-                                setAlocacoes(prev => ({ ...prev, [sub.id]: val }))
-                              }}
-                              placeholder="Horas"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  handleSalvarAlocacoes()
-                                } else if (e.key === 'Escape') {
-                                  e.preventDefault()
-                                  handleCancelarAlocacoes()
-                                }
-                              }}
-                              className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
-                            />
-                          </div>
-                        ) : editandoId === sub.id ? (
-                          <div className="flex items-center gap-2 w-full">
-                            <input
-                              type="text"
-                              value={nomeEditando}
-                              onChange={(e) => setNomeEditando(e.target.value)}
-                              placeholder="Nome da subcategoria"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  handleSaveEdit(sub.id)
-                                } else if (e.key === 'Escape') {
-                                  e.preventDefault()
-                                  handleCancelEdit()
-                                }
-                              }}
-                              className="flex-1 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
-                              autoFocus
-                            />
-                            <input
-                              type="text"
-                              value={horasSubEditando}
-                              onChange={(e) => setHorasSubEditando(e.target.value)}
-                              placeholder="Horas"
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  handleSaveEdit(sub.id)
-                                } else if (e.key === 'Escape') {
-                                  e.preventDefault()
-                                  handleCancelEdit()
-                                }
-                              }}
-                              className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSaveEdit(sub.id)}
-                              disabled={!nomeEditando.trim() || carregandoSubcategorias}
-                              className="text-emerald-400 hover:text-emerald-300 p-1 disabled:opacity-50"
-                              title="Confirmar"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleCancelEdit}
-                              className="text-gray-500 hover:text-gray-300 p-1"
-                              title="Cancelar"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <span className="text-sm text-gray-200 truncate flex-1 mr-2">{sub.nome}</span>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-xs font-mono text-[#8B949E]">
-                                {sub.horas_alocadas !== null && sub.horas_alocadas !== undefined ? `${formatarHoras(sub.horas_alocadas)}h` : '—'}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleStartEdit(sub)}
-                                  className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
-                                  title="Editar"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setSubExcluindoId(sub.id)}
-                                  className="text-gray-500 hover:text-red-400 p-1 transition-colors"
-                                  title="Excluir"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                    {carregandoSubcategorias && subcategorias.length === 0 ? (
+                      <div className="text-sm text-gray-500 text-center py-2">Carregando...</div>
+                    ) : subcategorias.length > 0 ? (
+                      <ul className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                        {subcategorias.map(renderLinhaSubcategoria)}
+                      </ul>
+                    ) : (
+                      <div className="text-sm text-gray-500 text-center py-2">Nenhuma subcategoria cadastrada.</div>
+                    )}
+                  </>
                 ) : (
-                  <div className="text-sm text-gray-500 text-center py-2">Nenhuma subcategoria cadastrada.</div>
+                  <div className="space-y-3">
+                    {carregandoSubcategorias && subcategorias.length === 0 ? (
+                      <div className="text-sm text-gray-500 text-center py-2">Carregando...</div>
+                    ) : (
+                      <>
+                        {[...fases].sort((a, b) => a.ordem - b.ordem).map(fase => {
+                          const isRecolhido = !!fasesRecolhidas[fase.id]
+                          const subsDaFase = subcategorias.filter(s => s.fase_id === fase.id)
+
+                          return (
+                            <div key={fase.id} className="border border-gray-800 rounded-lg p-3 bg-[#0B0E14]/40">
+                              <div
+                                onClick={() => setFasesRecolhidas(prev => ({ ...prev, [fase.id]: !prev[fase.id] }))}
+                                className="flex items-center justify-between cursor-pointer select-none"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isRecolhido ? '-rotate-90' : 'rotate-0'}`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  <span className="text-sm font-semibold text-gray-200">{fase.nome}</span>
+                                </div>
+                                <span className="text-xs font-mono text-gray-400">
+                                  {fase.horas_contratadas !== null && fase.horas_contratadas !== undefined ? `${fase.horas_contratadas}h` : '—'}
+                                </span>
+                              </div>
+
+                              {!isRecolhido && (
+                                <div className="mt-3 space-y-2">
+                                  {subsDaFase.length > 0 ? (
+                                    <ul className="space-y-2">
+                                      {subsDaFase.map(renderLinhaSubcategoria)}
+                                    </ul>
+                                  ) : (
+                                    <div className="text-xs text-gray-500 italic py-1">Nenhuma subcategoria nesta fase.</div>
+                                  )}
+
+                                  {!modoAlocacao && (
+                                    adicionandoEmFaseId === fase.id ? (
+                                      <div className="flex items-center gap-2 mt-2 pt-1">
+                                        <input
+                                          type="text"
+                                          placeholder="Nova subcategoria..."
+                                          value={novaSubFase}
+                                          onChange={(e) => setNovaSubFase(e.target.value)}
+                                          className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                                          autoFocus
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              e.preventDefault()
+                                              handleConfirmAddSubcategoriaFase(fase.id)
+                                            } else if (e.key === 'Escape') {
+                                              e.preventDefault()
+                                              setAdicionandoEmFaseId(null)
+                                              setNovaSubFase('')
+                                            }
+                                          }}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleConfirmAddSubcategoriaFase(fase.id)}
+                                          disabled={!novaSubFase.trim() || carregandoSubcategorias}
+                                          className="bg-[#03A9F4] hover:bg-[#0288D1] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                                        >
+                                          Adicionar
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setAdicionandoEmFaseId(null)
+                                            setNovaSubFase('')
+                                          }}
+                                          className="text-gray-500 hover:text-gray-300 p-1 text-xs"
+                                          title="Cancelar"
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setAdicionandoEmFaseId(fase.id)
+                                          setNovaSubFase('')
+                                        }}
+                                        className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors mt-2 block"
+                                      >
+                                        + adicionar subcategoria
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+
+                        {(() => {
+                          const idsFases = new Set(fases.map(f => f.id))
+                          const subsSemFase = subcategorias.filter(s => !s.fase_id || !idsFases.has(s.fase_id))
+                          if (subsSemFase.length === 0) return null
+                          const isRecolhido = !!fasesRecolhidas['sem-fase']
+
+                          return (
+                            <div className="border border-gray-800 rounded-lg p-3 bg-[#0B0E14]/40">
+                              <div
+                                onClick={() => setFasesRecolhidas(prev => ({ ...prev, ['sem-fase']: !prev['sem-fase'] }))}
+                                className="flex items-center justify-between cursor-pointer select-none"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isRecolhido ? '-rotate-90' : 'rotate-0'}`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  <span className="text-sm font-semibold text-gray-200">Sem fase</span>
+                                </div>
+                              </div>
+
+                              {!isRecolhido && (
+                                <div className="mt-3 space-y-2">
+                                  <ul className="space-y-2">
+                                    {subsSemFase.map(renderLinhaSubcategoria)}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {tipo === 'projeto' && totalContratadoSub !== null && subcategorias.length > 0 && (() => {

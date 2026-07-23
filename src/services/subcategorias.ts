@@ -13,10 +13,19 @@ export const subcategoriasService = {
     return data || []
   },
 
-  async criarSubcategoria(usuarioId: string, projetoId: string, nome: string): Promise<Subcategoria> {
+  async criarSubcategoria(usuarioId: string, projetoId: string, nome: string, faseId?: string | null): Promise<Subcategoria> {
+    const payload: { usuario_id: string; projeto_id: string; nome: string; fase_id?: string | null } = {
+      usuario_id: usuarioId,
+      projeto_id: projetoId,
+      nome
+    }
+    if (faseId !== undefined) {
+      payload.fase_id = faseId
+    }
+
     const { data, error } = await supabase
       .from('subcategorias')
-      .insert([{ usuario_id: usuarioId, projeto_id: projetoId, nome }])
+      .insert([payload])
       .select()
       .single()
     
@@ -24,10 +33,13 @@ export const subcategoriasService = {
     return data
   },
 
-  async atualizarSubcategoria(id: string, nome: string, horasAlocadas?: number | null): Promise<Subcategoria> {
-    const payload: { nome: string; horas_alocadas?: number | null } = { nome }
+  async atualizarSubcategoria(id: string, nome: string, horasAlocadas?: number | null, faseId?: string | null): Promise<Subcategoria> {
+    const payload: { nome: string; horas_alocadas?: number | null; fase_id?: string | null } = { nome }
     if (horasAlocadas !== undefined) {
       payload.horas_alocadas = horasAlocadas
+    }
+    if (faseId !== undefined) {
+      payload.fase_id = faseId
     }
 
     const { data, error } = await supabase
