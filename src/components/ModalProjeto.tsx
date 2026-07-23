@@ -103,7 +103,26 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
             subcategoriasService.listarSubcategorias(projeto.id),
             fasesService.listarFases(projeto.id)
           ])
-          setSubcategorias(subsData)
+
+          let finalSubs = subsData
+          if (fasesData.length > 0) {
+            const idsFasesValidos = new Set(fasesData.map(f => f.id))
+            const orfas = subsData.filter(s => !s.fase_id || !idsFasesValidos.has(s.fase_id))
+            if (orfas.length > 0) {
+              const primeiraFase = [...fasesData].sort((a, b) => a.ordem - b.ordem)[0]
+              try {
+                const subsAtualizadas = await Promise.all(
+                  orfas.map(sub => subcategoriasService.atualizarSubcategoria(sub.id, sub.nome, undefined, primeiraFase.id))
+                )
+                const mapAtualizadas = new Map(subsAtualizadas.map(s => [s.id, s]))
+                finalSubs = subsData.map(s => mapAtualizadas.get(s.id) || s)
+              } catch (errBlindagem) {
+                console.error('Erro ao atribuir subcategorias órfãs para a primeira fase', errBlindagem)
+              }
+            }
+          }
+
+          setSubcategorias(finalSubs)
           setFases(fasesData)
         } catch (err) {
           console.error('Erro ao carregar subcategorias/fases', err)
@@ -1086,55 +1105,61 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                                       </button>
                                     )
                                   )}
+
+                                  {fase.horas_contratadas !== null && fase.horas_contratadas !== undefined && (() => {
+                                    const alocadoFase = modoAlocacao
+                                      ? subsDaFase.reduce((acc, sub) => {
+                                          const rawVal = alocacoes[sub.id] ?? ''
+                                          let val = 0
+                                          if (rawVal.trim()) {
+                                            const parsed = parseFloat(rawVal.replace(',', '.'))
+                                            if (!isNaN(parsed)) val = parsed
+                                          }
+                                          return acc + val
+                                        }, 0)
+                                      : subsDaFase.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+
+                                    const diffFase = Math.round((fase.horas_contratadas - alocadoFase) * 100) / 100
+                                    if (diffFase > 0) {
+                                      return (
+                                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#FFC107] bg-[rgba(255,193,7,0.1)] text-[#FFC107] flex items-center gap-2">
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <span>Faltam {formatarHoras(diffFase)}h para alocar nesta fase</span>
+                                        </div>
+                                      )
+                                    } else if (diffFase < 0) {
+                                      return (
+                                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2">
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                          </svg>
+                                          <span>{formatarHoras(Math.abs(diffFase))}h acima das horas da fase</span>
+                                        </div>
+                                      )
+                                    } else {
+                                      return (
+                                        <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2">
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                          </svg>
+                                          <span>Totalmente alocado</span>
+                                        </div>
+                                      )
+                                    }
+                                  })()}
                                 </div>
                               )}
                             </div>
                           )
                         })}
-
-                        {(() => {
-                          const idsFases = new Set(fases.map(f => f.id))
-                          const subsSemFase = subcategorias.filter(s => !s.fase_id || !idsFases.has(s.fase_id))
-                          if (subsSemFase.length === 0) return null
-                          const isRecolhido = !!fasesRecolhidas['sem-fase']
-
-                          return (
-                            <div className="border border-gray-800 rounded-lg p-3 bg-[#0B0E14]/40">
-                              <div
-                                onClick={() => setFasesRecolhidas(prev => ({ ...prev, ['sem-fase']: !prev['sem-fase'] }))}
-                                className="flex items-center justify-between cursor-pointer select-none"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isRecolhido ? '-rotate-90' : 'rotate-0'}`}
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                  >
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                  <span className="text-sm font-semibold text-gray-200">Sem fase</span>
-                                </div>
-                              </div>
-
-                              {!isRecolhido && (
-                                <div className="mt-3 space-y-2">
-                                  <ul className="space-y-2">
-                                    {subsSemFase.map(renderLinhaSubcategoria)}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })()}
                       </>
                     )}
                   </div>
                 )}
 
-                {tipo === 'projeto' && totalContratadoSub !== null && subcategorias.length > 0 && (() => {
+                {tipo === 'projeto' && fases.length === 0 && totalContratadoSub !== null && subcategorias.length > 0 && (() => {
                   const diff = Math.round((totalContratadoSub - somaAlocada) * 100) / 100
                   if (diff > 0) {
                     return (
