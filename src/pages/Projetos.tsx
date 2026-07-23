@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
 import {
@@ -21,6 +22,7 @@ import { SkeletonRow } from '../components/Skeleton'
 export default function Projetos() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -262,7 +264,11 @@ export default function Projetos() {
                 </thead>
                 <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
                   {projetosFiltrados.map((projeto) => (
-                    <tr key={projeto.id} className="hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0">
+                    <tr
+                      key={projeto.id}
+                      onClick={() => navigate(`/projeto/${projeto.id}`)}
+                      className="hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0 cursor-pointer"
+                    >
                       <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
                         <div className="flex items-center gap-3">
                           <span
@@ -300,7 +306,8 @@ export default function Projetos() {
                                 Excluído
                               </span>
                               <button
-                                onClick={async () => {
+                                onClick={async (e) => {
+                                  e.stopPropagation()
                                   try {
                                     await arquivarProjeto(projeto.id)
                                     await carregarProjetos()
@@ -317,13 +324,13 @@ export default function Projetos() {
                           ) : (
                             <>
                               <button
-                                onClick={() => abrirEditarProjetoModal(projeto)}
+                                onClick={(e) => { e.stopPropagation(); abrirEditarProjetoModal(projeto) }}
                                 className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
                               >
                                 Editar
                               </button>
                               <button
-                                onClick={() => handleAlternarStatus(projeto)}
+                                onClick={(e) => { e.stopPropagation(); handleAlternarStatus(projeto) }}
                                 className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
                                   projeto.status === 'ativo'
                                     ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
@@ -333,7 +340,7 @@ export default function Projetos() {
                                 {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
                               </button>
                               <button
-                                onClick={() => handleExcluirProjeto(projeto)}
+                                onClick={(e) => { e.stopPropagation(); handleExcluirProjeto(projeto) }}
                                 className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-auto text-center justify-center"
                               >
                                 Excluir

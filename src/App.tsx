@@ -13,6 +13,7 @@ const Billable  = lazy(() => import('./pages/Billable'))
 const Projetos  = lazy(() => import('./pages/Projetos'))
 const Ajustes   = lazy(() => import('./pages/Ajustes'))
 const Lembretes = lazy(() => import('./pages/Lembretes'))
+const ProjetoDetalhe = lazy(() => import('./pages/ProjetoDetalhe'))
 
 function App() {
   return (
@@ -91,6 +92,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Lembretes />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/projeto/:id"
+              element={
+                <ProtectedRoute>
+                  <ProjetoDetalhe />
                 </ProtectedRoute>
               }
             />

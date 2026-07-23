@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import BreakdownSubcategorias from '../components/BreakdownSubcategorias'
 import { listarRegistros } from '../services/registros'
 import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
@@ -26,100 +27,10 @@ function getSemanaInicioParaData(dataStr: string): string {
   return `${yyyy}-${mm}-${dd}`
 }
 
-function BreakdownSubcategorias({ subcategorias }: { subcategorias: any[] }) {
-  if (!subcategorias || subcategorias.length === 0) return null
-
-  const temAlgumaAlocacao = subcategorias.some(
-    sub => sub.id !== null && sub.horas_alocadas !== null && sub.horas_alocadas > 0
-  )
-
-  const somaSemAlocacao = subcategorias.reduce((acc, sub) => {
-    const temAloc = sub.id !== null && sub.horas_alocadas !== null && sub.horas_alocadas > 0
-    if (!temAloc) {
-      return acc + sub.duracao
-    }
-    return acc
-  }, 0)
-
-  const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
-
-  return (
-    <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
-      <div className="space-y-2.5">
-        {subcategorias.map((sub: any) => {
-          const temAlocacao = sub.id !== null && sub.horas_alocadas !== null && sub.horas_alocadas > 0
-          const excedeu = temAlocacao && sub.duracao > sub.horas_alocadas
-          const percentualAlocado = temAlocacao ? Math.round((sub.duracao / sub.horas_alocadas) * 100) : 0
-          const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / sub.horas_alocadas) * 100)) : 0
-
-          const duracaoFormatada = `${sub.duracao.toFixed(2).replace('.', ',')}h`
-          const alocadoFormatado = temAlocacao
-            ? (Number.isInteger(sub.horas_alocadas)
-                ? `${sub.horas_alocadas}h`
-                : `${sub.horas_alocadas.toString().replace('.', ',')}h`)
-            : ''
-
-          return (
-            <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
-              <div className="flex justify-between items-center text-xs gap-2">
-                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                  {temAlgumaAlocacao && !temAlocacao && sub.id !== null && (
-                    <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
-                      sem alocação
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                  <span className="font-mono font-semibold text-white text-right">
-                    {temAlocacao ? `${duracaoFormatada} / ${alocadoFormatado}` : duracaoFormatada}
-                  </span>
-                  {!temAlocacao && (
-                    <span className="font-mono w-10 text-right font-medium text-[#6B7280]">
-                      {sub.percentual}%
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {temAlocacao && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 bg-[#0B0E14] h-1 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${larguraBarra}%`,
-                        backgroundColor: excedeu ? '#F44336' : '#03A9F4'
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="font-mono text-[10px] w-10 text-right font-medium shrink-0"
-                    style={{ color: excedeu ? '#F44336' : '#6B7280' }}
-                  >
-                    {percentualAlocado}%
-                  </span>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {exibirRodape && (
-        <div className="mt-3 pt-2 border-t border-gray-800/60 text-[10px] text-[#8B949E] text-right font-mono">
-          {somaSemAlocacao.toFixed(2).replace('.', ',')}h sem alocação
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function Resumo() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
 
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
@@ -870,7 +781,11 @@ export default function Resumo() {
                               const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
 
                               return (
-                                <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
+                                <div
+                                  key={proj.id}
+                                  onClick={() => navigate(`/projeto/${proj.id}`)}
+                                  className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 cursor-pointer"
+                                >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
@@ -908,7 +823,10 @@ export default function Resumo() {
                                   </div>
                                   {hasDetalhamento && (
                                     <div className="pt-2">
-                                      <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
+                                        className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                      >
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                       </button>
@@ -939,7 +857,11 @@ export default function Resumo() {
                               const projCor = isExcluido ? '#4B5563' : '#6B7280';
 
                               return (
-                                <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-60 hover:opacity-80">
+                                <div
+                                  key={proj.id}
+                                  onClick={() => navigate(`/projeto/${proj.id}`)}
+                                  className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer"
+                                >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
@@ -965,7 +887,10 @@ export default function Resumo() {
                                   </div>
                                   {hasDetalhamento && (
                                     <div className="pt-2">
-                                      <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
+                                        className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                      >
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                       </button>
@@ -975,7 +900,10 @@ export default function Resumo() {
                                     </div>
                                   )}
                                   <div className="pt-3 border-t border-gray-800/80 mt-auto">
-                                    <button onClick={() => handleArquivar(proj.id)} className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleArquivar(proj.id) }}
+                                      className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                                    >
                                       Arquivar Projeto
                                     </button>
                                   </div>
@@ -1010,7 +938,11 @@ export default function Resumo() {
                                 const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : proj.cor;
 
                                 return (
-                                  <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-40 hover:opacity-60">
+                                  <div
+                                    key={proj.id}
+                                    onClick={() => navigate(`/projeto/${proj.id}`)}
+                                    className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer"
+                                  >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex items-center gap-3 min-w-0">
                                         <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
@@ -1033,7 +965,10 @@ export default function Resumo() {
                                     </div>
                                     {hasDetalhamento && (
                                       <div className="pt-2">
-                                        <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
+                                          className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                        >
                                           <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                           <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                         </button>
@@ -1043,11 +978,17 @@ export default function Resumo() {
                                       </div>
                                     )}
                                     <div className="pt-3 border-t border-gray-800/80 mt-auto flex flex-col gap-2">
-                                      <button onClick={() => handleDesarquivar(proj.id)} className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50">
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleDesarquivar(proj.id) }}
+                                        className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
+                                      >
                                         Desarquivar Projeto
                                       </button>
                                       {isExcluido && (
-                                        <button onClick={() => setProjetoParaExcluir({ id: proj.id, nome: projNome })} className="w-full py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-lg transition-all border border-red-500/20 hover:border-red-600">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setProjetoParaExcluir({ id: proj.id, nome: projNome }) }}
+                                          className="w-full py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-lg transition-all border border-red-500/20 hover:border-red-600"
+                                        >
                                           Excluir permanentemente
                                         </button>
                                       )}
