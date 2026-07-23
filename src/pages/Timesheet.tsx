@@ -179,19 +179,28 @@ export default function Timesheet() {
       .catch(() => showToast('Erro ao copiar grade.', 'error'))
   }
 
-  const renderCell = (duracao: number, _dateStr: string, _projetoId: string) => {
+  const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
     let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-gray-800/30 transition-colors "
 
     if (duracao === 0) {
       className += "text-gray-500"
-    } else {
-      className += "text-white"
+      return (
+        <td className={className}>
+          {formatDuracao(duracao)}
+        </td>
+      )
     }
 
-    // Fase 2: <Link to={`/registros?data=${dateStr}&projeto_id=${projetoId}`} className={className}>{formatDuracao(duracao)}</Link>
+    className += "text-white"
+
     return (
       <td className={className}>
-        {formatDuracao(duracao)}
+        <Link
+          to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
+          className="hover:text-[#03A9F4] transition-colors block w-full"
+        >
+          {formatDuracao(duracao)}
+        </Link>
       </td>
     )
   }

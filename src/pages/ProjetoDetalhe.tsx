@@ -334,7 +334,7 @@ export default function ProjetoDetalhe() {
             <div className="space-y-4 pt-2">
               <div>
                 <h2 className="text-xl font-bold text-white">Lançamentos</h2>
-                <p className="text-xs text-[#8B949E] mt-1">Clique em um lançamento para editar</p>
+                <p className="text-xs text-[#8B949E] mt-1">Clique para editar · use o olho para ver o dia completo em Registros</p>
               </div>
               {registrosPorSemana.length === 0 ? (
                 <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-8 text-center">
@@ -372,6 +372,38 @@ export default function ProjetoDetalhe() {
                                       <span className="font-mono text-sm font-bold text-[#03A9F4]">
                                         {reg.duracao.toFixed(2).replace('.', ',')}h
                                       </span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          const targetUrl = reg.projeto_id
+                                            ? `/registros?data=${reg.data}&projeto_id=${reg.projeto_id}`
+                                            : `/registros?data=${reg.data}`
+                                          navigate(targetUrl)
+                                        }}
+                                        className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors focus:outline-none"
+                                        title="Ver no dia"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-4 w-4"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                          strokeWidth={2}
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                          />
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                          />
+                                        </svg>
+                                      </button>
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="h-4 w-4 text-gray-500 hover:text-[#03A9F4] transition-colors"

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
@@ -58,6 +59,7 @@ function formatWeekLabel(dateStr: string) {
 }
 
 export default function Registros() {
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const { showToast } = useToast()
 
@@ -140,6 +142,26 @@ export default function Registros() {
   useEffect(() => {
     carregarDados()
   }, [user])
+
+  useEffect(() => {
+    const dataParam = searchParams.get('data')
+    const projetoIdParam = searchParams.get('projeto_id')
+
+    if (dataParam) {
+      const isFormatValid = /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
+      if (isFormatValid) {
+        const parsedDate = new Date(`${dataParam}T00:00:00`)
+        if (!isNaN(parsedDate.getTime())) {
+          setFiltroDiaEspecifico(dataParam)
+          setDiasExpandidos(prev => ({ ...prev, [dataParam]: true }))
+        }
+      }
+    }
+
+    if (projetoIdParam) {
+      setFiltroProjetoId(projetoIdParam)
+    }
+  }, [searchParams])
 
   // ===============================
   // LÓGICA DE REGISTROS (CRUD)
