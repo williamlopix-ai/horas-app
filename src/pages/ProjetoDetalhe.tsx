@@ -47,6 +47,7 @@ export default function ProjetoDetalhe() {
   const [nomeFaseEditando, setNomeFaseEditando] = useState('')
   const [horasFaseEditando, setHorasFaseEditando] = useState('')
   const [faseExcluindoId, setFaseExcluindoId] = useState<string | null>(null)
+  const [faseComSubsExcluindo, setFaseComSubsExcluindo] = useState<{ faseId: string; destinoFaseId: string } | null>(null)
   const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
   const [salvandoFase, setSalvandoFase] = useState(false)
 
@@ -269,6 +270,61 @@ export default function ProjetoDetalhe() {
       setHorasFaseEditando('')
     } catch (err: unknown) {
       console.error('Erro ao atualizar fase:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoFase(false)
+    }
+  useEffect(() => {
+    if (!faseComSubsExcluindo || salvandoFase) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFaseComSubsExcluindo(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [faseComSubsExcluindo, salvandoFase])
+
+  const handleClicarExcluirFase = (fase: Fase) => {
+    if (fases.length <= 1) {
+      setConfirmandoRemoverDivisao(true)
+      return
+    }
+
+    const subsDaFase = subcategorias.filter(s => s.fase_id === fase.id)
+    if (subsDaFase.length === 0) {
+      setFaseExcluindoId(fase.id)
+    } else {
+      const outrasFases = fases
+        .filter(f => f.id !== fase.id)
+        .sort((a, b) => a.ordem - b.ordem)
+
+      const padraoDestino = outrasFases.length > 0 ? outrasFases[0].id : ''
+      setFaseComSubsExcluindo({ faseId: fase.id, destinoFaseId: padraoDestino })
+    }
+  }
+
+  const handleConfirmarExclusaoFaseComSubs = async (faseId: string, destinoFaseIdRaw: string) => {
+    try {
+      setSalvandoFase(true)
+      const destinoFaseId = destinoFaseIdRaw.trim() !== '' ? destinoFaseIdRaw : null
+      const subsDaFase = subcategorias.filter(s => s.fase_id === faseId)
+
+      if (subsDaFase.length > 0) {
+        await Promise.all(
+          subsDaFase.map(sub =>
+            subcategoriasService.atualizarSubcategoria(sub.id, sub.nome, undefined, destinoFaseId)
+          )
+        )
+      }
+
+      await fasesService.excluirFase(faseId)
+      setFaseComSubsExcluindo(null)
+      await carregarDados(true)
+    } catch (err: unknown) {
+      console.error('Erro ao excluir fase:', err)
       showToast(getErrorMessage(err), 'error')
     } finally {
       setSalvandoFase(false)
@@ -913,7 +969,7 @@ export default function ProjetoDetalhe() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setFaseExcluindoId(fase.id)}
+                                onClick={() => handleClicarExcluirFase(fase)}
                                 disabled={salvandoFase || editandoFaseId !== null}
                                 className="p-1 text-gray-500 hover:text-[#F44336] transition-colors disabled:opacity-50"
                                 title="Excluir fase"
@@ -1379,7 +1435,7 @@ export default function ProjetoDetalhe() {
             <ModalConfirmacao
               isOpen={subExcluindoId !== null}
               titulo="Excluir Subcategoria"
-              mensagem="Excluir subcategoria? Registros vinculados perderão essa referência."
+              mensagem="Excluir subcategoria? Os lançamentos vinculados são mantidos e passam a aparecer como 'Sem subcategoria'."
               perigo={true}
               textoConfirmar="Excluir"
               textoCancelar="Cancelar"
@@ -1390,7 +1446,7 @@ export default function ProjetoDetalhe() {
             <ModalConfirmacao
               isOpen={faseExcluindoId !== null}
               titulo="Excluir Fase"
-              mensagem="Excluir esta fase? As subcategorias dela ficarão sem fase."
+              mensagem="Excluir esta fase? Ela não tem subcategorias vinculadas."
               perigo={true}
               textoConfirmar="Excluir"
               textoCancelar="Cancelar"
@@ -1401,13 +1457,90 @@ export default function ProjetoDetalhe() {
             <ModalConfirmacao
               isOpen={confirmandoRemoverDivisao}
               titulo="Remover divisão em fases"
-              mensagem="Todas as fases serão excluídas e o projeto voltará ao modo simples. As horas contratadas do projeto serão mantidas."
+              mensagem="Todas as fases serão excluídas e o projeto volta ao modo simples. As subcategorias, os lançamentos e as horas contratadas são mantidos."
               perigo={true}
               textoConfirmar="Remover"
               textoCancelar="Cancelar"
               onConfirmar={handleConfirmarRemoverDivisao}
               onCancelar={() => setConfirmandoRemoverDivisao(false)}
             />
+
+            {faseComSubsExcluindo && (() => {
+              const faseAlvo = fases.find(f => f.id === faseComSubsExcluindo.faseId)
+              if (!faseAlvo) return null
+
+              const subsDaFase = subcategorias.filter(s => s.fase_id === faseAlvo.id)
+              const outrasFases = fases
+                .filter(f => f.id !== faseAlvo.id)
+                .sort((a, b) => a.ordem - b.ordem)
+
+              return (
+                <div
+                  className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                  onClick={() => { if (!salvandoFase) setFaseComSubsExcluindo(null) }}
+                >
+                  <div
+                    className="bg-[#161B22] border border-gray-800 rounded-2xl w-[95%] sm:w-full max-w-sm p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => setFaseComSubsExcluindo(null)}
+                      disabled={salvandoFase}
+                      type="button"
+                      className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10 disabled:opacity-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+
+                    <h3 className="text-xl font-bold text-white mb-2 shrink-0">
+                      Excluir fase
+                    </h3>
+
+                    <p className="text-sm text-gray-400 mb-4">
+                      Esta fase tem {subsDaFase.length} subcategoria(s). Escolha o que fazer com elas — nenhum lançamento será perdido.
+                    </p>
+
+                    <div className="mb-6 space-y-1.5">
+                      <label className="text-xs text-gray-400 font-medium">Destino das subcategorias</label>
+                      <select
+                        value={faseComSubsExcluindo.destinoFaseId}
+                        onChange={(e) => setFaseComSubsExcluindo(prev => prev ? { ...prev, destinoFaseId: e.target.value } : null)}
+                        disabled={salvandoFase}
+                        className="w-full bg-[#0B0E14] border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] disabled:opacity-50"
+                      >
+                        {outrasFases.map(f => (
+                          <option key={f.id} value={f.id}>
+                            {f.nome}
+                          </option>
+                        ))}
+                        <option value="">Deixar sem fase</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setFaseComSubsExcluindo(null)}
+                        disabled={salvandoFase}
+                        className="w-full sm:flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none disabled:opacity-50"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleConfirmarExclusaoFaseComSubs(faseAlvo.id, faseComSubsExcluindo.destinoFaseId)}
+                        disabled={salvandoFase}
+                        className="w-full sm:flex-1 py-3 px-4 bg-[#F44336] hover:bg-red-600 active:bg-red-700 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 focus:outline-none disabled:opacity-50"
+                      >
+                        {salvandoFase ? 'Excluindo...' : 'Excluir fase'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )}
       </main>
