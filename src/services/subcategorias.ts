@@ -43,5 +43,14 @@ export const subcategoriasService = {
       .eq('id', id)
     
     if (error) throw error
+  },
+
+  async atribuirFaseEmLote(projetoId: string, faseId: string | null): Promise<void> {
+    const { error } = await supabase
+      .from('subcategorias')
+      .update({ fase_id: faseId })
+      .eq('projeto_id', projetoId)
+
+    if (error) throw error
   }
 }

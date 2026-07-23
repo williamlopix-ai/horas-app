@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
-import type { Projeto, Subcategoria } from '../types'
+import type { Projeto, Subcategoria, Fase } from '../types'
 import { subcategoriasService } from '../services/subcategorias'
+import { fasesService } from '../services/fases'
 import { getErrorMessage } from '../utils/errors'
 import ModalConfirmacao from './ModalConfirmacao'
 
@@ -42,6 +43,14 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
   const subcategoriasRef = useRef<HTMLDivElement>(null)
 
+  const [fases, setFases] = useState<Fase[]>([])
+  const [carregandoFases, setCarregandoFases] = useState(false)
+  const [editandoFaseId, setEditandoFaseId] = useState<string | null>(null)
+  const [nomeFaseEditando, setNomeFaseEditando] = useState('')
+  const [horasFaseEditando, setHorasFaseEditando] = useState('')
+  const [faseExcluindoId, setFaseExcluindoId] = useState<string | null>(null)
+  const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
+
   // Efeito para rolar suavemente até a seção de subcategorias caso solicitado
   useEffect(() => {
     if (isOpen && focarSubcategorias) {
@@ -76,29 +85,165 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
     }
   }, [isOpen, projeto])
 
-  // Carregar subcategorias ao abrir o modal para edição
+  // Carregar subcategorias e fases ao abrir o modal para edição
   useEffect(() => {
     if (isOpen && projeto && tipo === 'projeto') {
-      const fetchSubcategorias = async () => {
+      const fetchData = async () => {
         setCarregandoSubcategorias(true)
+        setCarregandoFases(true)
         try {
-          const data = await subcategoriasService.listarSubcategorias(projeto.id)
-          setSubcategorias(data)
+          const [subsData, fasesData] = await Promise.all([
+            subcategoriasService.listarSubcategorias(projeto.id),
+            fasesService.listarFases(projeto.id)
+          ])
+          setSubcategorias(subsData)
+          setFases(fasesData)
         } catch (err) {
-          console.error('Erro ao carregar subcategorias', err)
+          console.error('Erro ao carregar subcategorias/fases', err)
         } finally {
           setCarregandoSubcategorias(false)
+          setCarregandoFases(false)
         }
       }
-      fetchSubcategorias()
+      fetchData()
     } else {
       setSubcategorias([])
       setNovaSubcategoria('')
       setEditandoId(null)
       setNomeEditando('')
       setSubExcluindoId(null)
+
+      setFases([])
+      setEditandoFaseId(null)
+      setNomeFaseEditando('')
+      setHorasFaseEditando('')
+      setFaseExcluindoId(null)
+      setConfirmandoRemoverDivisao(false)
     }
   }, [isOpen, projeto, tipo])
+
+  const temHorasEmFases = fases.some(f => f.horas_contratadas !== null && f.horas_contratadas !== undefined)
+  const somaHorasFases = temHorasEmFases
+    ? fases.reduce((acc, f) => acc + (f.horas_contratadas || 0), 0)
+    : null
+
+  const handleDividirEmFases = async () => {
+    if (!projeto) return
+    try {
+      setCarregandoFases(true)
+      let h1: number | null = null
+      if (horasContratadas.trim()) {
+        const parsed = parseFloat(horasContratadas.replace(',', '.'))
+        if (!isNaN(parsed)) h1 = parsed
+      }
+
+      const f1 = await fasesService.criarFase(projeto.usuario_id, projeto.id, 'Fase 1', 1, h1)
+      const f2 = await fasesService.criarFase(projeto.usuario_id, projeto.id, 'Fase 2', 2, null)
+
+      await subcategoriasService.atribuirFaseEmLote(projeto.id, f1.id)
+
+      setFases([f1, f2])
+      setEditandoFaseId(f2.id)
+      setNomeFaseEditando(f2.nome)
+      setHorasFaseEditando('')
+    } catch (err) {
+      console.error('Erro ao dividir em fases', err)
+      setError('Erro ao dividir projeto em fases.')
+    } finally {
+      setCarregandoFases(false)
+    }
+  }
+
+  const handleStartEditFase = (fase: Fase) => {
+    setEditandoFaseId(fase.id)
+    setNomeFaseEditando(fase.nome)
+    setHorasFaseEditando(fase.horas_contratadas !== null && fase.horas_contratadas !== undefined ? fase.horas_contratadas.toString() : '')
+  }
+
+  const handleCancelEditFase = () => {
+    setEditandoFaseId(null)
+    setNomeFaseEditando('')
+    setHorasFaseEditando('')
+  }
+
+  const handleSaveEditFase = async (id: string) => {
+    if (!nomeFaseEditando.trim()) return
+    try {
+      setCarregandoFases(true)
+      let horasParsed: number | null = null
+      if (horasFaseEditando.trim()) {
+        const val = parseFloat(horasFaseEditando.replace(',', '.'))
+        if (!isNaN(val)) horasParsed = val
+      }
+      const faseAtualizada = await fasesService.atualizarFase(id, {
+        nome: nomeFaseEditando.trim(),
+        horas_contratadas: horasParsed
+      })
+      setFases(fases.map(f => f.id === id ? faseAtualizada : f))
+      setEditandoFaseId(null)
+      setNomeFaseEditando('')
+      setHorasFaseEditando('')
+    } catch (err) {
+      console.error('Erro ao atualizar fase', err)
+      setError('Erro ao atualizar fase.')
+    } finally {
+      setCarregandoFases(false)
+    }
+  }
+
+  const handleAddFase = async () => {
+    if (!projeto) return
+    try {
+      setCarregandoFases(true)
+      const novaOrdem = fases.length > 0 ? Math.max(...fases.map(f => f.ordem)) + 1 : 1
+      const novoNome = `Fase ${novaOrdem}`
+      const novaFase = await fasesService.criarFase(projeto.usuario_id, projeto.id, novoNome, novaOrdem, null)
+      setFases([...fases, novaFase])
+      setEditandoFaseId(novaFase.id)
+      setNomeFaseEditando(novaFase.nome)
+      setHorasFaseEditando('')
+    } catch (err) {
+      console.error('Erro ao adicionar fase', err)
+      setError('Erro ao adicionar fase.')
+    } finally {
+      setCarregandoFases(false)
+    }
+  }
+
+  const handleConfirmarExclusaoFase = async () => {
+    if (!faseExcluindoId) return
+    try {
+      setCarregandoFases(true)
+      await fasesService.excluirFase(faseExcluindoId)
+      setFases(fases.filter(f => f.id !== faseExcluindoId))
+      setFaseExcluindoId(null)
+    } catch (err) {
+      console.error('Erro ao excluir fase', err)
+      setError('Erro ao excluir fase.')
+    } finally {
+      setCarregandoFases(false)
+    }
+  }
+
+  const handleConfirmarRemoverDivisao = async () => {
+    if (!projeto) return
+    try {
+      setCarregandoFases(true)
+      const valorSomaAnterior = somaHorasFases
+
+      await subcategoriasService.atribuirFaseEmLote(projeto.id, null)
+      await Promise.all(fases.map(f => fasesService.excluirFase(f.id)))
+
+      setFases([])
+      setHorasContratadas(valorSomaAnterior !== null && valorSomaAnterior !== undefined ? valorSomaAnterior.toString() : '')
+      setConfirmandoRemoverDivisao(false)
+    } catch (err) {
+      console.error('Erro ao remover divisão em fases', err)
+      setError('Erro ao remover divisão em fases.')
+    } finally {
+      setCarregandoFases(false)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -177,10 +322,14 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setError(null)
       
       let horasParsed = null
-      if (tipo === 'projeto' && horasContratadas.trim()) {
-        const val = parseFloat(horasContratadas.replace(',', '.'))
-        if (!isNaN(val)) {
-          horasParsed = val
+      if (tipo === 'projeto') {
+        if (fases.length > 0) {
+          horasParsed = somaHorasFases
+        } else if (horasContratadas.trim()) {
+          const val = parseFloat(horasContratadas.replace(',', '.'))
+          if (!isNaN(val)) {
+            horasParsed = val
+          }
         }
       }
 
@@ -288,17 +437,33 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
             {/* Horas Contratadas */}
             {tipo === 'projeto' && (
               <div>
-                <label htmlFor="horas-contratadas" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  Horas Contratadas (opcional)
+                <label htmlFor="horas-contratadas" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                  <span>Horas Contratadas (opcional)</span>
+                  {fases.length > 0 && (
+                    <span className="text-[11px] text-gray-400 font-normal normal-case">(somado das fases)</span>
+                  )}
                 </label>
                 <input
                   id="horas-contratadas"
                   type="text"
                   placeholder="Ex: 100"
-                  value={horasContratadas}
+                  value={fases.length > 0 ? (somaHorasFases !== null ? somaHorasFases.toString() : '') : horasContratadas}
                   onChange={(e) => setHorasContratadas(e.target.value)}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
+                  readOnly={fases.length > 0}
+                  className={`bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none w-full transition-colors ${
+                    fases.length > 0 ? 'cursor-not-allowed opacity-80' : 'focus:border-[#03A9F4]'
+                  }`}
                 />
+                {projeto && fases.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={handleDividirEmFases}
+                    disabled={carregandoFases}
+                    className="mt-1.5 text-xs text-[#03A9F4] hover:underline font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    + Dividir em fases
+                  </button>
+                )}
               </div>
             )}
 
@@ -396,6 +561,133 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                     Encerrado
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Seção de Fases (Apenas quando houver fases) */}
+            {tipo === 'projeto' && projeto && fases.length > 0 && (
+              <div className="border-t border-gray-800 pt-4 mt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Fases
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddFase}
+                    disabled={carregandoFases}
+                    className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
+                  >
+                    + Adicionar fase
+                  </button>
+                </div>
+
+                {carregandoFases && fases.length === 0 ? (
+                  <div className="text-sm text-gray-500 text-center py-2">Carregando fases...</div>
+                ) : (
+                  <ul className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                    {fases.map(fase => (
+                      <li key={fase.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-lg px-3 py-2">
+                        {editandoFaseId === fase.id ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={nomeFaseEditando}
+                              onChange={(e) => setNomeFaseEditando(e.target.value)}
+                              placeholder="Nome da fase"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSaveEditFase(fase.id)
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  handleCancelEditFase()
+                                }
+                              }}
+                              className="flex-1 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                              autoFocus
+                            />
+                            <input
+                              type="text"
+                              value={horasFaseEditando}
+                              onChange={(e) => setHorasFaseEditando(e.target.value)}
+                              placeholder="Horas"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSaveEditFase(fase.id)
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  handleCancelEditFase()
+                                }
+                              }}
+                              className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEditFase(fase.id)}
+                              disabled={!nomeFaseEditando.trim() || carregandoFases}
+                              className="text-emerald-400 hover:text-emerald-300 p-1 disabled:opacity-50"
+                              title="Confirmar"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEditFase}
+                              className="text-gray-500 hover:text-gray-300 p-1"
+                              title="Cancelar"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="text-xs text-gray-500 font-mono">{fase.ordem}.</span>
+                              <span className="text-sm text-gray-200 truncate">{fase.nome}</span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs font-mono text-gray-400">
+                                {fase.horas_contratadas !== null && fase.horas_contratadas !== undefined ? `${fase.horas_contratadas}h` : '—'}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditFase(fase)}
+                                  className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
+                                  title="Editar"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setFaseExcluindoId(fase.id)}
+                                  className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                                  title="Excluir"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoRemoverDivisao(true)}
+                  disabled={carregandoFases}
+                  className="mt-3 text-xs text-red-400 hover:text-red-300 font-semibold transition-colors cursor-pointer"
+                >
+                  Remover divisão em fases
+                </button>
               </div>
             )}
 
@@ -547,6 +839,28 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
           textoConfirmar="Excluir"
           onConfirmar={handleConfirmarExclusaoSubcategoria}
           onCancelar={() => setSubExcluindoId(null)}
+        />
+
+        {/* Modal de Confirmação de Exclusão de Fase */}
+        <ModalConfirmacao
+          isOpen={faseExcluindoId !== null}
+          titulo="Excluir Fase"
+          mensagem="Excluir esta fase? As subcategorias dela ficarão sem fase."
+          perigo={true}
+          textoConfirmar="Excluir"
+          onConfirmar={handleConfirmarExclusaoFase}
+          onCancelar={() => setFaseExcluindoId(null)}
+        />
+
+        {/* Modal de Confirmação de Remover Divisão em Fases */}
+        <ModalConfirmacao
+          isOpen={confirmandoRemoverDivisao}
+          titulo="Remover divisão em fases"
+          mensagem="Todas as fases serão excluídas e o projeto voltará ao modo simples. As horas contratadas do projeto serão mantidas."
+          perigo={true}
+          textoConfirmar="Remover"
+          onConfirmar={handleConfirmarRemoverDivisao}
+          onCancelar={() => setConfirmandoRemoverDivisao(false)}
         />
       </div>
     </div>
