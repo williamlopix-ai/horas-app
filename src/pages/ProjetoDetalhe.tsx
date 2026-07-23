@@ -274,6 +274,8 @@ export default function ProjetoDetalhe() {
     } finally {
       setSalvandoFase(false)
     }
+  }
+
   useEffect(() => {
     if (!faseComSubsExcluindo || salvandoFase) return
 
