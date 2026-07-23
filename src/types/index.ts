@@ -29,6 +29,7 @@ export interface Subcategoria {
   projeto_id: string
   usuario_id: string
   nome: string
+  fase_id: string | null
   criado_em: string
 }
 
@@ -75,3 +76,12 @@ export interface Lembrete {
   criado_em: string
 }
 
+export interface Fase {
+  id: string
+  projeto_id: string
+  usuario_id: string
+  nome: string
+  ordem: number
+  horas_contratadas: number | null
+  criado_em: string
+}
