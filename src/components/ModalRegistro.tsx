@@ -2,12 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { listarProjetos } from '../services/projetos'
 import { subcategoriasService } from '../services/subcategorias'
+import { fasesService } from '../services/fases'
 import { getErrorMessage } from '../utils/errors'
 import { buscarHorarioDia } from '../services/horarios'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
-import type { Registro, Projeto, Subcategoria } from '../types'
+import type { Registro, Projeto, Subcategoria, Fase } from '../types'
 
 interface ModalRegistroProps {
   isOpen: boolean
@@ -65,6 +66,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   const [observacao, setObservacao] = useState<string>('')
   const [subcategoriaId, setSubcategoriaId] = useState<string>('')
   const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<Subcategoria[]>([])
+  const [fases, setFases] = useState<Fase[]>([])
 
   // Estados Operacionais
   const [projetos, setProjetos] = useState<Projeto[]>([])
@@ -109,16 +111,23 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     }
   }, [isOpen, registro])
 
-  // Buscar subcategorias quando mudar de projeto
+  // Buscar subcategorias e fases quando mudar de projeto
   useEffect(() => {
     let montado = true
     if (projetoId) {
       const projetoSelecionado = projetos.find(p => p.id === projetoId)
       if (projetoSelecionado?.tipo === 'projeto' || (!projetoSelecionado?.tipo)) {
-        subcategoriasService.listarSubcategorias(projetoId)
-          .then(data => {
+        Promise.all([
+          subcategoriasService.listarSubcategorias(projetoId),
+          fasesService.listarFases(projetoId).catch(err => {
+            console.error('Erro ao listar fases:', err)
+            return [] as Fase[]
+          })
+        ])
+          .then(([dataSubcats, dataFases]) => {
             if (montado) {
-              setSubcategoriasDisponiveis(data)
+              setSubcategoriasDisponiveis(dataSubcats)
+              setFases(dataFases)
               // Se for o projeto original da edição e tiver subcategoria_id, restaurar
               if (registro && registro.projeto_id === projetoId && registro.subcategoria_id) {
                 setSubcategoriaId(registro.subcategoria_id)
@@ -127,13 +136,22 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
               }
             }
           })
-          .catch(err => console.error('Erro ao listar subcategorias', err))
+          .catch(err => {
+            console.error('Erro ao listar subcategorias:', err)
+            if (montado) {
+              setSubcategoriasDisponiveis([])
+              setFases([])
+              setSubcategoriaId('')
+            }
+          })
       } else {
         setSubcategoriasDisponiveis([])
+        setFases([])
         setSubcategoriaId('')
       }
     } else {
       setSubcategoriasDisponiveis([])
+      setFases([])
       setSubcategoriaId('')
     }
     return () => { montado = false }
@@ -349,11 +367,67 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                   className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
                 >
                   <option value="">Sem subcategoria</option>
-                  {subcategoriasDisponiveis.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.nome}
-                    </option>
-                  ))}
+
+                  {fases.length === 0 ? (
+                    subcategoriasDisponiveis.map((sub) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.nome}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      {[...fases]
+                        .sort((a, b) => a.ordem - b.ordem)
+                        .map((fase) => {
+                          const subsDaFase = subcategoriasDisponiveis.filter(s => s.fase_id === fase.id)
+                          if (subsDaFase.length === 0) return null
+                          return (
+                            <optgroup
+                              key={fase.id}
+                              label={fase.nome}
+                              className="bg-[#161B22] text-[#8B949E] font-bold"
+                              style={{ backgroundColor: '#161B22', color: '#8B949E' }}
+                            >
+                              {subsDaFase.map((sub) => (
+                                <option
+                                  key={sub.id}
+                                  value={sub.id}
+                                  className="text-white font-normal bg-[#0B0E14]"
+                                  style={{ backgroundColor: '#0B0E14', color: '#FFFFFF' }}
+                                >
+                                  {sub.nome}
+                                </option>
+                              ))}
+                            </optgroup>
+                          )
+                        })}
+
+                      {(() => {
+                        const subcategoriasSemFase = subcategoriasDisponiveis.filter(
+                          (s) => !s.fase_id || !fases.some((f) => f.id === s.fase_id)
+                        )
+                        if (subcategoriasSemFase.length === 0) return null
+                        return (
+                          <optgroup
+                            label="Sem fase"
+                            className="bg-[#161B22] text-[#8B949E] font-bold"
+                            style={{ backgroundColor: '#161B22', color: '#8B949E' }}
+                          >
+                            {subcategoriasSemFase.map((sub) => (
+                              <option
+                                key={sub.id}
+                                value={sub.id}
+                                className="text-white font-normal bg-[#0B0E14]"
+                                style={{ backgroundColor: '#0B0E14', color: '#FFFFFF' }}
+                              >
+                                {sub.nome}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )
+                      })()}
+                    </>
+                  )}
                 </select>
               </div>
             )}
