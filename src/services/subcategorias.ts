@@ -57,5 +57,15 @@ export const subcategoriasService = {
       .eq('projeto_id', projetoId)
 
     if (error) throw error
+  },
+
+  async listarTodasSubcategorias(usuarioId: string): Promise<Subcategoria[]> {
+    const { data, error } = await supabase
+      .from('subcategorias')
+      .select('*')
+      .eq('usuario_id', usuarioId)
+
+    if (error) throw error
+    return data || []
   }
 }

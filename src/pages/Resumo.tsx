@@ -6,8 +6,9 @@ import { listarRegistros } from '../services/registros'
 import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
 import { buscarConfiguracoes } from '../services/configuracoes'
 import { buscarHorasBaseSemanal } from '../services/horas_base'
+import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
-import type { Registro, Projeto } from '../types'
+import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 
@@ -25,12 +26,72 @@ function getSemanaInicioParaData(dataStr: string): string {
   return `${yyyy}-${mm}-${dd}`
 }
 
+function BreakdownSubcategorias({ subcategorias }: { subcategorias: any[] }) {
+  if (!subcategorias || subcategorias.length === 0) return null
+
+  return (
+    <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
+      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+      <div className="space-y-2.5">
+        {subcategorias.map((sub: any) => {
+          const temAlocacao = sub.id !== null && sub.horas_alocadas !== null && sub.horas_alocadas > 0
+          const excedeu = temAlocacao && sub.duracao > sub.horas_alocadas
+          const percentualAlocado = temAlocacao ? Math.round((sub.duracao / sub.horas_alocadas) * 100) : 0
+          const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / sub.horas_alocadas) * 100)) : 0
+
+          const duracaoFormatada = `${sub.duracao.toFixed(2).replace('.', ',')}h`
+          const alocadoFormatado = temAlocacao
+            ? (Number.isInteger(sub.horas_alocadas)
+                ? `${sub.horas_alocadas}h`
+                : `${sub.horas_alocadas.toString().replace('.', ',')}h`)
+            : ''
+
+          return (
+            <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
+              <div className="flex justify-between items-center text-xs gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
+                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                  <span className="font-mono font-semibold text-white text-right">
+                    {temAlocacao ? `${duracaoFormatada} / ${alocadoFormatado}` : duracaoFormatada}
+                  </span>
+                  <span
+                    className="font-mono w-10 text-right font-medium"
+                    style={{ color: excedeu ? '#F44336' : '#6B7280' }}
+                  >
+                    {temAlocacao ? `${percentualAlocado}%` : `${sub.percentual}%`}
+                  </span>
+                </div>
+              </div>
+
+              {temAlocacao && (
+                <div className="w-full bg-[#0B0E14] h-1 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${larguraBarra}%`,
+                      backgroundColor: excedeu ? '#F44336' : '#03A9F4'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function Resumo() {
   const { user } = useAuth()
   const { showToast } = useToast()
 
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
+  const [subcategoriasCadastradas, setSubcategoriasCadastradas] = useState<Subcategoria[]>([])
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [horasBasePorSemana, setHorasBasePorSemana] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
@@ -97,14 +158,17 @@ export default function Resumo() {
       setLoading(true)
       setError(null)
 
-      const config = await buscarConfiguracoes(user.id)
+      const [config, projs, regs, subs] = await Promise.all([
+        buscarConfiguracoes(user.id),
+        listarProjetos(user.id),
+        listarRegistros(user.id),
+        subcategoriasService.listarTodasSubcategorias(user.id)
+      ])
+
       setMetaSemanal(config.meta_semanal)
-
-      const projs = await listarProjetos(user.id)
       setProjetos(projs)
-
-      const regs = await listarRegistros(user.id)
       setRegistros(regs)
+      setSubcategoriasCadastradas(subs)
 
       // Extrair semanas únicas e buscar horas base para cada uma
       const semanasUnicas = [...new Set(regs.map(r => r.semana_inicio).filter(Boolean))] as string[]
@@ -267,27 +331,53 @@ export default function Resumo() {
       })
 
       // Breakdown de Subcategorias
-      const subGrupos: { [key: string]: { id: string | null, nome: string, duracao: number } } = {}
-      regs.forEach(reg => {
-        const subId = reg.subcategoria_id || 'sem_subcategoria'
-        if (!subGrupos[subId]) {
-          subGrupos[subId] = {
-            id: reg.subcategoria_id || null,
-            nome: reg.subcategoria?.nome || 'Sem subcategoria',
-            duracao: 0
-          }
+      const subsCadastradasDoProjeto = subcategoriasCadastradas.filter(s => s.projeto_id === id)
+      const subIdsCadastradas = new Set(subsCadastradasDoProjeto.map(s => s.id))
+
+      const subsMapeadas = subsCadastradasDoProjeto.map(sub => {
+        const duracao = regs
+          .filter(r => r.subcategoria_id === sub.id)
+          .reduce((acc, r) => acc + r.duracao, 0)
+
+        return {
+          id: sub.id,
+          nome: sub.nome,
+          duracao,
+          horas_alocadas: sub.horas_alocadas ?? null
         }
-        subGrupos[subId].duracao += reg.duracao
       })
-      
-      const arraySub = Object.values(subGrupos)
-      const comSub = arraySub.filter(s => s.id !== null).sort((a, b) => b.duracao - a.duracao)
-      const semSub = arraySub.find(s => s.id === null)
-      if (semSub) comSub.push(semSub)
-      
-      const subcategorias = comSub.map(s => ({
+
+      const duracaoSemSub = regs
+        .filter(r => !r.subcategoria_id || !subIdsCadastradas.has(r.subcategoria_id))
+        .reduce((acc, r) => acc + r.duracao, 0)
+
+      const comDuracao = subsMapeadas
+        .filter(s => s.duracao > 0)
+        .sort((a, b) => b.duracao - a.duracao)
+
+      const semDuracao = subsMapeadas
+        .filter(s => s.duracao === 0)
+        .sort((a, b) => a.nome.localeCompare(b.nome))
+
+      const listaSubcategorias: Array<{
+        id: string | null
+        nome: string
+        duracao: number
+        horas_alocadas: number | null
+      }> = [...comDuracao, ...semDuracao]
+
+      if (duracaoSemSub > 0) {
+        listaSubcategorias.push({
+          id: null,
+          nome: 'Sem subcategoria',
+          duracao: duracaoSemSub,
+          horas_alocadas: null
+        })
+      }
+
+      const subcategorias = listaSubcategorias.map(s => ({
         ...s,
-        percentual: Math.round((s.duracao / totalHoras) * 100)
+        percentual: totalHoras > 0 ? Math.round((s.duracao / totalHoras) * 100) : 0
       }))
 
       const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original, billable }
@@ -304,7 +394,7 @@ export default function Resumo() {
       projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras),
       rotinas: arrayRotina.sort((a, b) => b.totalHoras - a.totalHoras)
     }
-  }, [registros, projetos])
+  }, [registros, projetos, subcategoriasCadastradas])
 
   const projetosVisiveis = useMemo(
     () => apenasBillable
@@ -745,7 +835,7 @@ export default function Resumo() {
                               const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
                               const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
-                              const hasRegistros = proj.registros.length > 0;
+                              const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
 
                               return (
                                 <div key={proj.id} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4">
@@ -784,30 +874,14 @@ export default function Resumo() {
                                       </div>
                                     )}
                                   </div>
-                                  {hasRegistros && (
+                                  {hasDetalhamento && (
                                     <div className="pt-2">
                                       <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                       </button>
-                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                                        <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-                                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
-                                          <div className="space-y-2">
-                                            {proj.subcategorias.map((sub: any) => (
-                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
-                                                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                                                  <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                  <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
-                                                </div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
+                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                       </div>
                                     </div>
                                   )}
@@ -826,7 +900,7 @@ export default function Resumo() {
                             {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
-                              const hasRegistros = proj.registros.length > 0;
+                              const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
                               
                               const isExcluido = proj.status === 'excluido';
                               const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
@@ -857,30 +931,14 @@ export default function Resumo() {
                                       </p>
                                     )}
                                   </div>
-                                  {hasRegistros && (
+                                  {hasDetalhamento && (
                                     <div className="pt-2">
                                       <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                       </button>
-                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                                        <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-                                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
-                                          <div className="space-y-2">
-                                            {proj.subcategorias.map((sub: any) => (
-                                              <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
-                                                <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                                                  <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                  <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
-                                                </div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
+                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                       </div>
                                     </div>
                                   )}
@@ -912,7 +970,7 @@ export default function Resumo() {
                               {projetosVisiveis.filter(p => p.arquivado).map(proj => {
                                 const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                 const isExpanded = projetosExpandidos[proj.id] || false;
-                                const hasRegistros = proj.registros.length > 0;
+                                const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
                                 
                                 const isExcluido = proj.status === 'excluido';
                                 const isEncerrado = proj.status === 'encerrado';
@@ -941,30 +999,14 @@ export default function Resumo() {
                                         </p>
                                       )}
                                     </div>
-                                    {hasRegistros && (
+                                    {hasDetalhamento && (
                                       <div className="pt-2">
                                         <button onClick={() => toggleProjeto(proj.id)} className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none">
                                           <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                           <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                         </button>
-                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                                          <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
-                                            <div className="space-y-2">
-                                              {proj.subcategorias.map((sub: any) => (
-                                                <div key={sub.id || 'sem_sub'} className="flex justify-between items-center text-xs gap-2 py-0.5">
-                                                  <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                                                    <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                                                  </div>
-                                                  <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                                                    <span className="font-mono font-semibold text-white w-12 sm:w-14 text-right">{sub.duracao.toFixed(2).replace('.', ',')}h</span>
-                                                    <span className="font-mono text-gray-500 w-8 sm:w-10 text-right">{sub.percentual}%</span>
-                                                  </div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
+                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                          <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                         </div>
                                       </div>
                                     )}
