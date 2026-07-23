@@ -968,21 +968,30 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                   const diff = Math.round((totalContratadoSub - somaAlocada) * 100) / 100
                   if (diff > 0) {
                     return (
-                      <p className="mt-2 text-xs text-[#8B949E]">
-                        Faltam {formatarHoras(diff)}h para alocar nas subcategorias
-                      </p>
+                      <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#8B949E] bg-[#161B22] text-[#8B949E] flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Faltam {formatarHoras(diff)}h para alocar nas subcategorias</span>
+                      </div>
                     )
                   } else if (diff < 0) {
                     return (
-                      <p className="mt-2 text-xs text-[#F44336]">
-                        {formatarHoras(Math.abs(diff))}h acima do contratado
-                      </p>
+                      <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{formatarHoras(Math.abs(diff))}h acima do contratado</span>
+                      </div>
                     )
                   } else {
                     return (
-                      <p className="mt-2 text-xs text-[#4CAF50]">
-                        Totalmente alocado
-                      </p>
+                      <div className="rounded-lg px-3 py-2 mt-3 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Totalmente alocado</span>
+                      </div>
                     )
                   }
                 })()}
