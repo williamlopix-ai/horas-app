@@ -13,6 +13,7 @@ import {
   excluirProjetoComRegistros,
   arquivarProjeto
 } from '../services/projetos'
+import { fasesService } from '../services/fases'
 import { supabase } from '../lib/supabase'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
@@ -35,7 +36,7 @@ export default function Projetos() {
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProjeto, setEditingProjeto] = useState<Projeto | null>(null)
-  const [focarSubcategorias, setFocarSubcategorias] = useState(false)
+  const [projetoTemFases, setProjetoTemFases] = useState(false)
   const [projetoRecemCriado, setProjetoRecemCriado] = useState<Projeto | null>(null)
   const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ projeto: Projeto; numRegistros: number } | null>(null)
 
@@ -60,20 +61,27 @@ export default function Projetos() {
 
   const abrirNovoProjetoModal = () => {
     setEditingProjeto(null)
-    setFocarSubcategorias(false)
+    setProjetoTemFases(false)
     setIsModalOpen(true)
   }
 
-  const abrirEditarProjetoModal = (projeto: Projeto, focarSubs = false) => {
+  const abrirEditarProjetoModal = async (projeto: Projeto) => {
+    setProjetoTemFases(false)
     setEditingProjeto(projeto)
-    setFocarSubcategorias(focarSubs)
     setIsModalOpen(true)
+    try {
+      const fases = await fasesService.listarFases(projeto.id)
+      setProjetoTemFases(fases.length > 0)
+    } catch (err) {
+      console.error('Erro ao verificar fases do projeto', err)
+      setProjetoTemFases(false)
+    }
   }
 
   const fecharModal = () => {
     setIsModalOpen(false)
     setEditingProjeto(null)
-    setFocarSubcategorias(false)
+    setProjetoTemFases(false)
   }
 
   const handleSalvarProjeto = async (dados: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; horas_contratadas: number | null; status?: 'ativo' | 'encerrado' | 'excluido'; codigo_externo: string | null; billable: boolean }) => {
@@ -365,7 +373,7 @@ export default function Projetos() {
         onClose={fecharModal}
         onSave={handleSalvarProjeto}
         projeto={editingProjeto}
-        focarSubcategorias={focarSubcategorias}
+        temFases={projetoTemFases}
       />
 
       {/* Dialog de Confirmação para Adicionar Subcategorias */}
@@ -383,13 +391,13 @@ export default function Projetos() {
               <button
                 type="button"
                 onClick={() => {
-                  const p = projetoRecemCriado
+                  const id = projetoRecemCriado.id
                   setProjetoRecemCriado(null)
-                  abrirEditarProjetoModal(p, true)
+                  navigate(`/projeto/${id}`)
                 }}
                 className="w-full py-2.5 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/10"
               >
-                Adicionar subcategorias
+                Configurar agora
               </button>
               <button
                 type="button"
