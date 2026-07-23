@@ -1,165 +1,208 @@
-# Resumo da Sessão — Projeto HORAS
+# HANDOFF — Projeto HORAS
 
-**Data:** 11/06/2026 (atualizado)
-**Repo:** github.com/williamlopix-ai/horas-app (branch main)
-**Produção:** horas-app-nine.vercel.app
-**Stack:** React + TypeScript + Tailwind + Vite + Supabase + Vercel
+> Documento de estado da sessão. Ler no início de cada nova sessão.
+> Última atualização: 23/07/2026
 
 ---
 
-## Estado Atual — Estável ✅
+## Stack e ambiente
 
-Todas as funcionalidades estão funcionando em produção, incluindo desktop e mobile (PWA).
-Deploy, atualização automática de PWA e performance de carregamento corrigidos nesta sessão.
+| Camada | Tecnologia |
+|---|---|
+| Front-end | React + TypeScript + Tailwind CSS + Vite |
+| Banco | Supabase (PostgreSQL + Auth + RLS) |
+| Deploy | Vercel (auto-deploy via push na branch `main`) |
+| Repositório | `github.com/williamlopix-ai/horas-app` |
+| Produção | `horas-app-nine.vercel.app` |
+| Agente de código | Antigravity (VS Code) |
+| Ambiente local | Windows + PowerShell |
 
 ---
 
 ## O que foi feito nesta sessão
 
-### QA Completo — 4 Camadas
-- Camada 1: serviços, configuração PWA, vite.config.ts, vercel.json
-- Camada 2: todas as páginas e componentes
-- Camada 3: TypeScript, build, dependências, SW gerado, rotas
-- Camada 4: checklist funcional manual — nenhuma regressão encontrada
+Implementada a feature completa de **divisão de horas contratadas por fase e subcategoria**, mais a criação de uma **página dedicada de detalhe do projeto**.
 
-### Rodada 1 — Correção de Deploy PWA ✅
-- vercel.json: headers no-cache para sw.js e manifest.webmanifest
-- vite.config.ts: includeAssets limpo, navigateFallback removido, rota NetworkFirst para navegação adicionada
-- src/main.tsx: listener controllerchange com banner "Nova versão disponível" + botão Atualizar
+### 1. Subcategorias editáveis
+- Renomear subcategoria inline (ícone de lápis)
+- `window.confirm` substituído pelo componente `ModalConfirmacao`
 
-### Rodada 2 — Qualidade ✅
-- ModalRegistro.tsx: calcularDuracaoCentesimal importado de registros.ts (cópia local removida)
-- configuracoes.ts: CONFIG_PADRAO corrigido para 09:00 / 18:30
-- Ajustes.tsx: labels dos accordions % DA META SEMANAL e % DA META MENSAL corrigidos
-- App.tsx: rota /dashboard legada removida
-- .env.example criado na raiz
+### 2. Fases (tranches contratuais)
+- Nova tabela `fases` no Supabase com RLS
+- Coluna `fase_id` adicionada em `subcategorias`
+- Novo serviço `src/services/fases.ts` (`fasesService`)
+- Interface `Fase` criada em `src/types/index.ts`
+- Fluxo "Dividir em fases": cria Fase 1 (herdando as horas do projeto) + Fase 2, e move as subcategorias existentes para a Fase 1
+- "Remover divisão em fases" volta o projeto ao modo simples sem perder subcategorias
 
-### Rodada 3 — Performance ✅
-- App.tsx: lazy() + Suspense para todas as páginas protegidas
-- vite.config.ts: manualChunks separando vendor-react, vendor-supabase, vendor-xlsx e páginas
-- Bundle: 964 KB único → maior chunk 282 KB (xlsx, carregado só em /ajustes)
-- Spinner de loading azul (#03A9F4) durante navegação entre rotas
+### 3. Alocação de horas por subcategoria
+- Coluna `horas_alocadas` adicionada em `subcategorias`
+- Modo "Alocar horas" em lote: todos os campos editáveis ao mesmo tempo, com aviso de horas restantes atualizando ao vivo
+- Aviso por fase quando o projeto tem fases; aviso único quando não tem
+- Faixas coloridas: amarelo `#FFC107` (faltam Xh), verde `#4CAF50` (totalmente alocado), vermelho `#F44336` (acima do contratado)
 
-### SEO / PageSpeed ✅
-- index.html: lang="pt-BR" e meta description adicionados
-- public/robots.txt: criado com `User-agent: * / Allow: /`
-- Login.tsx e Cadastro.tsx: `<div>` raiz trocado por `<main>` (landmark semântico — páginas protegidas já tinham `<main>`)
+### 4. Resumo — usado vs. alocado
+- Componente `BreakdownSubcategorias` extraído para `src/components/BreakdownSubcategorias.tsx` (compartilhado entre Resumo e página de detalhe)
+- Mescla subcategorias cadastradas com o consumo dos registros (subcategoria com alocação e 0h lançadas agora aparece)
+- Barra de progresso por subcategoria, vermelha quando excede
+- Tag "sem alocação" contextual (só aparece quando o projeto usa alocação)
+- Rodapé "X,XXh sem alocação"
 
-### Mobile / iOS UX ✅
-- src/index.css: `html { font-size: 16px }` — previne auto-zoom em inputs no iOS Safari
-- Projetos.tsx: cards mobile compactados (p-4→p-3, botões flex-row flex-wrap, w-full→w-auto)
+### 5. Página de detalhe do projeto — `/projeto/:id`
+Novo arquivo `src/pages/ProjetoDetalhe.tsx`. Acessível clicando no card do projeto no Resumo ou na linha em Projetos.
 
-### Mobile Cards Projetos — Layout Grid ✅
-- Projetos.tsx: `<tr>` mobile trocado de `flex flex-col` para `grid grid-cols-[1fr_auto]`
-- Badge de status agora fica na mesma linha que o nome (col-2), botões abaixo com col-span-2
-- Separação visual: `mb-2 bg-[#161B22] rounded-xl` no `<tr>` — cards com fundo destacado e gap entre eles
-- `!border-t-0` cancela o `divide-y` do tbody (especificidade 0,2,0 — necessita !important)
-- Desktop intocado: nenhuma classe `md:` alterada
+Contém:
+- Cabeçalho (nome, cor, status, código externo)
+- Progresso geral (lançadas / contratadas + barra)
+- Cards de métricas: Restantes, Lançamentos, Última atividade
+- Fases e subcategorias com CRUD completo e alocação de horas
+- Seção "Lançamentos": registros agrupados por semana, recolhíveis, com observações visíveis
+  - Clique na linha abre o `ModalRegistro` para edição
+  - Ícone de olho leva para `/registros` filtrado por dia e projeto
 
-### Rodada 4A — SEO e Acessibilidade ✅
-- index.html: lang="pt-BR" e meta description adicionados
-- public/robots.txt: criado com User-agent: * / Allow: /
-- Login.tsx e Cadastro.tsx: <div> raiz trocado por <main> (landmark semântico)
+### 6. ModalProjeto simplificado
+- Removidas as seções de fases, subcategorias e alocação (migraram para a página de detalhe)
+- Ficou apenas o cadastro: nome, cor, tipo, horas contratadas, código externo, billable, status
+- Nova prop `temFases?: boolean` — quando true, desabilita o campo de horas e exibe faixa informativa
+- Prop `focarSubcategorias` removida
 
-### Rodada 4B — Mobile / iOS UX ✅
-- src/index.css: html { font-size: 16px } — previne auto-zoom em inputs no iOS Safari
-- Projetos.tsx: cards mobile redesenhados — grid grid-cols-[1fr_auto], badge de status na mesma linha que o nome, ring-1 ring-gray-700/50 como separador visual entre cards
+### 7. Filtro por URL em Registros — **Timesheet Fase 2 concluída**
+- `/registros?data=YYYY-MM-DD&projeto_id=xxx` aplica os filtros existentes
+- Clique em célula preenchida do Timesheet leva para os registros do dia/projeto
+- Células vazias não são clicáveis
 
-### Registros — Dias recolhidos por padrão ✅
-- src/pages/Registros.tsx: isExpanded invertido — chave ausente agora = false (recolhido)
-- toggleDia ajustado para consistência com nova lógica
-
----
-
-## Commits desta sessão
-
-fix: corrigir atualização PWA — headers no-cache Vercel, NetworkFirst navegação, banner de update
-fix: qualidade — importar calcularDuracaoCentesimal, corrigir horário padrão, labels Ajustes, remover rota legada, criar .env.example
-perf: code splitting por rota — bundle 964 KB → chunks de até 282 KB
-fix: SEO e acessibilidade — lang pt-BR, meta description, robots.txt, elemento main
-feat: cards de projetos mobile — grid layout, badge direita, ring separador
-feat: dias recolhidos por padrão em Registros
+### 8. ModalRegistro — subcategorias agrupadas por fase
+- Select usa `<optgroup>` com o nome da fase quando o projeto tem fases
+- Resolve a ambiguidade de subcategorias com o mesmo nome em fases diferentes
+- Projeto sem fases mantém a lista plana
 
 ---
 
-## Arquivos modificados nesta sessão
+## Estado atual do banco
 
-| Arquivo | O que mudou |
-|-|-|
-| `vercel.json` | Headers Cache-Control no-cache para sw.js e manifest.webmanifest |
-| `vite.config.ts` | NetworkFirst navegação, manualChunks, includeAssets limpo |
-| `src/main.tsx` | Banner DOM de atualização PWA com controllerchange listener |
-| `src/App.tsx` | lazy() + Suspense nas páginas protegidas, rota /dashboard removida |
-| `src/components/ModalRegistro.tsx` | calcularDuracaoCentesimal importado de registros.ts |
-| `src/services/configuracoes.ts` | CONFIG_PADRAO: 09:00 / 18:30 |
-| `src/pages/Ajustes.tsx` | Labels dos accordions corrigidos |
-| `.env.example` | Criado com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY |
-| `index.html` | lang="pt-BR", meta description |
-| `public/robots.txt` | Criado |
-| `src/pages/Login.tsx` | `<div>` raiz → `<main>` |
-| `src/pages/Cadastro.tsx` | `<div>` raiz → `<main>` |
-| `src/index.css` | `html { font-size: 16px }` |
-| `src/pages/Projetos.tsx` | Cards mobile: compactação + grid layout (nome + badge na mesma linha) |
-| `src/pages/Registros.tsx` | Dias recolhidos por padrão |
+### Tabelas novas nesta sessão
 
----
-
-## Estado atual das tabelas Supabase
-
-| Tabela | Descrição |
-|-|-|
-| `configuracoes` | Meta semanal, início semana, formato horas, horário padrão, `saldo_inicio_semana` |
-| `projetos` | Nome, cor, tipo, status, horas_contratadas, codigo_externo, `billable` |
-| `registros` | Data, hora_inicio, hora_fim, duracao, observacao, semana_inicio, projeto_id |
-| `subcategorias` | Nome, projeto_id, usuario_id |
-| `horarios_dia` | Exceção por data específica |
-| `horarios_semana` | Exceção por dia da semana |
-| `metas_billable_semanal` | Meta billable semanal com histórico de vigência |
-| `metas_billable_mensal` | Meta billable mensal com histórico de vigência |
-| `metas_billable_margem` | Margem mínima semanal com histórico de vigência |
-| `metas_billable_margem_mensal` | Margem mínima mensal com histórico de vigência |
-| `horas_base_semanal` | Horas base semanal com histórico de vigência |
-| `horas_base_mensal` | Horas base mensal com histórico de vigência |
-
----
-
-## Pendências e próximos passos
-
-### Alta prioridade
-- [ ] Fase 2 da Timesheet: clicar numa célula → redirecionar para `/registros?data=YYYY-MM-DD&projeto_id=xxx` (código já comentado em `Timesheet.tsx`)
-
-### Horizonte
-- [ ] Notificações Push PWA via Supabase Edge Functions (guia em `PWA_GUIA_COMPLETO.md`)
-- [ ] Aplicar padrões PWA no app de finanças pessoais
-
----
-
-## Como reverter em emergência
-
-**Vercel (instantâneo):**
-Deployments → três pontinhos no deploy estável → "Instant Rollback"
-
-**Git (cria commit de reversão):**
-```powershell
-git revert HEAD
-git push origin main
+**`fases`** (com RLS)
+```
+id, projeto_id, usuario_id, nome, ordem, horas_contratadas, criado_em
 ```
 
+### Colunas adicionadas
+- `subcategorias.fase_id` — uuid, nullable, FK para `fases.id` (`on delete set null`)
+- `subcategorias.horas_alocadas` — numeric, nullable
+
+### Regra híbrida do total contratado
+- Projeto **com** fases → total = soma das `horas_contratadas` das fases
+- Projeto **sem** fases → total = `projetos.horas_contratadas`
+- O campo `projetos.horas_contratadas` continua sendo alimentado com a soma, para que Resumo, Billable e Timesheet sigam funcionando sem alteração
+
 ---
 
-## Regras imutáveis do projeto
+## Próximos passos
 
-- **Notação centesimal:** `duração = horas_inteiras + (minutos / 60)`
-- **Meta semanal base:** configurável via `horas_base_semanal` (fallback: `configuracoes.meta_semanal`)
-- **Semana:** Segunda a Domingo
-- **RLS Supabase:** nunca desativar
-- **Commits:** sempre rodar `git status` antes; `npx tsc -b` antes de commitar
+### Pendente — única etapa restante do plano original
+**Plano semanal (Fase 4):** dividir as horas contratadas por semana (ex.: 20h / 20h / 10h), com comparação entre planejado e realizado.
+- Tabela `plano_semanal` (id, projeto_id, usuario_id, semana_inicio, horas_planejadas) com RLS
+- Seção na página de detalhe do projeto
+- **Decisão pendente:** validar em uso real se essa divisão ajuda antes de implementar
+
+### Horizonte
+- Aba Gráficos no Resumo (recharts): drill-down por projeto/subcategoria, barras horas × dia
+- Notificações Push via Supabase Edge Functions (VAPID, sem Firebase) — guia em `PWA_GUIA_COMPLETO.md`
+- Aplicar padrões PWA no app de finanças pessoais (Next.js 15 + React 19 + Tailwind v4 + Supabase)
 
 ---
 
-## Arquivos de referência no repositório
+## Padrões aprendidos — não reverter
 
-- `AGENTS.md` — guia técnico para agentes IA
-- `CHANGELOG.md` — histórico completo
-- `HANDOFF.md` — estado da última sessão
-- `PWA_GUIA_COMPLETO.md` — guia reutilizável de PWA + notificações push
+- **Cores semânticas em totais, não em células individuais**
+- **Histórico de metas com start-date** — metas configuráveis preservam data de início
+- **Tabs sobre toggles** para visualizações distintas
+- **Exceções de horário nunca retroagem** — afetam apenas sugestões de novos registros
+- **Projetos encerrados preservam horas** — filtrar por `.neq('status','excluido')`, nunca por `.eq('status','ativo')`
+- **Cache do PWA** — loops de login no mobile em rotas novas costumam ser service worker desatualizado, não bug de código
+- **Um botão, uma função** — o lápis renomeia; o modo "Alocar horas" aloca. Não duplicar caminhos para o mesmo campo
+- **Componentes compartilhados** — regra de exibição escrita em um lugar só (`BreakdownSubcategorias`)
+- **Balde de não atribuídos** — registros sem subcategoria (ou apontando para subcategoria excluída) precisam aparecer em algum lugar, senão a soma das partes não bate com o total
+- **`stopPropagation` em botões dentro de cards clicáveis**
+- **Recarregamento silencioso** — `carregarDados(true)` evita flash de skeleton em operações inline
+
+---
+
+## Arquivos protegidos — nunca modificar sem aprovação explícita
+
+- `src/lib/supabase.ts`
+- `src/services/registros.ts` → função `calcularDuracaoCentesimal`
+- `vite.config.ts`
+- `src/contexts/AuthContext.tsx`
+
+---
+
+## Regras críticas e imutáveis
+
+### Notação centesimal
+```
+duração = horas_inteiras + (minutos / 60)
+1h30min → 1.50 | 1h45min → 1.75 | 9h00min → 9.00
+```
+
+### Regras de negócio
+- Meta semanal padrão: **42.5h** (configurável)
+- Semana: **segunda a domingo**
+- Horário padrão do dia: **09:00 às 18:30** (configurável)
+- **RLS no Supabase: nunca desativar**
+- Gaps mínimos para exibir tempo ocioso: 5 minutos
+
+---
+
+## Design system
+
+| Token | Valor |
+|---|---|
+| Background primário | `#0B0E14` |
+| Superfície / Sidebar | `#161B22` |
+| Ação primária | `#03A9F4` |
+| Sucesso | `#4CAF50` |
+| Alerta | `#FFC107` |
+| Erro | `#F44336` |
+| Texto primário | `#FFFFFF` |
+| Texto secundário | `#8B949E` |
+| Fonte | Inter |
+
+---
+
+## Fluxo de trabalho
+
+1. Claude analisa o problema e gera o prompt estruturado para o Antigravity
+2. Usuário envia ao Antigravity e traz o diff proposto
+3. Claude valida o diff antes da aplicação
+4. Usuário aplica e roda `npx tsc -b` manualmente
+5. Usuário testa no localhost
+6. Usuário commita e faz push manualmente (PowerShell, sem aspas escapadas)
+
+### Seleção de modelo no Antigravity
+
+| Complexidade | Modelo |
+|---|---|
+| Baixa (CSS pontual, correção TS, renomeação) | Gemini 3.6 Flash (Low) |
+| Média (multi-arquivo, lógica leve) | Gemini 3.6 Flash (Medium) |
+| Alta (novas telas, UI complexa) | Gemini 3.6 Flash (High) |
+| Arquitetura (banco, migrations, tabelas novas) | Gemini 3.1 Pro (High) |
+
+### Regras do prompt para o Antigravity
+Todo prompt deve incluir: arquivos a ler antes de editar, arquivos que não pode tocar, comportamento esperado, critérios de aceite, e as instruções de **não rodar `npx tsc -b`**, **não commitar** e **mostrar o diff completo sem elisões** antes de aplicar.
+
+---
+
+## Backup
+
+O export Excel da tela de Ajustes é um **relatório**, não um backup restaurável — não contém IDs, subcategorias, fases, billable nem metas.
+
+Para backup real, rodar no SQL Editor do Supabase e baixar os CSVs:
+```sql
+SELECT * FROM projetos;
+SELECT * FROM subcategorias;
+SELECT * FROM fases;
+SELECT * FROM registros;
+SELECT * FROM configuracoes;
+```
