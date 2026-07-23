@@ -24,10 +24,15 @@ export const subcategoriasService = {
     return data
   },
 
-  async atualizarSubcategoria(id: string, nome: string): Promise<Subcategoria> {
+  async atualizarSubcategoria(id: string, nome: string, horasAlocadas?: number | null): Promise<Subcategoria> {
+    const payload: { nome: string; horas_alocadas?: number | null } = { nome }
+    if (horasAlocadas !== undefined) {
+      payload.horas_alocadas = horasAlocadas
+    }
+
     const { data, error } = await supabase
       .from('subcategorias')
-      .update({ nome })
+      .update(payload)
       .eq('id', id)
       .select()
       .single()

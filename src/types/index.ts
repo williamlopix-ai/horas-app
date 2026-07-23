@@ -30,6 +30,7 @@ export interface Subcategoria {
   usuario_id: string
   nome: string
   fase_id: string | null
+  horas_alocadas: number | null
   criado_em: string
 }
 

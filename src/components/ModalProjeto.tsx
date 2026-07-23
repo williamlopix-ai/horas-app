@@ -40,6 +40,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const [carregandoSubcategorias, setCarregandoSubcategorias] = useState(false)
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [nomeEditando, setNomeEditando] = useState('')
+  const [horasSubEditando, setHorasSubEditando] = useState('')
   const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
   const subcategoriasRef = useRef<HTMLDivElement>(null)
 
@@ -111,6 +112,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
       setNovaSubcategoria('')
       setEditandoId(null)
       setNomeEditando('')
+      setHorasSubEditando('')
       setSubExcluindoId(null)
 
       setFases([])
@@ -126,6 +128,21 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const somaHorasFases = temHorasEmFases
     ? fases.reduce((acc, f) => acc + (f.horas_contratadas || 0), 0)
     : null
+
+  const formatarHoras = (val: number) => {
+    const rounded = Math.round(val * 100) / 100
+    return rounded.toString().replace('.', ',')
+  }
+
+  const somaAlocada = subcategorias.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+
+  let totalContratadoSub: number | null = null
+  if (fases.length > 0) {
+    totalContratadoSub = somaHorasFases
+  } else if (horasContratadas.trim()) {
+    const val = parseFloat(horasContratadas.replace(',', '.'))
+    if (!isNaN(val)) totalContratadoSub = val
+  }
 
   const handleDividirEmFases = async () => {
     if (!projeto) return
@@ -265,21 +282,29 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
   const handleStartEdit = (sub: Subcategoria) => {
     setEditandoId(sub.id)
     setNomeEditando(sub.nome)
+    setHorasSubEditando(sub.horas_alocadas !== null && sub.horas_alocadas !== undefined ? sub.horas_alocadas.toString() : '')
   }
 
   const handleCancelEdit = () => {
     setEditandoId(null)
     setNomeEditando('')
+    setHorasSubEditando('')
   }
 
   const handleSaveEdit = async (id: string) => {
     if (!nomeEditando.trim()) return
     try {
       setCarregandoSubcategorias(true)
-      const subAtualizada = await subcategoriasService.atualizarSubcategoria(id, nomeEditando.trim())
+      let horasParsed: number | null = null
+      if (horasSubEditando.trim()) {
+        const val = parseFloat(horasSubEditando.replace(',', '.'))
+        if (!isNaN(val)) horasParsed = val
+      }
+      const subAtualizada = await subcategoriasService.atualizarSubcategoria(id, nomeEditando.trim(), horasParsed)
       setSubcategorias(subcategorias.map(s => s.id === id ? subAtualizada : s))
       setEditandoId(null)
       setNomeEditando('')
+      setHorasSubEditando('')
     } catch (err) {
       console.error('Erro ao atualizar subcategoria', err)
       setError('Erro ao atualizar subcategoria.')
@@ -734,6 +759,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                               type="text"
                               value={nomeEditando}
                               onChange={(e) => setNomeEditando(e.target.value)}
+                              placeholder="Nome da subcategoria"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault()
@@ -745,6 +771,22 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                               }}
                               className="flex-1 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
                               autoFocus
+                            />
+                            <input
+                              type="text"
+                              value={horasSubEditando}
+                              onChange={(e) => setHorasSubEditando(e.target.value)}
+                              placeholder="Horas"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSaveEdit(sub.id)
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  handleCancelEdit()
+                                }
+                              }}
+                              className="w-20 bg-[#161B22] border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
                             />
                             <button
                               type="button"
@@ -768,26 +810,31 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                           </div>
                         ) : (
                           <>
-                            <span className="text-sm text-gray-200">{sub.nome}</span>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleStartEdit(sub)}
-                                className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
-                                title="Editar"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSubExcluindoId(sub.id)}
-                                className="text-gray-500 hover:text-red-400 p-1 transition-colors"
-                                title="Excluir"
-                              >
-                                ✕
-                              </button>
+                            <span className="text-sm text-gray-200 truncate flex-1 mr-2">{sub.nome}</span>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs font-mono text-[#8B949E]">
+                                {sub.horas_alocadas !== null && sub.horas_alocadas !== undefined ? `${formatarHoras(sub.horas_alocadas)}h` : '—'}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEdit(sub)}
+                                  className="text-gray-500 hover:text-[#03A9F4] p-1 transition-colors"
+                                  title="Editar"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSubExcluindoId(sub.id)}
+                                  className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                                  title="Excluir"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
                           </>
                         )}
@@ -797,6 +844,29 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, focarSu
                 ) : (
                   <div className="text-sm text-gray-500 text-center py-2">Nenhuma subcategoria cadastrada.</div>
                 )}
+
+                {tipo === 'projeto' && totalContratadoSub !== null && subcategorias.length > 0 && (() => {
+                  const diff = Math.round((totalContratadoSub - somaAlocada) * 100) / 100
+                  if (diff > 0) {
+                    return (
+                      <p className="mt-2 text-xs text-[#8B949E]">
+                        Faltam {formatarHoras(diff)}h para alocar nas subcategorias
+                      </p>
+                    )
+                  } else if (diff < 0) {
+                    return (
+                      <p className="mt-2 text-xs text-[#F44336]">
+                        {formatarHoras(Math.abs(diff))}h acima do contratado
+                      </p>
+                    )
+                  } else {
+                    return (
+                      <p className="mt-2 text-xs text-[#4CAF50]">
+                        Totalmente alocado
+                      </p>
+                    )
+                  }
+                })()}
               </div>
             )}
           </div>
