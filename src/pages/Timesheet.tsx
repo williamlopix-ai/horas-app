@@ -4,27 +4,32 @@ import { useToast } from '../contexts/ToastContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { listarProjetos } from '../services/projetos'
+import { useConfig } from '../contexts/ConfigContext'
 import { listarRegistros } from '../services/registros'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
-import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD } from '../utils/semana'
+import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 
 // Funções auxiliares de data
-function getMonday(d: Date) {
-  return inicioDaSemanaDate(d, 'segunda')
+function getInicioSemana(d: Date, inicio: InicioSemana) {
+  return inicioDaSemanaDate(d, inicio)
 }
 
-function formatWeekInterval(monday: Date) {
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+function formatWeekInterval(inicioDaSemana: Date) {
+  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const fimDaSemana = new Date(inicioDaSemana);
+  fimDaSemana.setDate(inicioDaSemana.getDate() + 6);
 
-  const m1 = String(monday.getDate()).padStart(2, '0');
-  const m2 = String(monday.getMonth() + 1).padStart(2, '0');
-  const s1 = String(sunday.getDate()).padStart(2, '0');
-  const s2 = String(sunday.getMonth() + 1).padStart(2, '0');
+  const m1 = String(inicioDaSemana.getDate()).padStart(2, '0');
+  const m2 = String(inicioDaSemana.getMonth() + 1).padStart(2, '0');
+  const ds1 = dias[inicioDaSemana.getDay()]
+  
+  const s1 = String(fimDaSemana.getDate()).padStart(2, '0');
+  const s2 = String(fimDaSemana.getMonth() + 1).padStart(2, '0');
+  const ds2 = dias[fimDaSemana.getDay()]
 
-  return `Seg ${m1}/${m2} a Dom ${s1}/${s2}`;
+  return `${ds1} ${m1}/${m2} a ${ds2} ${s1}/${s2}`;
 }
 
 function formatDuracao(duracao: number) {
@@ -35,13 +40,14 @@ function formatDuracao(duracao: number) {
 export default function Timesheet() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { config } = useConfig()
 
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
+  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
   const [filtroCodigo, setFiltroCodigo] = useState('')
   const [selectedRow, setSelectedRow] = useState<string | null>(null)
 
@@ -77,8 +83,12 @@ export default function Timesheet() {
   }
 
   useEffect(() => {
+    setCurrentDate(getInicioSemana(new Date(), config.inicio_semana))
+  }, [config.inicio_semana])
+
+  useEffect(() => {
     carregarDados()
-  }, [user, currentDate])
+  }, [user, currentDate, config.inicio_semana])
 
   const prevWeek = () => {
     setCurrentDate(prev => {
@@ -97,8 +107,8 @@ export default function Timesheet() {
   }
 
   const days = useMemo(() => {
-    return diasDaSemana(currentDate, 'segunda')
-  }, [currentDate])
+    return diasDaSemana(currentDate, config.inicio_semana)
+  }, [currentDate, config.inicio_semana])
 
   const tableData = useMemo(() => {
     const query = filtroCodigo.trim().toLowerCase()
@@ -109,18 +119,20 @@ export default function Timesheet() {
     const rows = filteredProjetos.map(p => {
       const rowRegs = registros.filter(r => r.projeto_id === p.id)
 
-      const getDuracao = (date: Date) => {
-        const dStr = formatYYYYMMDD(date)
+      const porDow = (dow: number) => {
+        const dia = days.find(d => d.getDay() === dow)
+        if (!dia) return 0
+        const dStr = formatYYYYMMDD(dia)
         return rowRegs.filter(r => r.data === dStr).reduce((acc, r) => acc + r.duracao, 0)
       }
 
-      const seg = getDuracao(days[0])
-      const ter = getDuracao(days[1])
-      const qua = getDuracao(days[2])
-      const qui = getDuracao(days[3])
-      const sex = getDuracao(days[4])
-      const sab = getDuracao(days[5])
-      const dom = getDuracao(days[6])
+      const dom = porDow(0)
+      const seg = porDow(1)
+      const ter = porDow(2)
+      const qua = porDow(3)
+      const qui = porDow(4)
+      const sex = porDow(5)
+      const sab = porDow(6)
 
       const total = seg + ter + qua + qui + sex + sab + dom
 
@@ -198,6 +210,11 @@ export default function Timesheet() {
       className += "text-emerald-400"
     }
     return className
+  }
+
+  const getFormatDate = (dow: number) => {
+    const d = days.find(d => d.getDay() === dow)
+    return d ? formatYYYYMMDD(d) : ''
   }
 
   return (
@@ -359,13 +376,13 @@ export default function Timesheet() {
                       >
                         {row.nome}
                       </td>
-                      {renderCell(row.sab, formatYYYYMMDD(days[5]), row.projetoId)}
-                      {renderCell(row.dom, formatYYYYMMDD(days[6]), row.projetoId)}
-                      {renderCell(row.seg, formatYYYYMMDD(days[0]), row.projetoId)}
-                      {renderCell(row.ter, formatYYYYMMDD(days[1]), row.projetoId)}
-                      {renderCell(row.qua, formatYYYYMMDD(days[2]), row.projetoId)}
-                      {renderCell(row.qui, formatYYYYMMDD(days[3]), row.projetoId)}
-                      {renderCell(row.sex, formatYYYYMMDD(days[4]), row.projetoId)}
+                      {renderCell(row.sab, getFormatDate(6), row.projetoId)}
+                      {renderCell(row.dom, getFormatDate(0), row.projetoId)}
+                      {renderCell(row.seg, getFormatDate(1), row.projetoId)}
+                      {renderCell(row.ter, getFormatDate(2), row.projetoId)}
+                      {renderCell(row.qua, getFormatDate(3), row.projetoId)}
+                      {renderCell(row.qui, getFormatDate(4), row.projetoId)}
+                      {renderCell(row.sex, getFormatDate(5), row.projetoId)}
                       <td className="py-3 px-4 text-right font-mono font-bold text-white">
                         {formatDuracao(row.total)}
                       </td>

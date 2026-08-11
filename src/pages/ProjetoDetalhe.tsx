@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { useConfig } from '../contexts/ConfigContext'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -30,6 +31,7 @@ export default function ProjetoDetalhe() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { config } = useConfig()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -143,7 +145,7 @@ export default function ProjetoDetalhe() {
   const registrosPorSemana = useMemo(() => {
     const grupos: Record<string, typeof registros> = {}
     registros.forEach(r => {
-      const sem = r.semana_inicio || calcularSemanaInicio(r.data)
+      const sem = r.semana_inicio || calcularSemanaInicio(r.data, config.inicio_semana)
       if (!grupos[sem]) grupos[sem] = []
       grupos[sem].push(r)
     })
@@ -166,7 +168,7 @@ export default function ProjetoDetalhe() {
         registros: regs
       }
     })
-  }, [registros])
+  }, [registros, config.inicio_semana])
 
   const abrirEditarRegistro = (reg: RegistroComDetalhes) => {
     setEditingRegistro(reg)
@@ -188,7 +190,7 @@ export default function ProjetoDetalhe() {
   }) => {
     if (!editingRegistro) return
     try {
-      await atualizarRegistro(editingRegistro.id, dados)
+      await atualizarRegistro(editingRegistro.id, dados, config.inicio_semana)
       await carregarDados(true)
       fecharModalRegistro()
       showToast('Registro salvo!', 'success')

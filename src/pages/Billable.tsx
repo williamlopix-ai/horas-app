@@ -20,24 +20,28 @@ import {
 } from '../services/metas_billable'
 import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
 import { SkeletonRow } from '../components/Skeleton'
-import { inicioDaSemanaDate, formatYYYYMMDD } from '../utils/semana'
+import { inicioDaSemanaDate, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 
 // Helper functions for week/month start date and formatting
-function getMonday(d: Date) {
-  return inicioDaSemanaDate(d, 'segunda')
+function getInicioSemana(d: Date, inicio: InicioSemana) {
+  return inicioDaSemanaDate(d, inicio)
 }
 
-function formatWeekInterval(monday: Date) {
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+function formatWeekInterval(inicioDaSemana: Date) {
+  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+  const fimDaSemana = new Date(inicioDaSemana);
+  fimDaSemana.setDate(inicioDaSemana.getDate() + 6);
 
-  const m1 = String(monday.getDate()).padStart(2, '0');
-  const m2 = String(monday.getMonth() + 1).padStart(2, '0');
-  const s1 = String(sunday.getDate()).padStart(2, '0');
-  const s2 = String(sunday.getMonth() + 1).padStart(2, '0');
-  const sYear = sunday.getFullYear();
+  const m1 = String(inicioDaSemana.getDate()).padStart(2, '0');
+  const m2 = String(inicioDaSemana.getMonth() + 1).padStart(2, '0');
+  const ds1 = dias[inicioDaSemana.getDay()]
+  
+  const s1 = String(fimDaSemana.getDate()).padStart(2, '0');
+  const s2 = String(fimDaSemana.getMonth() + 1).padStart(2, '0');
+  const ds2 = dias[fimDaSemana.getDay()]
+  const sYear = fimDaSemana.getFullYear();
 
-  return `Seg ${m1}/${m2} – Dom ${s1}/${s2}/${sYear}`;
+  return `${ds1} ${m1}/${m2} – ${ds2} ${s1}/${s2}/${sYear}`;
 }
 
 const MESES_PT = [
@@ -186,7 +190,12 @@ export default function Billable() {
   const { showToast } = useToast()
   const { config } = useConfig()
   const [activeTab, setActiveTab] = useState<'semanal' | 'mensal'>('semanal')
-  const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
+  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
+
+  useEffect(() => {
+    if (!config?.inicio_semana) return
+    setCurrentDate(getInicioSemana(new Date(), config.inicio_semana))
+  }, [config?.inicio_semana])
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
     const d = new Date()
     d.setDate(1)
@@ -322,13 +331,13 @@ export default function Billable() {
 
   useEffect(() => {
     carregarDados()
-  }, [user, currentDate, config])
+  }, [user, currentDate, config.inicio_semana])
 
   useEffect(() => {
     if (activeTab === 'mensal') {
       carregarDadosMensal()
     }
-  }, [user, currentMonth, activeTab, config])
+  }, [user, currentMonth, activeTab, config.inicio_semana])
 
   const prevWeek = () => {
     setAnimationClass('animate-slide-left')

@@ -20,7 +20,7 @@ import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
-import { inicioDaSemana, type InicioSemana } from '../utils/semana'
+import { inicioDaSemana, intervaloDaSemana, type InicioSemana } from '../utils/semana'
 
 export default function Ajustes() {
   const { user } = useAuth()
@@ -267,15 +267,31 @@ export default function Ajustes() {
     setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
   }, [config])
 
-  function ajustarParaSegunda(dataStr: string): string {
-    return inicioDaSemana(dataStr, 'segunda')
+  function ajustarParaInicioSemana(dataStr: string): string {
+    return inicioDaSemana(dataStr, inicioSemana)
+  }
+
+  function formatarIntervaloSemana(dataStr: string): string {
+    if (!dataStr) return ''
+    const { inicio, fim } = intervaloDaSemana(dataStr, inicioSemana)
+    const dias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
+    
+    const d1 = String(inicio.getDate()).padStart(2, '0')
+    const m1 = String(inicio.getMonth() + 1).padStart(2, '0')
+    const ds1 = dias[inicio.getDay()]
+    
+    const d2 = String(fim.getDate()).padStart(2, '0')
+    const m2 = String(fim.getMonth() + 1).padStart(2, '0')
+    const ds2 = dias[fim.getDay()]
+    
+    return `Semana de ${ds1} ${d1}/${m1} a ${ds2} ${d2}/${m2}`
   }
 
   const handleSalvarHorasBaseSemanal = async () => {
     if (horasBaseSemanal <= 0) return
     try {
       setSavingHorasBaseSemanal(true)
-      await salvarHorasBaseSemanal(horasBaseSemanal, ajustarParaSegunda(semanaInicioHorasBase))
+      await salvarHorasBaseSemanal(horasBaseSemanal, ajustarParaInicioSemana(semanaInicioHorasBase))
       const hist = await listarHistoricoHorasBaseSemanal()
       setHistoricoHorasBaseSemanal(hist)
       showToast('Horas base semanal salvas!', 'success')
@@ -319,7 +335,7 @@ export default function Ajustes() {
   const handleSalvarMargem = async () => {
     try {
       setSavingMargem(true)
-      await salvarMargemMinima(margemMinima, ajustarParaSegunda(semanaInicioMargem))
+      await salvarMargemMinima(margemMinima, ajustarParaInicioSemana(semanaInicioMargem))
       const hist = await listarHistoricoMargem()
       setHistoricoMargem(hist)
       showToast('Margem mínima salva!', 'success')
@@ -442,6 +458,16 @@ export default function Ajustes() {
                 </div>
                 <div className="flex justify-center sm:justify-start w-full">
                   <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setInicioSemana('sabado')}
+                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'sabado'
+                        ? 'bg-[#03A9F4] text-white shadow'
+                        : 'text-gray-400 hover:text-white'
+                        }`}
+                    >
+                      Sábado
+                    </button>
                     <button
                       type="button"
                       onClick={() => setInicioSemana('segunda')}
@@ -718,7 +744,7 @@ export default function Ajustes() {
                         />
                         {semanaInicioHorasBase && (
                           <span className="text-xs text-[#8B949E]">
-                            Semana de {formatarData(ajustarParaSegunda(semanaInicioHorasBase))} (Seg)
+                            {formatarIntervaloSemana(semanaInicioHorasBase)}
                           </span>
                         )}
                       </div>
@@ -905,7 +931,7 @@ export default function Ajustes() {
                         />
                         {semanaInicioMargem && (
                           <span className="text-xs text-[#8B949E]">
-                            Semana de {formatarData(ajustarParaSegunda(semanaInicioMargem))} (Seg)
+                            {formatarIntervaloSemana(semanaInicioMargem)}
                           </span>
                         )}
                       </div>
@@ -1077,7 +1103,7 @@ export default function Ajustes() {
                       />
                       {saldoInicioSemana && (
                         <span className="text-xs text-[#8B949E]">
-                          Semana de {formatarData(ajustarParaSegunda(saldoInicioSemana))} (Seg)
+                          {formatarIntervaloSemana(saldoInicioSemana)}
                         </span>
                       )}
                     </div>

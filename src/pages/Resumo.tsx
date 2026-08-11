@@ -12,12 +12,12 @@ import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
-import { inicioDaSemana } from '../utils/semana'
+import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
-function getSemanaInicioParaData(dataStr: string): string {
-  return inicioDaSemana(dataStr, 'segunda')
+function getSemanaInicioParaData(dataStr: string, inicio: InicioSemana): string {
+  return inicioDaSemana(dataStr, inicio)
 }
 
 export default function Resumo() {
@@ -134,17 +134,17 @@ export default function Resumo() {
   const formatarTituloSemana = (semanaInicio: string) => {
     const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
     const [y, m, d] = semanaInicio.split('-').map(Number)
-    const segunda = new Date(y, m - 1, d)
-    const domingo = new Date(segunda)
-    domingo.setDate(segunda.getDate() + 6)
+    const inicio = new Date(y, m - 1, d)
+    const fim = new Date(inicio)
+    fim.setDate(inicio.getDate() + 6)
 
-    const d1 = segunda.getDate()
-    const m1 = meses[segunda.getMonth()]
-    const d2 = domingo.getDate()
-    const m2 = meses[domingo.getMonth()]
-    const ano = domingo.getFullYear()
+    const d1 = inicio.getDate()
+    const m1 = meses[inicio.getMonth()]
+    const d2 = fim.getDate()
+    const m2 = meses[fim.getMonth()]
+    const ano = fim.getFullYear()
 
-    if (segunda.getMonth() === domingo.getMonth()) {
+    if (inicio.getMonth() === fim.getMonth()) {
       return `${String(d1).padStart(2, '0')} a ${String(d2).padStart(2, '0')} ${m1} (${ano})`
     } else {
       return `${String(d1).padStart(2, '0')} ${m1} a ${String(d2).padStart(2, '0')} ${m2} (${ano})`
@@ -194,7 +194,7 @@ export default function Resumo() {
           metaVigente: baseVigente 
         }
       })
-  }, [registros, config.meta_semanal, horasBasePorSemana])
+  }, [registros, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
 
   // 2. Diário
   const resumoDias = useMemo(() => {
@@ -206,7 +206,7 @@ export default function Resumo() {
       .sort((a, b) => a.localeCompare(b))
       .map((data) => {
         const totalHoras = grupos[data]
-        const semanaDodia = getSemanaInicioParaData(data)
+        const semanaDodia = getSemanaInicioParaData(data, config.inicio_semana)
         const baseVigente = horasBasePorSemana[semanaDodia] ?? config.meta_semanal
         const metaDiariaVigente = baseVigente / 5
         const atingiuMeta = totalHoras >= metaDiariaVigente
@@ -214,7 +214,7 @@ export default function Resumo() {
         const diferenca = totalHoras - metaDiariaVigente
         return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca, metaDiariaVigente }
       })
-  }, [registros, config.meta_semanal, horasBasePorSemana])
+  }, [registros, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {

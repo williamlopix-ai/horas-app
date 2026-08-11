@@ -18,7 +18,7 @@ import type { Registro, Projeto, HorarioDia, HorarioSemana } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalHorarioDia from '../components/ModalHorarioDia'
 import { Skeleton } from '../components/Skeleton'
-import { intervaloDaSemana } from '../utils/semana'
+import { intervaloDaSemana, type InicioSemana } from '../utils/semana'
 
 // Helper para converter "HH:MM" em minutos para cálculo de gaps
 function timeToMinutes(time: string): number {
@@ -26,23 +26,23 @@ function timeToMinutes(time: string): number {
   return h * 60 + m
 }
 
-function getWeekRange(dateStr: string) {
-  return intervaloDaSemana(dateStr, 'segunda')
+function getWeekRange(dateStr: string, inicio: InicioSemana) {
+  return intervaloDaSemana(dateStr, inicio)
 }
 
-function getWeekKey(dateStr: string) {
-  const { inicio } = getWeekRange(dateStr)
-  const y = inicio.getFullYear()
-  const m = String(inicio.getMonth() + 1).padStart(2, '0')
-  const d = String(inicio.getDate()).padStart(2, '0')
+function getWeekKey(dateStr: string, inicio: InicioSemana) {
+  const { inicio: dtInicio } = getWeekRange(dateStr, inicio)
+  const y = dtInicio.getFullYear()
+  const m = String(dtInicio.getMonth() + 1).padStart(2, '0')
+  const d = String(dtInicio.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
 
-function formatWeekLabel(dateStr: string) {
-  const { inicio, fim } = getWeekRange(dateStr)
+function formatWeekLabel(dateStr: string, inicio: InicioSemana) {
+  const { inicio: dtInicio, fim } = getWeekRange(dateStr, inicio)
   const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-  const d1 = String(inicio.getDate()).padStart(2, '0')
-  const m1 = mesesAbrev[inicio.getMonth()]
+  const d1 = String(dtInicio.getDate()).padStart(2, '0')
+  const m1 = mesesAbrev[dtInicio.getMonth()]
   const d2 = String(fim.getDate()).padStart(2, '0')
   const m2 = mesesAbrev[fim.getMonth()]
   const y = fim.getFullYear()
@@ -60,7 +60,7 @@ export default function Registros() {
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
   const [horariosSemana, setHorariosSemana] = useState<HorarioSemana[]>([])
-  
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -71,9 +71,19 @@ export default function Registros() {
     const y = now.getFullYear()
     const m = String(now.getMonth() + 1).padStart(2, '0')
     const d = String(now.getDate()).padStart(2, '0')
-    return getWeekKey(`${y}-${m}-${d}`)
+    return getWeekKey(`${y}-${m}-${d}`, 'segunda')
   })
   const [filtroDiaEspecifico, setFiltroDiaEspecifico] = useState<string>('')
+
+  useEffect(() => {
+    if (!config?.inicio_semana) return
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const d = String(now.getDate()).padStart(2, '0')
+    setFiltroSemana(getWeekKey(`${y}-${m}-${d}`, config.inicio_semana))
+  }, [config?.inicio_semana])
+
   const [diasExpandidos, setDiasExpandidos] = useState<{ [key: string]: boolean }>({})
   const [viewMode, setViewMode] = useState<'lista' | 'projeto'>(() => {
     return (localStorage.getItem('horas_view_registros') as 'lista' | 'projeto') || 'lista'
@@ -180,7 +190,7 @@ export default function Registros() {
     if (!user) return
     try {
       if (editingRegistro) {
-        await atualizarRegistro(editingRegistro.id, dados)
+        await atualizarRegistro(editingRegistro.id, dados, config.inicio_semana)
       } else {
         await criarRegistro({
           usuario_id: user.id,
@@ -190,7 +200,7 @@ export default function Registros() {
           hora_inicio: dados.hora_inicio,
           hora_fim: dados.hora_fim,
           observacao: dados.observacao
-        })
+        }, config.inicio_semana)
       }
       const regs = await listarRegistros(user.id)
       setRegistros(regs)
@@ -280,13 +290,13 @@ export default function Registros() {
     const dates = registros.map((r) => r.data)
     const weeksMap = new Map<string, string>()
     dates.forEach(d => {
-      const key = getWeekKey(d)
+      const key = getWeekKey(d, config.inicio_semana)
       if (!weeksMap.has(key)) {
-        weeksMap.set(key, formatWeekLabel(d))
+        weeksMap.set(key, formatWeekLabel(d, config.inicio_semana))
       }
     })
     return Array.from(weeksMap.entries()).sort((a, b) => b[0].localeCompare(a[0]))
-  }, [registros])
+  }, [registros, config.inicio_semana])
 
   // Filtragem dos registros no Frontend
   const registrosFiltrados = useMemo(() => {
@@ -301,13 +311,13 @@ export default function Registros() {
           return false
         }
       } else {
-        if (filtroSemana !== 'todas' && getWeekKey(reg.data) !== filtroSemana) {
+        if (filtroSemana !== 'todas' && getWeekKey(reg.data, config.inicio_semana) !== filtroSemana) {
           return false
         }
       }
       return true
     })
-  }, [registros, filtroProjetoId, filtroSemana, filtroDiaEspecifico])
+  }, [registros, filtroProjetoId, filtroSemana, filtroDiaEspecifico, config.inicio_semana])
 
   // Formatar Título da Data (ex: "seg, 18 de mai")
   const formatarTituloData = (dataStr: string) => {
@@ -321,7 +331,7 @@ export default function Registros() {
   // Agrupar registros filtrados por DATA e calcular Gaps
   const registrosAgrupadosPorData = useMemo(() => {
     const grupos: { [key: string]: typeof registrosFiltrados } = {}
-    
+
     registrosFiltrados.forEach((reg) => {
       if (!grupos[reg.data]) grupos[reg.data] = []
       grupos[reg.data].push(reg)
@@ -336,10 +346,10 @@ export default function Registros() {
       records.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))
 
       const limites = getLimitesDia(dataStr)
-      
+
       // Calcular Total de Horas no Dia
       const totalHoras = records.reduce((acc, curr) => acc + curr.duracao, 0)
-      
+
       // Array de itens (pode ser Registro ou Gap)
       const items: any[] = []
 
@@ -361,10 +371,10 @@ export default function Registros() {
           // Verificar gap entre este registro e o próximo
           if (i < records.length - 1) {
             const minAtualFim = timeToMinutes(records[i].hora_fim)
-            const minProxInicio = timeToMinutes(records[i+1].hora_inicio)
+            const minProxInicio = timeToMinutes(records[i + 1].hora_inicio)
             const diff = minProxInicio - minAtualFim
             if (diff >= 5) {
-              items.push({ type: 'gap', label: 'Tempo vago', minutes: diff, inicio: records[i].hora_fim, fim: records[i+1].hora_inicio })
+              items.push({ type: 'gap', label: 'Tempo vago', minutes: diff, inicio: records[i].hora_fim, fim: records[i + 1].hora_inicio })
             }
           }
         }
@@ -397,12 +407,12 @@ export default function Registros() {
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
-      
+
       <Sidebar />
 
       {/* 2. Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
@@ -493,11 +503,10 @@ export default function Registros() {
           <div className="flex bg-[#161B22] p-0.5 sm:p-1 rounded-xl border border-gray-800">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
-                viewMode === 'lista'
-                  ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${viewMode === 'lista'
+                ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                : 'text-gray-400 hover:text-white'
+                }`}
               title="Lista detalhada com gaps"
             >
               <span>☰</span>
@@ -505,11 +514,10 @@ export default function Registros() {
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
-                viewMode === 'projeto'
-                  ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${viewMode === 'projeto'
+                ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
+                : 'text-gray-400 hover:text-white'
+                }`}
               title="Agrupado por projeto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -549,331 +557,331 @@ export default function Registros() {
           <div className="flex flex-col gap-6">
             {registrosAgrupadosPorData.map((grupo) => {
               const isExpanded = diasExpandidos[grupo.data] === true
-              
+
               return (
                 <div key={grupo.data} className="relative">
-                            {/* Cabeçalho do Grupo de Dia */}
-                    <div 
-                      className="bg-[#1E2530] border-l-[3px] border-l-[#03A9F4] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-[#252d3a] transition-colors relative z-10"
-                      onClick={() => toggleDia(grupo.data)}
-                    >
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <svg className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                        <div>
-                          <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
-                            <span className="capitalize normal-case">{grupo.titulo}</span>
-                          </h3>
-                          <p className="text-[10px] sm:text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-                            Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex flex-col items-end">
-                          <span className="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
-                          <span className="text-sm sm:text-lg font-mono font-bold text-emerald-400">
-                            {grupo.totalHoras.toFixed(2).replace('.', ',')}h
-                          </span>
-                        </div>
-                        <span className="h-8 w-px bg-gray-800 hidden sm:inline" />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            abrirModalHorario(grupo.data)
-                          }}
-                          className="p-2 text-gray-400 hover:text-white bg-gray-800/40 hover:bg-gray-800 border border-gray-700/50 rounded-xl transition-all focus:outline-none"
-                          title="Editar Horário do Dia"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          <span className="sr-only">Editar Horário do Dia</span>
-                        </button>
+                  {/* Cabeçalho do Grupo de Dia */}
+                  <div
+                    className="bg-[#1E2530] border-l-[3px] border-l-[#03A9F4] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-[#252d3a] transition-colors relative z-10"
+                    onClick={() => toggleDia(grupo.data)}
+                  >
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <svg className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <div>
+                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+                          <span className="capitalize normal-case">{grupo.titulo}</span>
+                        </h3>
+                        <p className="text-[10px] sm:text-xs text-gray-400 mt-1 flex items-center gap-1.5">
+                          Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
+                        </p>
                       </div>
                     </div>
 
-                    {/* Lançamentos e Gaps */}
-                    <div className={`flex flex-col gap-1.5 transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
-                      {viewMode === 'projeto' ? (
-                        // Agrupar registros do dia por projeto
-                        (() => {
-                          const registrosPorProjeto: { 
-                            [projId: string]: { 
-                              projeto: typeof registrosFiltrados[0]['projeto'] | null,
-                              records: typeof registrosFiltrados,
-                              subtotal: number 
-                            } 
-                          } = {}
+                    <div className="flex items-center gap-4 justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
+                        <span className="text-sm sm:text-lg font-mono font-bold text-emerald-400">
+                          {grupo.totalHoras.toFixed(2).replace('.', ',')}h
+                        </span>
+                      </div>
+                      <span className="h-8 w-px bg-gray-800 hidden sm:inline" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          abrirModalHorario(grupo.data)
+                        }}
+                        className="p-2 text-gray-400 hover:text-white bg-gray-800/40 hover:bg-gray-800 border border-gray-700/50 rounded-xl transition-all focus:outline-none"
+                        title="Editar Horário do Dia"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span className="sr-only">Editar Horário do Dia</span>
+                      </button>
+                    </div>
+                  </div>
 
-                          // Filtrar apenas registros (não deve ter gaps aqui, mas por segurança filtramos)
-                          const recordsOnly = grupo.items
-                            .filter((item: any) => item.type === 'registro')
-                            .map((item: any) => item.data)
+                  {/* Lançamentos e Gaps */}
+                  <div className={`flex flex-col gap-1.5 transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                    {viewMode === 'projeto' ? (
+                      // Agrupar registros do dia por projeto
+                      (() => {
+                        const registrosPorProjeto: {
+                          [projId: string]: {
+                            projeto: typeof registrosFiltrados[0]['projeto'] | null,
+                            records: typeof registrosFiltrados,
+                            subtotal: number
+                          }
+                        } = {}
 
-                          recordsOnly.forEach((reg) => {
-                            const projId = reg.projeto_id || 'sem-projeto'
-                            if (!registrosPorProjeto[projId]) {
-                              registrosPorProjeto[projId] = {
-                                projeto: reg.projeto,
-                                records: [],
-                                subtotal: 0
-                              }
+                        // Filtrar apenas registros (não deve ter gaps aqui, mas por segurança filtramos)
+                        const recordsOnly = grupo.items
+                          .filter((item: any) => item.type === 'registro')
+                          .map((item: any) => item.data)
+
+                        recordsOnly.forEach((reg) => {
+                          const projId = reg.projeto_id || 'sem-projeto'
+                          if (!registrosPorProjeto[projId]) {
+                            registrosPorProjeto[projId] = {
+                              projeto: reg.projeto,
+                              records: [],
+                              subtotal: 0
                             }
-                            registrosPorProjeto[projId].records.push(reg)
-                            registrosPorProjeto[projId].subtotal += reg.duracao
-                          })
+                          }
+                          registrosPorProjeto[projId].records.push(reg)
+                          registrosPorProjeto[projId].subtotal += reg.duracao
+                        })
 
-                          return Object.entries(registrosPorProjeto).map(([projId, itemProj]) => {
-                            const status = itemProj.projeto?.status
-                            const isEncerrado = status === 'encerrado'
-                            const isExcluido = status === 'excluido'
-                            const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (itemProj.projeto?.cor || '#6B7280')
-                            const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
+                        return Object.entries(registrosPorProjeto).map(([projId, itemProj]) => {
+                          const status = itemProj.projeto?.status
+                          const isEncerrado = status === 'encerrado'
+                          const isExcluido = status === 'excluido'
+                          const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (itemProj.projeto?.cor || '#6B7280')
+                          const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
-                            return (
-                              <div key={projId} className="bg-[#161B22]/30 border border-gray-800/60 rounded-xl p-3 mb-2 flex flex-col gap-2">
-                                {/* Header do Projeto */}
-                                <div className="flex justify-between items-center border-b border-gray-800/40 pb-2">
-                                  <div className="flex items-center gap-2">
-                                    {itemProj.projeto?.tipo === 'rotina' ? (
-                                      <span
-                                        title={projNome}
-                                        className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                        style={{ 
-                                          borderColor: projCor,
-                                          color: projCor
-                                        }}
-                                      >
-                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
-                                      </span>
-                                    ) : (
-                                      <span
-                                        title={projNome}
-                                        className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                        style={{ 
-                                          backgroundColor: `${projCor}12`, 
-                                          borderColor: `${projCor}44`,
-                                          color: projCor
-                                        }}
-                                      >
-                                        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                        <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="text-xs text-gray-400">
-                                    Subtotal: <span className="font-mono font-bold text-[#03A9F4]">{itemProj.subtotal.toFixed(2).replace('.', ',')}h</span>
-                                  </div>
+                          return (
+                            <div key={projId} className="bg-[#161B22]/30 border border-gray-800/60 rounded-xl p-3 mb-2 flex flex-col gap-2">
+                              {/* Header do Projeto */}
+                              <div className="flex justify-between items-center border-b border-gray-800/40 pb-2">
+                                <div className="flex items-center gap-2">
+                                  {itemProj.projeto?.tipo === 'rotina' ? (
+                                    <span
+                                      title={projNome}
+                                      className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      style={{
+                                        borderColor: projCor,
+                                        color: projCor
+                                      }}
+                                    >
+                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                    </span>
+                                  ) : (
+                                    <span
+                                      title={projNome}
+                                      className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      style={{
+                                        backgroundColor: `${projCor}12`,
+                                        borderColor: `${projCor}44`,
+                                        color: projCor
+                                      }}
+                                    >
+                                      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                    </span>
+                                  )}
                                 </div>
+                                <div className="text-xs text-gray-400">
+                                  Subtotal: <span className="font-mono font-bold text-[#03A9F4]">{itemProj.subtotal.toFixed(2).replace('.', ',')}h</span>
+                                </div>
+                              </div>
 
-                                {/* Registros deste projeto */}
-                                <div className="flex flex-col gap-1">
-                                  {itemProj.records.map((reg) => (
-                                    <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
-                                      {/* Linha 1 no Mobile: [horário] */}
-                                      <div className="flex items-center justify-between md:contents w-full">
-                                        {/* Horários */}
-                                        <div className="shrink-0 text-left md:w-[130px]">
-                                          <span className="text-sm font-mono font-semibold text-gray-300">
-                                            {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                              {/* Registros deste projeto */}
+                              <div className="flex flex-col gap-1">
+                                {itemProj.records.map((reg) => (
+                                  <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
+                                    {/* Linha 1 no Mobile: [horário] */}
+                                    <div className="flex items-center justify-between md:contents w-full">
+                                      {/* Horários */}
+                                      <div className="shrink-0 text-left md:w-[130px]">
+                                        <span className="text-sm font-mono font-semibold text-gray-300">
+                                          {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
+                                    <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                                      {/* Observação */}
+                                      <div className="flex-grow min-w-0 text-left">
+                                        {reg.observacao ? (
+                                          <span
+                                            className="text-sm text-gray-400 block truncate"
+                                            title={reg.observacao}
+                                          >
+                                            {reg.observacao}
                                           </span>
-                                        </div>
+                                        ) : (
+                                          <span className="text-sm text-gray-600 italic"></span>
+                                        )}
                                       </div>
 
-                                      {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
-                                      <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
-                                        {/* Observação */}
-                                        <div className="flex-grow min-w-0 text-left">
-                                          {reg.observacao ? (
-                                            <span 
-                                              className="text-sm text-gray-400 block truncate"
-                                              title={reg.observacao}
-                                            >
-                                              {reg.observacao}
-                                            </span>
-                                          ) : (
-                                            <span className="text-sm text-gray-600 italic"></span>
-                                          )}
+                                      {/* Duração + Botões */}
+                                      <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                        {/* Duração */}
+                                        <div className="shrink-0 md:w-[80px] md:text-right">
+                                          <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                            {reg.duracao.toFixed(2).replace('.', ',')}h
+                                          </span>
                                         </div>
 
-                                        {/* Duração + Botões */}
-                                        <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
-                                          {/* Duração */}
-                                          <div className="shrink-0 md:w-[80px] md:text-right">
-                                            <span className="text-sm font-mono font-bold text-[#03A9F4]">
-                                              {reg.duracao.toFixed(2).replace('.', ',')}h
-                                            </span>
-                                          </div>
-
-                                          {/* Ações */}
-                                          <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                              onClick={() => abrirEditarRegistroModal(reg)}
-                                              className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
-                                              title="Editar Lançamento"
-                                            >
-                                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                              </svg>
-                                            </button>
-                                            <button
-                                              onClick={() => handleExcluir(reg.id)}
-                                              className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
-                                              title="Excluir Lançamento"
-                                            >
-                                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                              </svg>
-                                            </button>
-                                          </div>
+                                        {/* Ações */}
+                                        <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <button
+                                            onClick={() => abrirEditarRegistroModal(reg)}
+                                            className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                            title="Editar Lançamento"
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                          </button>
+                                          <button
+                                            onClick={() => handleExcluir(reg.id)}
+                                            className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                            title="Excluir Lançamento"
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                          </button>
                                         </div>
                                       </div>
                                     </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )
-                          })
-                        })()
-                      ) : (
-                        // Renderização Normal (Lista e Compacta)
-                        grupo.items.map((item, index) => {
-                          // ==== RENDERIZAÇÃO DO GAP ====
-                          if (item.type === 'gap') {
-                            const h = Math.floor(item.minutes / 60)
-                            const m = item.minutes % 60
-                            let descStr = ''
-                            if (h === 0) descStr = `${m}min disponíveis`
-                            else if (m === 0) descStr = `${h}h disponíveis`
-                            else descStr = `${h}h ${m}min disponíveis`
-
-                            return (
-                              <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
-                                <span className="text-[10px]">○</span>
-                                <span className="font-mono text-[10px] sm:text-xs">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
-                                <span className="mx-1">·</span>
-                                <span>{descStr}</span>
-                              </div>
-                            )
-                          }
-
-                          // ==== RENDERIZAÇÃO DO REGISTRO (LISTA) ====
-                          const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })
-                          const status = reg.projeto?.status
-                          const isEncerrado = status === 'encerrado'
-                          const isExcluido = status === 'excluido'
-                          const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (reg.projeto?.cor || '#6B7280')
-                          const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
-
-                          return (
-                            <div 
-                              key={reg.id} 
-                              className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm"
-                            >
-                              {/* Linha 1 no Mobile: [TAG] [horário] */}
-                              <div className="flex items-center justify-between md:contents w-full">
-                                {/* Tag do Projeto */}
-                                <div className="min-w-0 md:w-[120px] md:shrink-0">
-                                    {reg.projeto?.tipo === 'rotina' ? (
-                                      <span
-                                        title={projNome}
-                                        className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                        style={{ 
-                                          borderColor: projCor,
-                                          color: projCor
-                                        }}
-                                      >
-                                        <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
-                                      </span>
-                                    ) : (
-                                      <span
-                                        title={projNome}
-                                        className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
-                                        style={{ 
-                                          backgroundColor: `${projCor}12`, 
-                                          borderColor: `${projCor}44`,
-                                          color: projCor
-                                        }}
-                                      >
-                                        <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                        <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
-                                        {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                        {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
-                                      </span>
-                                    )}
-                                </div>
-
-                                {/* Horários */}
-                                <div className="shrink-0 text-right md:text-center md:w-[130px]">
-                                  <span className="text-sm font-mono font-semibold text-gray-300">
-                                    {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
-                              <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
-                                {/* Observação */}
-                                <div className="flex-grow min-w-0 text-left">
-                                  {reg.observacao ? (
-                                    <span 
-                                      className="text-sm text-gray-400 block truncate"
-                                      title={reg.observacao}
-                                    >
-                                      {reg.observacao}
-                                    </span>
-                                  ) : (
-                                    <span className="text-sm text-gray-600 italic"></span>
-                                  )}
-                                </div>
-
-                                {/* Duração + Botões */}
-                                <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
-                                  {/* Duração */}
-                                  <div className="shrink-0 md:w-[80px] md:text-right">
-                                    <span className="text-sm font-mono font-bold text-[#03A9F4]">
-                                      {reg.duracao.toFixed(2).replace('.', ',')}h
-                                    </span>
                                   </div>
-
-                                  {/* Ações */}
-                                  <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={() => abrirEditarRegistroModal(reg)}
-                                      className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
-                                      title="Editar Lançamento"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      onClick={() => handleExcluir(reg.id)}
-                                      className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
-                                      title="Excluir Lançamento"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
-                                    </button>
-                                  </div>
-                                </div>
+                                ))}
                               </div>
                             </div>
                           )
                         })
-                      )}
-                    </div>
+                      })()
+                    ) : (
+                      // Renderização Normal (Lista e Compacta)
+                      grupo.items.map((item, index) => {
+                        // ==== RENDERIZAÇÃO DO GAP ====
+                        if (item.type === 'gap') {
+                          const h = Math.floor(item.minutes / 60)
+                          const m = item.minutes % 60
+                          let descStr = ''
+                          if (h === 0) descStr = `${m}min disponíveis`
+                          else if (m === 0) descStr = `${h}h disponíveis`
+                          else descStr = `${h}h ${m}min disponíveis`
+
+                          return (
+                            <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
+                              <span className="text-[10px]">○</span>
+                              <span className="font-mono text-[10px] sm:text-xs">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
+                              <span className="mx-1">·</span>
+                              <span>{descStr}</span>
+                            </div>
+                          )
+                        }
+
+                        // ==== RENDERIZAÇÃO DO REGISTRO (LISTA) ====
+                        const reg = item.data as (Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })
+                        const status = reg.projeto?.status
+                        const isEncerrado = status === 'encerrado'
+                        const isExcluido = status === 'excluido'
+                        const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (reg.projeto?.cor || '#6B7280')
+                        const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
+
+                        return (
+                          <div
+                            key={reg.id}
+                            className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm"
+                          >
+                            {/* Linha 1 no Mobile: [TAG] [horário] */}
+                            <div className="flex items-center justify-between md:contents w-full">
+                              {/* Tag do Projeto */}
+                              <div className="min-w-0 md:w-[120px] md:shrink-0">
+                                {reg.projeto?.tipo === 'rotina' ? (
+                                  <span
+                                    title={projNome}
+                                    className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                    style={{
+                                      borderColor: projCor,
+                                      color: projCor
+                                    }}
+                                  >
+                                    <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                    {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                    {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                  </span>
+                                ) : (
+                                  <span
+                                    title={projNome}
+                                    className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                    style={{
+                                      backgroundColor: `${projCor}12`,
+                                      borderColor: `${projCor}44`,
+                                      color: projCor
+                                    }}
+                                  >
+                                    <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
+                                    <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                    {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
+                                    {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Horários */}
+                              <div className="shrink-0 text-right md:text-center md:w-[130px]">
+                                <span className="text-sm font-mono font-semibold text-gray-300">
+                                  {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
+                            <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                              {/* Observação */}
+                              <div className="flex-grow min-w-0 text-left">
+                                {reg.observacao ? (
+                                  <span
+                                    className="text-sm text-gray-400 block truncate"
+                                    title={reg.observacao}
+                                  >
+                                    {reg.observacao}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-gray-600 italic"></span>
+                                )}
+                              </div>
+
+                              {/* Duração + Botões */}
+                              <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                {/* Duração */}
+                                <div className="shrink-0 md:w-[80px] md:text-right">
+                                  <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                    {reg.duracao.toFixed(2).replace('.', ',')}h
+                                  </span>
+                                </div>
+
+                                {/* Ações */}
+                                <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => abrirEditarRegistroModal(reg)}
+                                    className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                    title="Editar Lançamento"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => handleExcluir(reg.id)}
+                                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                    title="Excluir Lançamento"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
                   </div>
+                </div>
               )
             })}
           </div>

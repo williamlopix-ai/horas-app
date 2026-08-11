@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { Registro } from '../types'
-import { inicioDaSemana } from '../utils/semana'
+import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 
 // Função auxiliar para calcular a duração centesimal
 export function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): number {
@@ -24,8 +24,8 @@ export function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): 
 }
 
 // Função auxiliar para calcular a segunda-feira da semana de início sem bugs de fuso horário
-export function calcularSemanaInicio(dataStr: string): string {
-  return inicioDaSemana(dataStr, 'segunda')
+export function calcularSemanaInicio(dataStr: string, inicio: InicioSemana = 'segunda'): string {
+  return inicioDaSemana(dataStr, inicio)
 }
 
 export async function listarRegistros(
@@ -63,10 +63,11 @@ export async function listarRegistros(
 }
 
 export async function criarRegistro(
-  dados: Omit<Registro, 'id' | 'duracao' | 'semana_inicio' | 'criado_em'>
+  dados: Omit<Registro, 'id' | 'duracao' | 'semana_inicio' | 'criado_em'>,
+  inicioSemana: InicioSemana = 'segunda'
 ): Promise<Registro> {
   const duracao = calcularDuracaoCentesimal(dados.hora_inicio, dados.hora_fim)
-  const semana_inicio = calcularSemanaInicio(dados.data)
+  const semana_inicio = calcularSemanaInicio(dados.data, inicioSemana)
 
   const { data, error } = await supabase
     .from('registros')
@@ -89,7 +90,8 @@ export async function criarRegistro(
 
 export async function atualizarRegistro(
   id: string,
-  dados: Partial<Omit<Registro, 'id' | 'usuario_id' | 'criado_em'>>
+  dados: Partial<Omit<Registro, 'id' | 'usuario_id' | 'criado_em'>>,
+  inicioSemana: InicioSemana = 'segunda'
 ): Promise<Registro> {
   const atualizacao: any = { ...dados }
 
@@ -103,7 +105,7 @@ export async function atualizarRegistro(
   }
 
   if (dados.data) {
-    atualizacao.semana_inicio = calcularSemanaInicio(dados.data)
+    atualizacao.semana_inicio = calcularSemanaInicio(dados.data, inicioSemana)
   }
 
   const { data, error } = await supabase
