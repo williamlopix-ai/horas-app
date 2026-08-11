@@ -1,7 +1,33 @@
 # HANDOFF — Projeto HORAS
 
 > Documento de estado da sessão. Ler no início de cada nova sessão.
-> Última atualização: 23/07/2026
+> Última atualização: 11/08/2026
+
+---
+
+## ⚠️ Pendências imediatas (ler primeiro)
+
+### 1. Limpeza no Supabase — a partir de ~18/08/2026
+Durante a migração do início da semana foram criadas 5 tabelas temporárias de
+backup. Elas estão com RLS ativo e sem policy (inacessíveis pela API), somam
+358 linhas e não atrapalham nada — mas devem ser removidas depois de 1 a 2
+semanas de uso real validado.
+
+```sql
+DROP TABLE _bkp_semana_registros;
+DROP TABLE _bkp_semana_horas_base;
+DROP TABLE _bkp_semana_margem;
+DROP TABLE _bkp_semana_billable;
+DROP TABLE _bkp_semana_config;
+```
+
+**Gatilho para rodar:** duas semanas fechadas com a semana em sábado, e os
+números do Resumo e do Billable batendo com o timesheet corporativo.
+
+### 2. Coluna `configuracoes.meta_semanal` órfã
+Não é mais editável pelo formulário de Ajustes, mas continua no banco porque
+ainda serve de fallback dentro de `buscarHorasBaseSemanal`. **Não dropar** sem
+antes confirmar que o Resumo está correto por algumas semanas.
 
 ---
 
@@ -21,139 +47,297 @@
 
 ## O que foi feito nesta sessão
 
-Implementada a feature completa de **divisão de horas contratadas por fase e subcategoria**, mais a criação de uma **página dedicada de detalhe do projeto**.
+Sessão longa, com foco na mudança do início da semana e na unificação da meta
+semanal. Sete entregas, uma migração de banco e dois bugs latentes corrigidos.
 
-### 1. Subcategorias editáveis
-- Renomear subcategoria inline (ícone de lápis)
-- `window.confirm` substituído pelo componente `ModalConfirmacao`
+### 1. Semana agora começa no SÁBADO
 
-### 2. Fases (tranches contratuais)
-- Nova tabela `fases` no Supabase com RLS
-- Coluna `fase_id` adicionada em `subcategorias`
-- Novo serviço `src/services/fases.ts` (`fasesService`)
-- Interface `Fase` criada em `src/types/index.ts`
-- Fluxo "Dividir em fases": cria Fase 1 (herdando as horas do projeto) + Fase 2, e move as subcategorias existentes para a Fase 1
-- "Remover divisão em fases" volta o projeto ao modo simples sem perder subcategorias
+A semana do app vai de **sábado a sexta**, não mais de segunda a domingo.
+Executado em três etapas separadas, cada uma com commit próprio.
 
-### 3. Alocação de horas por subcategoria
-- Coluna `horas_alocadas` adicionada em `subcategorias`
-- Modo "Alocar horas" em lote: todos os campos editáveis ao mesmo tempo, com aviso de horas restantes atualizando ao vivo
-- Aviso por fase quando o projeto tem fases; aviso único quando não tem
-- Faixas coloridas: amarelo `#FFC107` (faltam Xh), verde `#4CAF50` (totalmente alocado), vermelho `#F44336` (acima do contratado)
+**Etapa 1 — centralização.** Novo `src/utils/semana.ts` reunindo todo cálculo
+de início de semana. Antes existiam **6 implementações independentes e
+hardcoded** em `registros.ts`, `Registros.tsx`, `Timesheet.tsx`, `Billable.tsx`,
+`Resumo.tsx` e `Ajustes.tsx`.
 
-### 4. Resumo — usado vs. alocado
-- Componente `BreakdownSubcategorias` extraído para `src/components/BreakdownSubcategorias.tsx` (compartilhado entre Resumo e página de detalhe)
-- Mescla subcategorias cadastradas com o consumo dos registros (subcategoria com alocação e 0h lançadas agora aparece)
-- Barra de progresso por subcategoria, vermelha quando excede
-- Tag "sem alocação" contextual (só aparece quando o projeto usa alocação)
-- Rodapé "X,XXh sem alocação"
+```ts
+type InicioSemana = 'segunda' | 'domingo' | 'sabado'
 
-### 5. Página de detalhe do projeto — `/projeto/:id`
-Novo arquivo `src/pages/ProjetoDetalhe.tsx`. Acessível clicando no card do projeto no Resumo ou na linha em Projetos.
+inicioDaSemana(dataStr, inicio)      // → 'YYYY-MM-DD'
+inicioDaSemanaDate(data, inicio)     // → Date
+intervaloDaSemana(dataStr, inicio)   // → { inicio: Date, fim: Date }
+diasDaSemana(dataInput, inicio)      // → Date[7]
+formatYYYYMMDD(d)                    // → 'YYYY-MM-DD'
+```
 
-Contém:
-- Cabeçalho (nome, cor, status, código externo)
-- Progresso geral (lançadas / contratadas + barra)
-- Cards de métricas: Restantes, Lançamentos, Última atividade
-- Fases e subcategorias com CRUD completo e alocação de horas
-- Seção "Lançamentos": registros agrupados por semana, recolhíveis, com observações visíveis
-  - Clique na linha abre o `ModalRegistro` para edição
-  - Ícone de olho leva para `/registros` filtrado por dia e projeto
+Regra: **sempre arredonda para trás**, nunca para a próxima semana. A fórmula é
+`(diaSemana - targetDay + 7) % 7` dias subtraídos.
 
-### 6. ModalProjeto simplificado
-- Removidas as seções de fases, subcategorias e alocação (migraram para a página de detalhe)
-- Ficou apenas o cadastro: nome, cor, tipo, horas contratadas, código externo, billable, status
-- Nova prop `temFases?: boolean` — quando true, desabilita o campo de horas e exibe faixa informativa
-- Prop `focarSubcategorias` removida
+**Etapa 2 — ConfigContext.** Novo `src/contexts/ConfigContext.tsx`, montado
+dentro do `AuthProvider` em `App.tsx`. Expõe `config`, `loadingConfig`,
+`recarregarConfig` e `salvarConfig` via hook `useConfig()`. Antes, a
+configuração era buscada em 6 pontos independentes. Ganho colateral: salvar em
+Ajustes agora propaga para o app inteiro sem reload.
 
-### 7. Filtro por URL em Registros — **Timesheet Fase 2 concluída**
-- `/registros?data=YYYY-MM-DD&projeto_id=xxx` aplica os filtros existentes
-- Clique em célula preenchida do Timesheet leva para os registros do dia/projeto
-- Células vazias não são clicáveis
+Em seguida, o botão **Sábado** foi adicionado em Ajustes e o campo
+`inicio_semana` passou a ser realmente lido — antes era letra morta.
 
-### 8. ModalRegistro — subcategorias agrupadas por fase
-- Select usa `<optgroup>` com o nome da fase quando o projeto tem fases
-- Resolve a ambiguidade de subcategorias com o mesmo nome em fases diferentes
-- Projeto sem fases mantém a lista plana
+**Etapa 3 — backfill.** Recálculo retroativo no Supabase:
+
+```sql
+-- registros (304 linhas), recalculado a partir de `data`
+UPDATE registros
+SET semana_inicio = (data - ((EXTRACT(DOW FROM data)::int + 1) % 7))::date;
+```
+
+Mesma fórmula aplicada em `horas_base_semanal`, `metas_billable_margem`,
+`metas_billable_semanal` e `configuracoes.saldo_inicio_semana`.
+
+**Decisão registrada:** optou-se por retroatividade **total**, não híbrida.
+`semana_inicio` é dado derivado (rótulo de agrupamento), não algo digitado —
+manter dois regimes convivendo geraria bug por meses.
+
+**Correção no Timesheet:** as colunas passaram a ser preenchidas por
+`getDay()` real de cada data (`porDow`), não pela posição no array `days`.
+Sem isso, com a semana no sábado, todas as colunas ficariam trocadas. O
+`renderCell` também usa `getFormatDate(dow)` pelo mesmo motivo.
+
+### 2. Meta semanal unificada
+
+**Descoberta:** `configuracoes.meta_semanal` era um **campo fantasma** — existia
+no banco e no state, mas não tinha nenhum input na tela. Ficava travado em 42,5
+e ainda bloqueava o botão Salvar. Enquanto isso, "Horas Base Semanal", escondida
+dentro de "Configurações Billable", já era na prática a meta semanal, com
+histórico de vigência funcionando.
+
+Decisão: **são a mesma coisa.**
+
+- Seção movida para o card principal de Configurações, logo abaixo de "Início
+  da Semana", renomeada **Meta Semanal**, sempre visível (sem accordion)
+- `meta_semanal` removida do formulário (state, useEffect, trava do botão)
+- Export Excel passou a usar o valor real
+- **Horas Base Mensal permanece** dentro de Billable — é conceito de billable
+
+**Bug corrigido em `horas_base.ts`:** `buscarHorasBaseSemanal` e
+`buscarHorasBaseMensal` ordenavam por `criado_em`. Isso significa que cadastrar
+uma meta **retroativa** faria dela a mais recente, sobrescrevendo silenciosamente
+todas as metas posteriores. Agora ordenam por `semana_inicio` / `mes_inicio`
+DESC, com `criado_em` DESC apenas como desempate.
+
+**UI da seção:**
+
+- Histórico agrupado em **faixas** (uma por semana distinta). A vencedora de
+  cada semana é a de maior `criado_em`; as demais ficam recolhidas em
+  "▾ N alterações anteriores". Isso reduziu 10 linhas cruas a 2 faixas.
+- Cada faixa mostra **intervalo fechado**: "de 08/08 a 14/08". A mais recente
+  diz "até hoje" com tag verde `vigente`.
+- Bloco de confirmação ao vivo antes de salvar:
+
+  > Nova meta: **44h**
+  > Vale a partir da semana de sáb 15/08 a sex 21/08
+  > A semana anterior (08/08 a 14/08) continua com 42,5h
+
+- Ao inserir uma meta **no meio** do histórico, aparecem dois radios:
+  **Manter as metas seguintes** (limita a nova até a próxima) ou
+  **Substituir as metas seguintes** (default — apaga as posteriores via
+  `excluirHorasBaseSemanalAPartirDe`, com filtro `gt` estrito).
+
+### 3. Subcategoria e fase visíveis em Registros
+
+A query de `listarRegistros` passou a trazer a fase:
+
+```ts
+subcategoria:subcategorias(nome, fase:fases(nome))
+```
+
+O tipo `Registro` acompanhou. Na linha do lançamento aparece a tag
+"Fase / Subcategoria", com a fase em tom mais apagado. Sem subcategoria, nada
+é renderizado.
+
+**Atenção para o futuro:** `Registros.tsx` tem **dois blocos de renderização
+separados** (modo Lista e modo Por Projeto, ternário por volta da linha 613).
+Qualquer alteração na linha do lançamento precisa ser feita nos dois.
+
+### 4. Ordenação manual de projetos
+
+Coluna `ordem` (integer) em `projetos`, preenchida por migration em ordem
+alfabética particionada por `usuario_id` + `tipo`.
+
+Drag and drop com `@dnd-kit/core`, `@dnd-kit/sortable` e `@dnd-kit/utilities`
+(o drag nativo do HTML5 não funciona em touch, e o app é PWA mobile).
+
+Regras decididas:
+- Drag **só na aba Projetos** — Rotina não tem alça
+- **Só itens ativos** são arrastáveis
+- Encerrados e excluídos ficam no fim, sem alça, e não recebem drop
+- Não se arrasta entre grupos
+- Ordenação em **dois níveis**: status primeiro, depois `ordem` (necessário
+  porque a migration numerou alfabeticamente sem separar status)
+
+Alça dedicada de 6 pontinhos com `stopPropagation` (a linha inteira é clicável).
+Sensores: `PointerSensor` (distance 8) e `TouchSensor` (delay 200, tolerance 6),
+para o toque não disparar drag ao rolar a página. Atualização otimista com
+rollback em erro, sem toast no sucesso.
+
+A ordem vale **em todo o app** — `listarProjetos` ordena por ela, então os
+dropdowns de projeto também respeitam.
+
+### 5. Navegação de semana por setas
+
+O `<select>` de Semana em Registros foi **removido**. No lugar:
+
+```
+[‹]  08/08 a 14/08  [›]  [Hoje]
+```
+
+- Setas avançam/recuam 7 dias
+- "Hoje" volta para a semana corrente e fica desabilitado quando já está nela
+- Navegar **limpa o filtro de Dia Específico** (que tem precedência e faria a
+  tela parecer travada)
+- O valor especial `'todas'` deixou de existir
+- Agora é possível navegar para semanas **sem nenhum lançamento** — antes o
+  dropdown só listava semanas com registro
+
+### 6. Plano semanal por projeto
+
+Nova tabela `plano_semanal` com RLS e 4 policies:
+
+```
+id, usuario_id, projeto_id, fase_id (nullable), semana_inicio,
+horas_planejadas, criado_em
+```
+
+`projeto_id` usa `ON DELETE CASCADE` (plano sem projeto não significa nada);
+`fase_id` usa `SET NULL`, seguindo o padrão das subcategorias.
+
+**Armadilha aprendida — leia antes de mexer:**
+
+O `.upsert()` do Supabase **não funciona** nesta tabela. Índice parcial gera
+erro `42P10` ("no unique or exclusion constraint matching the ON CONFLICT
+specification"), e índice comum nas três colunas **duplica**, porque no
+Postgres `NULL` nunca conflita com `NULL`.
+
+Solução final — dois índices parciais complementares:
+
+```sql
+CREATE UNIQUE INDEX plano_semanal_unico_sem_fase
+  ON plano_semanal (projeto_id, semana_inicio) WHERE fase_id IS NULL;
+
+CREATE UNIQUE INDEX plano_semanal_unico_com_fase
+  ON plano_semanal (projeto_id, fase_id, semana_inicio) WHERE fase_id IS NOT NULL;
+```
+
+E o service faz **busca-antes-de-decidir**: `select` com `.is('fase_id', null)`
+(nunca `.eq` para nulos), depois `update` ou `insert`.
+
+Diferente do histórico de metas, aqui **não se empilha versão**: editar a
+semana atualiza a linha existente. Plano é intenção presente, não histórico.
+
+**UI:** seção "Plano semanal" em `ProjetoDetalhe.tsx`, entre fases e Lançamentos.
+Formulário (data + horas, com a data puxada para o início da semana), tabela
+Semana / Planejado / Realizado / Diferença com total no rodapé, cores verde e
+vermelho na diferença, linha informativa comparando com o total contratado
+(some quando o projeto não tem contratado), clique na linha para editar,
+exclusão com `ModalConfirmacao`.
+
+O "realizado" é calculado localmente a partir dos registros já carregados, que
+já vêm filtrados por projeto. O total contratado reutiliza o `totalContratado`
+que a página já calcula pela regra híbrida.
+
+**Decisão:** plano no nível do **projeto**. O `fase_id` existe no banco
+reservado, mas a UI por fase não foi construída — se surgir a necessidade, o
+banco já está pronto.
+
+### 7. Correção de brinde
+
+O export Excel escrevia "Domingo" quando a configuração era sábado — o ternário
+de `inicio_semana` tinha só dois braços e não acompanhou a opção nova.
 
 ---
 
 ## Estado atual do banco
 
-### Tabelas novas nesta sessão
+### Tabelas novas
+- `plano_semanal` — com RLS, 4 policies e 2 índices únicos parciais
 
-**`fases`** (com RLS)
-```
-id, projeto_id, usuario_id, nome, ordem, horas_contratadas, criado_em
-```
+### Colunas novas
+- `projetos.ordem` — integer, nullable
 
-### Colunas adicionadas
-- `subcategorias.fase_id` — uuid, nullable, FK para `fases.id` (`on delete set null`)
-- `subcategorias.horas_alocadas` — numeric, nullable
+### Alterações de dado
+- `registros.semana_inicio` — 304 linhas recalculadas para sábado
+- `horas_base_semanal.semana_inicio` — recalculada
+- `metas_billable_margem.semana_inicio` — recalculada
+- `metas_billable_semanal.semana_inicio` — recalculada
+- `configuracoes.saldo_inicio_semana` — recalculada
 
-### Regra híbrida do total contratado
-- Projeto **com** fases → total = soma das `horas_contratadas` das fases
-- Projeto **sem** fases → total = `projetos.horas_contratadas`
-- O campo `projetos.horas_contratadas` continua sendo alimentado com a soma, para que Resumo, Billable e Timesheet sigam funcionando sem alteração
+### Tabelas temporárias (remover — ver Pendências)
+`_bkp_semana_registros`, `_bkp_semana_horas_base`, `_bkp_semana_margem`,
+`_bkp_semana_billable`, `_bkp_semana_config`
 
 ---
 
 ## Próximos passos
 
-### ⚠️ Protocolo para a próxima sessão
-Ao iniciar, além de ler este HANDOFF, **perguntar ao usuário se ele quer implementar agora as "Melhorias funcionais pendentes"** listadas abaixo — elas foram aprovadas em sessão anterior (protótipo de redesign) mas ainda não entraram no app real. Não presumir que ele já esqueceu ou desistiu delas.
+### Melhorias funcionais restantes
+Da lista de 8 aprovadas no protótipo, sobraram 4:
 
-### Melhorias funcionais pendentes (aprovadas, ainda não implementadas)
-Todas independem do redesign visual e podem ser feitas antes dele, no app atual, via Antigravity:
+- **Paleta de comandos ⌘K** — buscar projeto, lançar horas, navegar entre
+  telas. Biblioteca sugerida: `cmdk`. É a de maior escopo.
+- **Gap de tempo ocioso clicável** — a linha "Xh disponíveis" vira botão que
+  abre o `ModalRegistro` já com `hora_inicio` e `hora_fim` preenchidos com os
+  limites do gap.
+- **Excluir registro com desfazer** — excluir direto + toast "Desfazer" por
+  ~6s, padrão Gmail/Linear. Vale **só para registro**; fase, subcategoria,
+  projeto e plano semanal continuam com `ModalConfirmacao`.
+- **Aviso de dias incompletos** — no topo de Registros, comparar a jornada
+  esperada (`horarios_dia` → `horarios_semana` → padrão) com o total lançado,
+  para cada dia já passado da semana corrente. Nunca considerar dias futuros.
+  Informativo, nunca bloqueia, com botão de dispensar.
+- **Estados vazios que agem** — botão de ação direta em vez de só texto.
 
-1. **Registros — observação e subcategoria visíveis na linha do lançamento.** Hoje ficam escondidas; replicar o padrão já usado na seção Lançamentos de `ProjetoDetalhe.tsx`.
-2. **Paleta de comandos / busca global (⌘K).** Buscar projeto, lançar horas, navegar entre telas. Biblioteca sugerida: `cmdk`.
-3. **Registros — navegação por semana.** Setas ‹ › e botão "Hoje". Hoje só existe filtro de dia específico e de projeto.
-4. **Modal de lançar horas — conferir campo de data.** Avaliar se falta um campo de data claro no fluxo atual.
-5. **Gap de tempo ocioso clicável.** A linha "Xh ocioso" entre dois lançamentos vira botão que abre o `ModalRegistro` já com `hora_inicio`/`hora_fim` preenchidos com os limites do gap.
-6. **Excluir registro com desfazer, não confirmação.** Excluir direto + toast "Desfazer" por ~6s (padrão Gmail/Linear). Vale **só para registro** — fase, subcategoria e projeto continuam com `ModalConfirmacao`, não mudar.
-7. **Aviso de dias incompletos em Registros.** Para cada dia já passado da semana corrente, comparar jornada esperada (`horarios_dia`/`horarios_semana`/padrão) contra o total lançado. Listar os dias abaixo do esperado, clicáveis (expande e rola até o dia). Nunca considerar dias futuros. Só informativo, nunca bloqueia, com botão de dispensar.
-8. **Estados vazios que agem.** Em vez de só "nenhum lançamento"/"nenhum lembrete", incluir um botão de ação direta (ex.: "Lançar a jornada", "Criar lembrete").
-
-Protótipo interativo de referência (não é o app real, é só demonstração visual/interação): `horas-prototipo.html`, gerado em sessão anterior — mostra as 8 melhorias acima funcionando, mais a paleta de comandos e os dois temas.
-
-### Pendente — plano semanal
-**Plano semanal:** dividir as horas contratadas por semana (ex.: 20h / 20h / 10h), com comparação entre planejado e realizado.
-- Tabela `plano_semanal` (id, projeto_id, usuario_id, semana_inicio, horas_planejadas) com RLS
-- Seção na página de detalhe do projeto
-- **Decisão pendente:** validar em uso real se essa divisão ajuda antes de implementar
-
-### Redesign visual — PAUSADO de propósito
-O usuário decidiu terminar as melhorias funcionais (acima) primeiro, e só depois migrar o layout. Não sugerir retomar por conta própria — só quando ele sinalizar.
-
-Já definido quando retomar:
-- **Tema escuro continua como padrão** (não claro — essa era a sugestão inicial, mas foi revertida). O escuro é redesenhado do zero (3 camadas de elevação, texto quase-branco, botão primário quase-branco), não é o `#0B0E14` atual.
-- Paleta neutra com viés azulado, acento azul só para foco/link, tríade de estado dessaturada (musgo/ocre/terracota) substituindo verde/âmbar/vermelho Material.
-- Tipografia em 3 papéis: Instrument Sans (títulos), Inter (interface), IBM Plex Mono (números, `tabular-nums` obrigatório).
-- Navegação agrupada por intenção, botão fixo "+ Lançar horas", atalhos 1-4, paleta de comandos ⌘K.
-- Execução: branch `redesign` a partir da `main` (nunca repositório separado), preview automático da Vercel, ordem tokens → primitivas → casca → telas → acabamento.
-- Documentos de referência já entregues: `horas-redesign.html` (plano completo com as 10 decisões) e `horas-prototipo.html` (protótipo navegável).
+*(O item "campo de data no modal" foi encerrado: já existia e estava claro.)*
 
 ### Horizonte
-- Aba Gráficos no Resumo (recharts): drill-down por projeto/subcategoria, barras horas × dia
-- Notificações Push via Supabase Edge Functions (VAPID, sem Firebase) — guia em `PWA_GUIA_COMPLETO.md`
-- Aplicar padrões PWA no app de finanças pessoais (Next.js 15 + React 19 + Tailwind v4 + Supabase)
+- Aba Gráficos no Resumo (recharts): drill-down por projeto/subcategoria
+- Plano semanal **por fase** — banco já preparado, UI não construída
+- Alerta de planejado × realizado fora da página do projeto (só construir se
+  sentir falta em uso real)
+- Notificações Push via Supabase Edge Functions (VAPID, sem Firebase)
+
+### Redesign visual — PAUSADO de propósito
+Terminar as melhorias funcionais primeiro. Não sugerir retomar por conta
+própria — só quando o usuário sinalizar.
+
+Já definido: tema escuro continua padrão (redesenhado do zero, não o `#0B0E14`
+atual); paleta neutra com viés azulado; tipografia em 3 papéis (Instrument
+Sans, Inter, IBM Plex Mono com `tabular-nums`); branch `redesign` a partir da
+`main`. Referências em `horas-redesign.html` e `horas-prototipo.html`.
 
 ---
 
 ## Padrões aprendidos — não reverter
 
 - **Cores semânticas em totais, não em células individuais**
-- **Histórico de metas com start-date** — metas configuráveis preservam data de início
+- **Histórico de metas com start-date** — e ordenado por vigência, nunca por
+  data de criação
 - **Tabs sobre toggles** para visualizações distintas
-- **Exceções de horário nunca retroagem** — afetam apenas sugestões de novos registros
-- **Projetos encerrados preservam horas** — filtrar por `.neq('status','excluido')`, nunca por `.eq('status','ativo')`
-- **Cache do PWA** — loops de login no mobile em rotas novas costumam ser service worker desatualizado, não bug de código
-- **Um botão, uma função** — o lápis renomeia; o modo "Alocar horas" aloca. Não duplicar caminhos para o mesmo campo
-- **Componentes compartilhados** — regra de exibição escrita em um lugar só (`BreakdownSubcategorias`)
-- **Balde de não atribuídos** — registros sem subcategoria (ou apontando para subcategoria excluída) precisam aparecer em algum lugar, senão a soma das partes não bate com o total
+- **Exceções de horário nunca retroagem**
+- **Projetos encerrados preservam horas** — filtrar por `.neq('status','excluido')`
+- **Cache do PWA** — loops de login no mobile costumam ser service worker
+  desatualizado, não bug de código
+- **Um botão, uma função**
+- **Componentes compartilhados** — regra de exibição escrita em um lugar só
+- **Balde de não atribuídos** — registros sem subcategoria precisam aparecer
 - **`stopPropagation` em botões dentro de cards clicáveis**
-- **Recarregamento silencioso** — `carregarDados(true)` evita flash de skeleton em operações inline
+- **Recarregamento silencioso** — `carregarDados(true)` evita flash de skeleton
+- **Cálculo de semana mora em `utils/semana.ts`** — nunca reimplementar local
+- **Configuração vem do `useConfig()`** — nunca chamar `buscarConfiguracoes`
+  direto numa tela
+- **`.is('campo', null)` e nunca `.eq`** para nulos no Supabase
+- **Índice parcial não funciona com `.upsert()`** — usar busca-antes-de-decidir
+- **Registros.tsx tem 2 blocos de renderização** — alterar sempre os dois
+- **`type` explícito em imports de tipo** — o projeto usa `verbatimModuleSyntax`;
+  esquecer isso causou erro em 3 etapas diferentes desta sessão
 
 ---
 
@@ -175,8 +359,9 @@ duração = horas_inteiras + (minutos / 60)
 ```
 
 ### Regras de negócio
-- Meta semanal padrão: **42.5h** (configurável)
-- Semana: **segunda a domingo**
+- Meta semanal padrão: **42.5h** — configurável em Ajustes → Meta Semanal,
+  com vigência por semana
+- Semana: **sábado a sexta** (configurável; era segunda a domingo até 11/08/2026)
 - Horário padrão do dia: **09:00 às 18:30** (configurável)
 - **RLS no Supabase: nunca desativar**
 - Gaps mínimos para exibir tempo ocioso: 5 minutos
@@ -202,11 +387,15 @@ duração = horas_inteiras + (minutos / 60)
 ## Fluxo de trabalho
 
 1. Claude analisa o problema e gera o prompt estruturado para o Antigravity
-2. Usuário envia ao Antigravity e traz o diff proposto
+2. Usuário envia ao Antigravity e traz o **diff completo** para validação
 3. Claude valida o diff antes da aplicação
 4. Usuário aplica e roda `npx tsc -b` manualmente
 5. Usuário testa no localhost
-6. Usuário commita e faz push manualmente (PowerShell, sem aspas escapadas)
+6. Usuário commita e faz push (PowerShell, sem caracteres especiais)
+
+> **Nunca aprovar em cima do resumo do agente.** Nesta sessão, o resumo afirmou
+> ter alterado "ambos os modos de visualização" quando só um constava no diff.
+> Exigir sempre o diff completo, sem elisões.
 
 ### Seleção de modelo no Antigravity
 
@@ -215,22 +404,29 @@ duração = horas_inteiras + (minutos / 60)
 | Baixa (CSS pontual, correção TS, renomeação) | Gemini 3.6 Flash (Low) |
 | Média (multi-arquivo, lógica leve) | Gemini 3.6 Flash (Medium) |
 | Alta (novas telas, UI complexa) | Gemini 3.6 Flash (High) |
-| Arquitetura (banco, migrations, tabelas novas) | Gemini 3.1 Pro (High) |
+| Arquitetura (banco, migrations, tabelas novas) | Gemini 3.1 Pro (High/Low) |
 
 ### Regras do prompt para o Antigravity
-Todo prompt deve incluir: arquivos a ler antes de editar, arquivos que não pode tocar, comportamento esperado, critérios de aceite, e as instruções de **não rodar `npx tsc -b`**, **não commitar** e **mostrar o diff completo sem elisões** antes de aplicar.
+Todo prompt deve incluir: arquivos a ler antes de editar, arquivos protegidos,
+comportamento esperado, critérios de aceite, e as instruções de **não rodar
+`npx tsc -b`**, **não commitar** e **mostrar o diff completo sem elisões**.
 
 ---
 
 ## Backup
 
-O export Excel da tela de Ajustes é um **relatório**, não um backup restaurável — não contém IDs, subcategorias, fases, billable nem metas.
+O export Excel da tela de Ajustes é um **relatório**, não um backup restaurável.
 
-Para backup real, rodar no SQL Editor do Supabase e baixar os CSVs:
+Para backup real, rodar no SQL Editor do Supabase e baixar cada CSV
+**separadamente** (o editor só mostra o resultado da última query) e
+**conferir o limite de linhas**, que por padrão corta em 100:
+
 ```sql
 SELECT * FROM projetos;
 SELECT * FROM subcategorias;
 SELECT * FROM fases;
 SELECT * FROM registros;
 SELECT * FROM configuracoes;
+SELECT * FROM plano_semanal;
+SELECT * FROM horas_base_semanal;
 ```
