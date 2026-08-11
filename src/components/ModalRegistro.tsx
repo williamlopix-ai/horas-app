@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useConfig } from '../contexts/ConfigContext'
 import { listarProjetos } from '../services/projetos'
 import { subcategoriasService } from '../services/subcategorias'
 import { fasesService } from '../services/fases'
 import { getErrorMessage } from '../utils/errors'
 import { buscarHorarioDia } from '../services/horarios'
-import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria, Fase } from '../types'
@@ -57,6 +57,7 @@ function formatarDuracaoHumana(horaInicio: string, horaFim: string): string {
 
 export default function ModalRegistro({ isOpen, onClose, onSave, registro, registrosExistentes = [] }: ModalRegistroProps) {
   const { user } = useAuth()
+  const { config } = useConfig()
   
   // Estados do Form
   const [projetoId, setProjetoId] = useState<string>('')
@@ -192,8 +193,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         }
 
         // 3. Padrão global
-        const config = await buscarConfiguracoes(userId)
-        if (config && montado) {
+        if (montado) {
           setHoraInicio(config.inicio_dia || '09:00')
           setHoraFim(config.fim_dia || '18:00')
         }
@@ -205,7 +205,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     buscarHorariosHierarquia()
 
     return () => { montado = false }
-  }, [isOpen, registro, user, data])
+  }, [isOpen, registro, user, data, config])
 
   // Validações em tempo real
   const validacaoErro = useMemo(() => {

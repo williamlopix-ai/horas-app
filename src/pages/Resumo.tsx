@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useConfig } from '../contexts/ConfigContext'
 import { Link, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import BreakdownSubcategorias from '../components/BreakdownSubcategorias'
 import { listarRegistros } from '../services/registros'
 import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
-import { buscarConfiguracoes } from '../services/configuracoes'
 import { buscarHorasBaseSemanal } from '../services/horas_base'
 import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
@@ -24,11 +24,11 @@ export default function Resumo() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const { config } = useConfig()
 
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [subcategoriasCadastradas, setSubcategoriasCadastradas] = useState<Subcategoria[]>([])
-  const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [horasBasePorSemana, setHorasBasePorSemana] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -94,14 +94,12 @@ export default function Resumo() {
       setLoading(true)
       setError(null)
 
-      const [config, projs, regs, subs] = await Promise.all([
-        buscarConfiguracoes(user.id),
+      const [projs, regs, subs] = await Promise.all([
         listarProjetos(user.id),
         listarRegistros(user.id),
         subcategoriasService.listarTodasSubcategorias(user.id)
       ])
 
-      setMetaSemanal(config.meta_semanal)
       setProjetos(projs)
       setRegistros(regs)
       setSubcategoriasCadastradas(subs)
@@ -182,7 +180,7 @@ export default function Resumo() {
       .sort((a, b) => a.localeCompare(b))
       .map((semana) => {
         const totalHoras = grupos[semana]
-        const baseVigente = horasBasePorSemana[semana] ?? metaSemanal
+        const baseVigente = horasBasePorSemana[semana] ?? config.meta_semanal
         const atingiuMeta = totalHoras >= baseVigente
         const percentual = Math.min(100, Math.round((totalHoras / baseVigente) * 100))
         const diferenca = totalHoras - baseVigente
@@ -196,7 +194,7 @@ export default function Resumo() {
           metaVigente: baseVigente 
         }
       })
-  }, [registros, metaSemanal, horasBasePorSemana])
+  }, [registros, config.meta_semanal, horasBasePorSemana])
 
   // 2. Diário
   const resumoDias = useMemo(() => {
@@ -209,14 +207,14 @@ export default function Resumo() {
       .map((data) => {
         const totalHoras = grupos[data]
         const semanaDodia = getSemanaInicioParaData(data)
-        const baseVigente = horasBasePorSemana[semanaDodia] ?? metaSemanal
+        const baseVigente = horasBasePorSemana[semanaDodia] ?? config.meta_semanal
         const metaDiariaVigente = baseVigente / 5
         const atingiuMeta = totalHoras >= metaDiariaVigente
         const percentual = Math.min(100, Math.round((totalHoras / metaDiariaVigente) * 100))
         const diferenca = totalHoras - metaDiariaVigente
         return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca, metaDiariaVigente }
       })
-  }, [registros, metaSemanal, horasBasePorSemana])
+  }, [registros, config.meta_semanal, horasBasePorSemana])
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {

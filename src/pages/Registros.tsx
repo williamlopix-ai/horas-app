@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { useConfig } from '../contexts/ConfigContext'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -10,7 +11,6 @@ import {
   atualizarRegistro
 } from '../services/registros'
 import { listarProjetos } from '../services/projetos'
-import { buscarConfiguracoes } from '../services/configuracoes'
 import { listarHorariosDias, salvarHorarioDia } from '../services/horarios'
 import { listarHorariosSemana } from '../services/horariosSemana'
 import { getErrorMessage } from '../utils/errors'
@@ -53,11 +53,11 @@ export default function Registros() {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { config } = useConfig()
 
   // Estados dos Dados
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
-  const [configDia, setConfigDia] = useState<{ inicio: string, fim: string }>({ inicio: '08:00', fim: '18:00' })
   const [horariosExcecoes, setHorariosExcecoes] = useState<HorarioDia[]>([])
   const [horariosSemana, setHorariosSemana] = useState<HorarioSemana[]>([])
   
@@ -102,10 +102,6 @@ export default function Registros() {
     try {
       setLoading(true)
       setError(null)
-
-      // 1. Carregar Configurações
-      const config = await buscarConfiguracoes(user.id)
-      setConfigDia({ inicio: config.inicio_dia || '08:00', fim: config.fim_dia || '18:00' })
 
       // 2. Carregar Projetos
       const projs = await listarProjetos(user.id)
@@ -267,7 +263,7 @@ export default function Registros() {
     }
 
     // 3. Padrão global
-    return { inicio: configDia.inicio, fim: configDia.fim, customizado: false }
+    return { inicio: config.inicio_dia || '08:00', fim: config.fim_dia || '18:00', customizado: false }
   }
 
 
@@ -397,7 +393,7 @@ export default function Registros() {
         items
       }
     })
-  }, [registrosFiltrados, horariosExcecoes, horariosSemana, configDia, viewMode])
+  }, [registrosFiltrados, horariosExcecoes, horariosSemana, config, viewMode])
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">

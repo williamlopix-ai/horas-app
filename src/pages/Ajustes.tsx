@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from '../components/Sidebar'
-import { buscarConfiguracoes, salvarConfiguracoes } from '../services/configuracoes'
+import { useConfig } from '../contexts/ConfigContext'
 import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
 import {
   salvarMargemMinima, listarHistoricoMargem,
@@ -25,6 +25,7 @@ import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 export default function Ajustes() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { config, salvarConfig } = useConfig()
 
   // Estados dos Campos de Configuração
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
@@ -218,14 +219,12 @@ export default function Ajustes() {
       setLoading(true)
       setError(null)
       const [
-        config,
         horariosSemanaData,
         histMargem,
         histHorasBaseSemanal,
         histHorasBaseMensal,
         histMargemMensal
       ] = await Promise.all([
-        buscarConfiguracoes(user.id),
         listarHorariosSemana(user.id),
         listarHistoricoMargem(),
         listarHistoricoHorasBaseSemanal(),
@@ -233,12 +232,6 @@ export default function Ajustes() {
         listarHistoricoMargemMensal()
       ])
 
-      setMetaSemanal(config.meta_semanal)
-      setInicioSemana(config.inicio_semana)
-      setFormatoHoras(config.formato_horas)
-      setInicioDia(config.inicio_dia || '08:00')
-      setFimDia(config.fim_dia || '18:00')
-      setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
       setHorariosSemana(horariosSemanaData)
 
       if (histMargem.length > 0) setMargemMinima(histMargem[0].margem_minima)
@@ -264,6 +257,15 @@ export default function Ajustes() {
   useEffect(() => {
     carregarConfiguracoes()
   }, [user])
+
+  useEffect(() => {
+    setMetaSemanal(config.meta_semanal)
+    setInicioSemana(config.inicio_semana)
+    setFormatoHoras(config.formato_horas)
+    setInicioDia(config.inicio_dia || '08:00')
+    setFimDia(config.fim_dia || '18:00')
+    setSaldoInicioSemana(config.saldo_inicio_semana ?? '')
+  }, [config])
 
   function ajustarParaSegunda(dataStr: string): string {
     return inicioDaSemana(dataStr, 'segunda')
@@ -336,7 +338,7 @@ export default function Ajustes() {
       setSaving(true)
       setError(null)
 
-      await salvarConfiguracoes(user.id, {
+      await salvarConfig({
         meta_semanal: metaSemanal,
         inicio_semana: inicioSemana,
         formato_horas: formatoHoras,

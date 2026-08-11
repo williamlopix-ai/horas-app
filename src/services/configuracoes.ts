@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type { Configuracao } from '../types'
 
-const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
+export const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
   meta_semanal: 42.5,
   inicio_semana: 'segunda',
   formato_horas: 'decimal',

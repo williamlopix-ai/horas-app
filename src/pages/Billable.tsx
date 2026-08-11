@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { useConfig } from '../contexts/ConfigContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { getErrorMessage } from '../utils/errors'
@@ -17,7 +18,6 @@ import {
   buscarMargemMinimaVigente,
   buscarMargemMinimaVigenteMensal
 } from '../services/metas_billable'
-import { buscarConfiguracoes } from '../services/configuracoes'
 import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, formatYYYYMMDD } from '../utils/semana'
@@ -184,6 +184,7 @@ async function calcularSaldoAcumuladoMensal(
 export default function Billable() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { config } = useConfig()
   const [activeTab, setActiveTab] = useState<'semanal' | 'mensal'>('semanal')
   const [currentDate, setCurrentDate] = useState<Date>(() => getMonday(new Date()))
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
@@ -237,12 +238,11 @@ export default function Billable() {
       sunday.setDate(currentDate.getDate() + 6)
       const endStr = formatYYYYMMDD(sunday)
 
-      const [projetosData, totalBillableData, margemData, horasBaseData, config] = await Promise.all([
+      const [projetosData, totalBillableData, margemData, horasBaseData] = await Promise.all([
         buscarHorasBillableSemanal(startStr, endStr),
         buscarTotalBillableSemanal(startStr, endStr),
         buscarMargemMinimaVigente(startStr),
-        buscarHorasBaseSemanal(user.id, startStr),
-        buscarConfiguracoes(user.id)
+        buscarHorasBaseSemanal(user.id, startStr)
       ])
 
       const horasBaseVal = horasBaseData
@@ -283,13 +283,12 @@ export default function Billable() {
 
       const { mesInicio, mesFim } = getMonthRange(currentMonth)
 
-      const [projetosData, totalBillableData, metaData, horasBaseMensalData, margemMensalData, config] = await Promise.all([
+      const [projetosData, totalBillableData, metaData, horasBaseMensalData, margemMensalData] = await Promise.all([
         buscarHorasBillableMensal(mesInicio, mesFim),
         buscarTotalBillableMensal(mesInicio, mesFim),
         buscarMetaBillableMensal(mesInicio),
         buscarHorasBaseMensal(user.id, mesInicio),
-        buscarMargemMinimaVigenteMensal(mesInicio),
-        buscarConfiguracoes(user.id)
+        buscarMargemMinimaVigenteMensal(mesInicio)
       ])
 
       setBillableProjetosMensal(projetosData)
@@ -323,13 +322,13 @@ export default function Billable() {
 
   useEffect(() => {
     carregarDados()
-  }, [user, currentDate])
+  }, [user, currentDate, config])
 
   useEffect(() => {
     if (activeTab === 'mensal') {
       carregarDadosMensal()
     }
-  }, [user, currentMonth, activeTab])
+  }, [user, currentMonth, activeTab, config])
 
   const prevWeek = () => {
     setAnimationClass('animate-slide-left')

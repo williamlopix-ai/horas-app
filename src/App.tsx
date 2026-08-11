@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
+import { ConfigProvider } from './contexts/ConfigContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
@@ -19,8 +20,9 @@ function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <BrowserRouter>
-          <Suspense fallback={
+        <ConfigProvider>
+          <BrowserRouter>
+            <Suspense fallback={
             <div className="fixed inset-0 bg-[#0B0E14] flex items-center justify-center">
               <div className="w-6 h-6 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
             </div>
@@ -109,7 +111,8 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
           </Suspense>
-        </BrowserRouter>
+          </BrowserRouter>
+        </ConfigProvider>
       </ToastProvider>
     </AuthProvider>
   )
