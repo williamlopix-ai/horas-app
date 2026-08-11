@@ -18,7 +18,7 @@ import type { Registro, Projeto, HorarioDia, HorarioSemana } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalHorarioDia from '../components/ModalHorarioDia'
 import { Skeleton } from '../components/Skeleton'
-import { intervaloDaSemana, type InicioSemana } from '../utils/semana'
+import { intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 
 // Helper para converter "HH:MM" em minutos para cálculo de gaps
 function timeToMinutes(time: string): number {
@@ -38,15 +38,19 @@ function getWeekKey(dateStr: string, inicio: InicioSemana) {
   return `${y}-${m}-${d}`
 }
 
-function formatWeekLabel(dateStr: string, inicio: InicioSemana) {
-  const { inicio: dtInicio, fim } = getWeekRange(dateStr, inicio)
-  const mesesAbrev = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+function formatarIntervaloSemana(dataStr: string, inicio: InicioSemana): string {
+  const { inicio: dtInicio, fim: dtFim } = intervaloDaSemana(dataStr, inicio)
   const d1 = String(dtInicio.getDate()).padStart(2, '0')
-  const m1 = mesesAbrev[dtInicio.getMonth()]
-  const d2 = String(fim.getDate()).padStart(2, '0')
-  const m2 = mesesAbrev[fim.getMonth()]
-  const y = fim.getFullYear()
-  return `${d1} ${m1} a ${d2} ${m2} (${y})`
+  const m1 = String(dtInicio.getMonth() + 1).padStart(2, '0')
+  const d2 = String(dtFim.getDate()).padStart(2, '0')
+  const m2 = String(dtFim.getMonth() + 1).padStart(2, '0')
+  const y1 = dtInicio.getFullYear()
+  const y2 = dtFim.getFullYear()
+
+  if (y1 !== y2) {
+    return `${d1}/${m1}/${y1} a ${d2}/${m2}/${y2}`
+  }
+  return `${d1}/${m1} a ${d2}/${m2}`
 }
 
 export default function Registros() {
@@ -285,18 +289,32 @@ export default function Registros() {
     setDiasExpandidos(prev => ({ ...prev, [dataStr]: prev[dataStr] !== true }))
   }
 
-  // Extrair semanas únicas disponíveis
-  const semanasDisponiveis = useMemo(() => {
-    const dates = registros.map((r) => r.data)
-    const weeksMap = new Map<string, string>()
-    dates.forEach(d => {
-      const key = getWeekKey(d, config.inicio_semana)
-      if (!weeksMap.has(key)) {
-        weeksMap.set(key, formatWeekLabel(d, config.inicio_semana))
-      }
-    })
-    return Array.from(weeksMap.entries()).sort((a, b) => b[0].localeCompare(a[0]))
-  }, [registros, config.inicio_semana])
+  const handleSemanaAnterior = () => {
+    const [y, m, d] = filtroSemana.split('-').map(Number)
+    const dt = new Date(y, m - 1, d)
+    dt.setDate(dt.getDate() - 7)
+    setFiltroSemana(getWeekKey(formatYYYYMMDD(dt), config.inicio_semana))
+    setFiltroDiaEspecifico('')
+  }
+
+  const handleSemanaProxima = () => {
+    const [y, m, d] = filtroSemana.split('-').map(Number)
+    const dt = new Date(y, m - 1, d)
+    dt.setDate(dt.getDate() + 7)
+    setFiltroSemana(getWeekKey(formatYYYYMMDD(dt), config.inicio_semana))
+    setFiltroDiaEspecifico('')
+  }
+
+  const handleSemanaHoje = () => {
+    const todayStr = formatYYYYMMDD(new Date())
+    setFiltroSemana(getWeekKey(todayStr, config.inicio_semana))
+    setFiltroDiaEspecifico('')
+  }
+
+  const isSemanaAtual = useMemo(() => {
+    const todayStr = formatYYYYMMDD(new Date())
+    return filtroSemana === getWeekKey(todayStr, config.inicio_semana)
+  }, [filtroSemana, config.inicio_semana])
 
   // Filtragem dos registros no Frontend
   const registrosFiltrados = useMemo(() => {
@@ -311,7 +329,7 @@ export default function Registros() {
           return false
         }
       } else {
-        if (filtroSemana !== 'todas' && getWeekKey(reg.data, config.inicio_semana) !== filtroSemana) {
+        if (getWeekKey(reg.data, config.inicio_semana) !== filtroSemana) {
           return false
         }
       }
@@ -460,16 +478,44 @@ export default function Registros() {
           {/* Semana */}
           <div className="flex-1">
             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Semana</label>
-            <select
-              value={filtroSemana}
-              onChange={(e) => setFiltroSemana(e.target.value)}
-              className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
-            >
-              <option value="todas">Todas as Semanas</option>
-              {semanasDisponiveis.map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2 w-full">
+              <button
+                type="button"
+                onClick={handleSemanaAnterior}
+                className="h-10 w-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Semana anterior"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <div className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-xl h-10 flex items-center justify-center px-3 min-w-0">
+                <span className="font-mono text-sm text-white font-semibold text-center whitespace-nowrap min-w-[130px] select-none">
+                  {formatarIntervaloSemana(filtroSemana, config.inicio_semana)}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSemanaProxima}
+                className="h-10 w-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                title="Próxima semana"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSemanaHoje}
+                disabled={isSemanaAtual}
+                className="h-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] text-gray-300 hover:text-white text-xs font-semibold px-3 rounded-xl transition-colors shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-800 disabled:hover:text-gray-300"
+              >
+                Hoje
+              </button>
+            </div>
           </div>
 
           {/* Dia Específico */}
