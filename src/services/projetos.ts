@@ -6,6 +6,7 @@ export async function listarProjetos(usuarioId: string, arquivado?: boolean): Pr
     .from('projetos')
     .select('*')
     .eq('usuario_id', usuarioId)
+    .order('ordem', { ascending: true, nullsFirst: false })
     .order('nome', { ascending: true })
 
   if (arquivado !== undefined) {
@@ -22,12 +23,32 @@ export async function listarProjetos(usuarioId: string, arquivado?: boolean): Pr
 }
 
 export async function criarProjeto(dados: Omit<Projeto, 'id' | 'criado_em'>): Promise<Projeto> {
+  const { data: projetosMesmoGrupo, error: fetchError } = await supabase
+    .from('projetos')
+    .select('ordem')
+    .eq('usuario_id', dados.usuario_id)
+    .eq('tipo', dados.tipo)
+
+  if (fetchError) {
+    throw fetchError
+  }
+
+  const maiorOrdem = (projetosMesmoGrupo || []).reduce((max, item) => {
+    if (item.ordem !== null && item.ordem !== undefined && item.ordem > max) {
+      return item.ordem
+    }
+    return max
+  }, 0)
+
+  const novaOrdem = maiorOrdem + 1
+
   const { data, error } = await supabase
     .from('projetos')
     .insert([
       {
         ...dados,
-        codigo_externo: dados.codigo_externo
+        codigo_externo: dados.codigo_externo,
+        ordem: dados.ordem ?? novaOrdem
       }
     ])
     .select()
@@ -38,6 +59,25 @@ export async function criarProjeto(dados: Omit<Projeto, 'id' | 'criado_em'>): Pr
   }
 
   return data
+}
+
+export async function atualizarOrdemProjetos(
+  itens: { id: string; ordem: number }[]
+): Promise<void> {
+  const updates = itens.map(({ id, ordem }) =>
+    supabase
+      .from('projetos')
+      .update({ ordem })
+      .eq('id', id)
+  )
+
+  const results = await Promise.all(updates)
+
+  for (const result of results) {
+    if (result.error) {
+      throw result.error
+    }
+  }
 }
 
 export async function atualizarProjeto(

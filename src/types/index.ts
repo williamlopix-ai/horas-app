@@ -10,6 +10,7 @@ export interface Projeto {
   nome_original: string | null
   codigo_externo: string | null
   billable: boolean | null
+  ordem: number | null
   criado_em: string
 }
 
