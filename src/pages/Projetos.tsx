@@ -4,6 +4,22 @@ import { useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
 import Sidebar from '../components/Sidebar'
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   listarProjetos,
   criarProjeto,
   atualizarProjeto,
@@ -11,7 +27,8 @@ import {
   reativarProjeto,
   excluirProjeto,
   excluirProjetoComRegistros,
-  arquivarProjeto
+  arquivarProjeto,
+  atualizarOrdemProjetos
 } from '../services/projetos'
 import { fasesService } from '../services/fases'
 import { supabase } from '../lib/supabase'
@@ -19,6 +36,164 @@ import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
 import { SkeletonRow } from '../components/Skeleton'
+
+interface ProjetoRowItemProps {
+  projeto: Projeto
+  abaAtiva: 'projeto' | 'rotina'
+  onEdit: (projeto: Projeto) => void
+  onToggleStatus: (projeto: Projeto) => void
+  onExcluir: (projeto: Projeto) => void
+  onArquivar: (projeto: Projeto) => void
+  onNavigate: (id: string) => void
+}
+
+function ProjetoRowItem({
+  projeto,
+  abaAtiva,
+  onEdit,
+  onToggleStatus,
+  onExcluir,
+  onArquivar,
+  onNavigate
+}: ProjetoRowItemProps) {
+  const isDraggable = abaAtiva === 'projeto' && projeto.status === 'ativo'
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: projeto.id,
+    disabled: !isDraggable
+  })
+
+  const style = isDraggable
+    ? {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 50 : undefined,
+        position: isDragging ? ('relative' as const) : undefined
+      }
+    : undefined
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      onClick={() => onNavigate(projeto.id)}
+      className={`hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0 cursor-pointer ${
+        isDragging ? 'shadow-2xl ring-2 ring-[#03A9F4]' : ''
+      }`}
+    >
+      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
+        <div className="flex items-center gap-3">
+          {isDraggable && (
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing p-1 rounded transition-colors touch-none shrink-0"
+              title="Arrastar para reordenar"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="6" r="1.5" />
+                <circle cx="15" cy="6" r="1.5" />
+                <circle cx="9" cy="12" r="1.5" />
+                <circle cx="15" cy="12" r="1.5" />
+                <circle cx="9" cy="18" r="1.5" />
+                <circle cx="15" cy="18" r="1.5" />
+              </svg>
+            </button>
+          )}
+          <span
+            className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-sm"
+            style={{ backgroundColor: projeto.cor }}
+          />
+          <span className="font-semibold text-white group-hover:text-[#03A9F4] transition-colors">
+            {projeto.nome}
+          </span>
+        </div>
+      </td>
+      <td className="flex items-center md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
+        {projeto.status === 'ativo' ? (
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Ativo
+          </span>
+        ) : projeto.status === 'encerrado' ? (
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+            Encerrado
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">
+            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+            Excluído
+          </span>
+        )}
+      </td>
+      <td className="col-span-2 block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
+        <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
+          {projeto.status === 'excluido' ? (
+            <>
+              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-auto text-center">
+                Excluído
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onArquivar(projeto)
+                }}
+                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
+              >
+                Arquivar
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(projeto)
+                }}
+                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
+              >
+                Editar
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleStatus(projeto)
+                }}
+                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
+                  projeto.status === 'ativo'
+                    ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
+                }`}
+              >
+                {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onExcluir(projeto)
+                }}
+                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-auto text-center justify-center"
+              >
+                Excluir
+              </button>
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
+  )
+}
 
 export default function Projetos() {
   const { user } = useAuth()
@@ -30,8 +205,86 @@ export default function Projetos() {
   const [abaAtiva, setAbaAtiva] = useState<'projeto' | 'rotina'>('projeto')
 
   const projetosFiltrados = useMemo(() => {
-    return projetos.filter(p => (p.tipo || 'projeto') === abaAtiva && !p.arquivado)
+    const filtrados = projetos.filter(p => (p.tipo || 'projeto') === abaAtiva && !p.arquivado)
+    return filtrados.sort((a, b) => {
+      const aAtivo = a.status === 'ativo' ? 0 : 1
+      const bAtivo = b.status === 'ativo' ? 0 : 1
+      if (aAtivo !== bAtivo) return aAtivo - bAtivo
+
+      if (a.ordem !== null && a.ordem !== undefined && b.ordem !== null && b.ordem !== undefined) {
+        if (a.ordem !== b.ordem) return a.ordem - b.ordem
+        return a.nome.localeCompare(b.nome)
+      }
+      if ((a.ordem !== null && a.ordem !== undefined) && (b.ordem === null || b.ordem === undefined)) return -1
+      if ((a.ordem === null || a.ordem === undefined) && (b.ordem !== null && b.ordem !== undefined)) return 1
+      return a.nome.localeCompare(b.nome)
+    })
   }, [projetos, abaAtiva])
+
+  const projetosAtivos = useMemo(() => {
+    if (abaAtiva !== 'projeto') return []
+    return projetosFiltrados.filter(p => p.status === 'ativo')
+  }, [projetosFiltrados, abaAtiva])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8
+      }
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 6
+      }
+    })
+  )
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = projetosAtivos.findIndex(p => p.id === active.id)
+    const newIndex = projetosAtivos.findIndex(p => p.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reorderedAtivos = arrayMove(projetosAtivos, oldIndex, newIndex)
+    const atualizacoesOrdem = reorderedAtivos.map((proj, idx) => ({
+      id: proj.id,
+      ordem: idx + 1
+    }))
+
+    const ordemMap = new Map(atualizacoesOrdem.map(u => [u.id, u.ordem]))
+    const projetosAntigos = [...projetos]
+
+    setProjetos(prev =>
+      prev.map(p => {
+        if (ordemMap.has(p.id)) {
+          return { ...p, ordem: ordemMap.get(p.id)! }
+        }
+        return p
+      })
+    )
+
+    try {
+      await atualizarOrdemProjetos(atualizacoesOrdem)
+    } catch (err: any) {
+      console.error('Erro ao atualizar ordem dos projetos:', err)
+      setProjetos(projetosAntigos)
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
+
+  const handleArquivarProjeto = async (projeto: Projeto) => {
+    try {
+      await arquivarProjeto(projeto.id)
+      await carregarProjetos()
+      showToast('Projeto arquivado!', 'success')
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
 
   // Estados do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -262,105 +515,40 @@ export default function Projetos() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse block md:table">
-                <thead className="hidden md:table-header-group">
-                  <tr className="border-b border-gray-800 bg-gray-900/30">
-                    <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
-                    <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
-                  {projetosFiltrados.map((projeto) => (
-                    <tr
-                      key={projeto.id}
-                      onClick={() => navigate(`/projeto/${projeto.id}`)}
-                      className="hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0 cursor-pointer"
-                    >
-                      <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-sm"
-                            style={{ backgroundColor: projeto.cor }}
-                          />
-                          <span className="font-semibold text-white group-hover:text-[#03A9F4] transition-colors">
-                            {projeto.nome}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="flex items-center md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
-                        {projeto.status === 'ativo' ? (
-                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                            Ativo
-                          </span>
-                        ) : projeto.status === 'encerrado' ? (
-                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                            Encerrado
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">
-                            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                            Excluído
-                          </span>
-                        )}
-                      </td>
-                      <td className="col-span-2 block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
-                        <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
-                          {projeto.status === 'excluido' ? (
-                            <>
-                              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-auto text-center">
-                                Excluído
-                              </span>
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation()
-                                  try {
-                                    await arquivarProjeto(projeto.id)
-                                    await carregarProjetos()
-                                    showToast('Projeto arquivado!', 'success')
-                                  } catch (err: any) {
-                                    showToast(getErrorMessage(err), 'error')
-                                  }
-                                }}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
-                              >
-                                Arquivar
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); abrirEditarProjetoModal(projeto) }}
-                                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleAlternarStatus(projeto) }}
-                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
-                                  projeto.status === 'ativo'
-                                    ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
-                                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
-                                }`}
-                              >
-                                {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleExcluirProjeto(projeto) }}
-                                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-auto text-center justify-center"
-                              >
-                                Excluir
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={projetosAtivos.map(p => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <table className="w-full text-left border-collapse block md:table">
+                    <thead className="hidden md:table-header-group">
+                      <tr className="border-b border-gray-800 bg-gray-900/30">
+                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
+                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
+                      {projetosFiltrados.map((projeto) => (
+                        <ProjetoRowItem
+                          key={projeto.id}
+                          projeto={projeto}
+                          abaAtiva={abaAtiva}
+                          onEdit={abrirEditarProjetoModal}
+                          onToggleStatus={handleAlternarStatus}
+                          onExcluir={handleExcluirProjeto}
+                          onArquivar={handleArquivarProjeto}
+                          onNavigate={(id) => navigate(`/projeto/${id}`)}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </div>
