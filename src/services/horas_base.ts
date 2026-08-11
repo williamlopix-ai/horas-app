@@ -27,6 +27,7 @@ export async function buscarHorasBaseSemanal(usuarioId: string, semanaRef: strin
       .select('horas_base')
       .eq('usuario_id', usuarioId)
       .lte('semana_inicio', semanaRef)
+      .order('semana_inicio', { ascending: false })
       .order('criado_em', { ascending: false })
       .limit(1)
 
@@ -61,6 +62,7 @@ export async function buscarHorasBaseMensal(usuarioId: string, mesRef: string): 
       .select('horas_base')
       .eq('usuario_id', usuarioId)
       .lte('mes_inicio', mesRef)
+      .order('mes_inicio', { ascending: false })
       .order('criado_em', { ascending: false })
       .limit(1)
 
@@ -164,3 +166,26 @@ export async function listarHistoricoHorasBaseMensal(): Promise<HorasBaseMensal[
     return []
   }
 }
+
+// Exclui todas as horas base semanais com semana_inicio estritamente maior que semanaInicio
+export async function excluirHorasBaseSemanalAPartirDe(semanaInicio: string): Promise<number> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Usuário não autenticado')
+
+    const { data, error } = await supabase
+      .from('horas_base_semanal')
+      .delete()
+      .eq('usuario_id', user.id)
+      .gt('semana_inicio', semanaInicio)
+      .select('id')
+
+    if (error) throw error
+
+    return data ? data.length : 0
+  } catch (error) {
+    console.error('Erro em excluirHorasBaseSemanalAPartirDe:', error)
+    throw error
+  }
+}
+

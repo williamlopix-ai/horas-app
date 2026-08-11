@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from '../components/Sidebar'
@@ -12,6 +12,7 @@ import {
 import {
   salvarHorasBaseSemanal, listarHistoricoHorasBaseSemanal,
   salvarHorasBaseMensal, listarHistoricoHorasBaseMensal,
+  excluirHorasBaseSemanalAPartirDe,
   type HorasBaseSemanal, type HorasBaseMensal
 } from '../services/horas_base'
 import { getErrorMessage } from '../utils/errors'
@@ -28,7 +29,6 @@ export default function Ajustes() {
   const { config, salvarConfig } = useConfig()
 
   // Estados dos Campos de Configuração
-  const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
   const [inicioSemana, setInicioSemana] = useState<InicioSemana>('segunda')
   const [formatoHoras, setFormatoHoras] = useState<'decimal' | 'hhmm'>('decimal')
   const [inicioDia, setInicioDia] = useState<string>('08:00')
@@ -74,6 +74,66 @@ export default function Ajustes() {
   const [historicoHorasBaseSemanal, setHistoricoHorasBaseSemanal] = useState<HorasBaseSemanal[]>([])
   const [savingHorasBaseSemanal, setSavingHorasBaseSemanal] = useState(false)
   const [verTodasHorasBaseSemanal, setVerTodasHorasBaseSemanal] = useState(false)
+  const [modoMetaPosterior, setModoMetaPosterior] = useState<'manter' | 'substituir'>('substituir')
+
+  interface FaixaHorasBaseSemanal {
+    semana_inicio: string
+    vencedora: HorasBaseSemanal
+    substituidas: HorasBaseSemanal[]
+    fim: string | null
+  }
+
+  const [substituidasAbertas, setSubstituidasAbertas] = useState<Record<string, boolean>>({})
+
+  const toggleSubstituidas = (semanaInicio: string) => {
+    setSubstituidasAbertas(prev => ({
+      ...prev,
+      [semanaInicio]: !prev[semanaInicio]
+    }))
+  }
+
+  const faixasHorasBaseSemanal = useMemo<FaixaHorasBaseSemanal[]>(() => {
+    if (!historicoHorasBaseSemanal || historicoHorasBaseSemanal.length === 0) return []
+
+    const grupos = new Map<string, HorasBaseSemanal[]>()
+    for (const item of historicoHorasBaseSemanal) {
+      const list = grupos.get(item.semana_inicio) || []
+      list.push(item)
+      grupos.set(item.semana_inicio, list)
+    }
+
+    const faixasBrutas: Array<{
+      semana_inicio: string
+      vencedora: HorasBaseSemanal
+      substituidas: HorasBaseSemanal[]
+    }> = []
+
+    for (const [semanaInicio, itens] of grupos.entries()) {
+      const ordenados = [...itens].sort((a, b) => b.criado_em.localeCompare(a.criado_em))
+      faixasBrutas.push({
+        semana_inicio: semanaInicio,
+        vencedora: ordenados[0],
+        substituidas: ordenados.slice(1)
+      })
+    }
+
+    faixasBrutas.sort((a, b) => b.semana_inicio.localeCompare(a.semana_inicio))
+
+    return faixasBrutas.map((faixa, index) => {
+      let fim: string | null = null
+      if (index > 0) {
+        const proximaSemanaInicioStr = faixasBrutas[index - 1].semana_inicio
+        const [y, m, d] = proximaSemanaInicioStr.split('-').map(Number)
+        const dtProxima = new Date(y, m - 1, d)
+        dtProxima.setDate(dtProxima.getDate() - 1)
+        fim = formatYYYYMMDD(dtProxima)
+      }
+      return {
+        ...faixa,
+        fim
+      }
+    })
+  }, [historicoHorasBaseSemanal])
 
   // Horas Base Mensal
   const [horasBaseMensal, setHorasBaseMensal] = useState<number>(170)
@@ -105,6 +165,13 @@ export default function Ajustes() {
     if (partes.length === 3) {
       return `${partes[2]}/${partes[1]}/${partes[0]}`
     }
+    return dataStr
+  }
+
+  const formatarDataCurta = (dataStr: string | null) => {
+    if (!dataStr) return '—'
+    const partes = dataStr.split('-')
+    if (partes.length === 3) return `${partes[2]}/${partes[1]}`
     return dataStr
   }
 
@@ -183,8 +250,8 @@ export default function Ajustes() {
 
       // 5. Montar dados da Aba "Configurações"
       const sheetConfigData = [
-        { 'Campo': 'Meta Semanal', 'Valor': `${metaSemanal.toString().replace('.', ',')}h` },
-        { 'Campo': 'Início da Semana', 'Valor': inicioSemana === 'segunda' ? 'Segunda-feira' : 'Domingo' },
+        { 'Campo': 'Meta Semanal', 'Valor': `${horasBaseSemanal.toString().replace('.', ',')}h` },
+        { 'Campo': 'Início da Semana', 'Valor': inicioSemana === 'segunda' ? 'Segunda-feira' : inicioSemana === 'sabado' ? 'Sábado' : 'Domingo' },
         { 'Campo': 'Formato de Horas', 'Valor': formatoHoras === 'decimal' ? 'Decimal' : 'HH:MM' },
         { 'Campo': 'Início do Dia', 'Valor': inicioDia || '—' },
         { 'Campo': 'Fim do Dia', 'Valor': fimDia || '—' }
@@ -259,7 +326,6 @@ export default function Ajustes() {
   }, [user])
 
   useEffect(() => {
-    setMetaSemanal(config.meta_semanal)
     setInicioSemana(config.inicio_semana)
     setFormatoHoras(config.formato_horas)
     setInicioDia(config.inicio_dia || '08:00')
@@ -317,9 +383,26 @@ export default function Ajustes() {
       datasSemanaAnteriorStr = `${d1Prev}/${m1Prev} a ${d2Prev}/${m2Prev}`
     }
 
+    const faixasPosteriores = faixasHorasBaseSemanal
+      .filter(f => f.semana_inicio > semanaEscolhida)
+      .sort((a, b) => a.semana_inicio.localeCompare(b.semana_inicio))
+
+    const faixaPosterior = faixasPosteriores.length > 0 ? faixasPosteriores[0] : null
+    let diaAnteriorFaixaPosteriorStr = ''
+    if (faixaPosterior) {
+      const [yP, mP, dP] = faixaPosterior.semana_inicio.split('-').map(Number)
+      const dtDiaAnterior = new Date(yP, mP - 1, dP)
+      dtDiaAnterior.setDate(dtDiaAnterior.getDate() - 1)
+      diaAnteriorFaixaPosteriorStr = formatYYYYMMDD(dtDiaAnterior)
+    }
+
     return {
+      semanaEscolhida,
       entradaAnterior,
-      datasSemanaAnteriorStr
+      datasSemanaAnteriorStr,
+      faixaPosterior,
+      qtdFaixasPosteriores: faixasPosteriores.length,
+      diaAnteriorFaixaPosteriorStr
     }
   }
 
@@ -327,13 +410,31 @@ export default function Ajustes() {
     if (horasBaseSemanal <= 0) return
     try {
       setSavingHorasBaseSemanal(true)
-      await salvarHorasBaseSemanal(horasBaseSemanal, ajustarParaInicioSemana(semanaInicioHorasBase))
-      const hist = await listarHistoricoHorasBaseSemanal()
-      setHistoricoHorasBaseSemanal(hist)
-      showToast('Horas base semanal salvas!', 'success')
+      const semanaEscolhida = ajustarParaInicioSemana(semanaInicioHorasBase)
+      const faixasPosteriores = faixasHorasBaseSemanal.filter(f => f.semana_inicio > semanaEscolhida)
+      const temPosterior = faixasPosteriores.length > 0
+
+      if (temPosterior && modoMetaPosterior === 'substituir') {
+        await salvarHorasBaseSemanal(horasBaseSemanal, semanaEscolhida)
+        await excluirHorasBaseSemanalAPartirDe(semanaEscolhida)
+        const n = faixasPosteriores.length
+        const texto = n === 1 ? '1 meta posterior removida.' : `${n} metas posteriores removidas.`
+        showToast(`Meta semanal salva. ${texto}`, 'success')
+      } else {
+        await salvarHorasBaseSemanal(horasBaseSemanal, semanaEscolhida)
+        showToast('Horas base semanal salvas!', 'success')
+      }
+
+      setModoMetaPosterior('substituir')
     } catch (err: any) {
       showToast(getErrorMessage(err), 'error')
     } finally {
+      try {
+        const hist = await listarHistoricoHorasBaseSemanal()
+        setHistoricoHorasBaseSemanal(hist)
+      } catch (histErr) {
+        console.error('Erro ao recarregar histórico de horas base semanal:', histErr)
+      }
       setSavingHorasBaseSemanal(false)
     }
   }
@@ -391,7 +492,7 @@ export default function Ajustes() {
       setError(null)
 
       await salvarConfig({
-        meta_semanal: metaSemanal,
+        meta_semanal: config.meta_semanal,
         inicio_semana: inicioSemana,
         formato_horas: formatoHoras,
         inicio_dia: inicioDia,
@@ -578,11 +679,57 @@ export default function Ajustes() {
                       </p>
                       {(() => {
                         const dados = getDadosConfirmacaoMetaSemanal()
-                        if (!dados || !dados.entradaAnterior) return null
+                        if (!dados) return null
                         return (
-                          <p>
-                            A semana anterior ({dados.datasSemanaAnteriorStr}) continua com <span className="text-white font-bold">{dados.entradaAnterior.horas_base.toString().replace('.', ',')}h</span>
-                          </p>
+                          <>
+                            {dados.entradaAnterior && (
+                              <p>
+                                A semana anterior ({dados.datasSemanaAnteriorStr}) continua com <span className="text-white font-bold">{dados.entradaAnterior.horas_base.toString().replace('.', ',')}h</span>
+                              </p>
+                            )}
+                            {dados.faixaPosterior && (
+                              <div className="mt-3 pt-3 border-t border-gray-800/80 space-y-3">
+                                <p className="text-white font-medium text-xs">
+                                  Já existe meta cadastrada depois desta data. O que fazer?
+                                </p>
+                                <div className="space-y-2">
+                                  <label className="flex items-start gap-2.5 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="modoMetaPosterior"
+                                      value="manter"
+                                      checked={modoMetaPosterior === 'manter'}
+                                      onChange={() => setModoMetaPosterior('manter')}
+                                      className="mt-0.5 accent-[#03A9F4]"
+                                    />
+                                    <div>
+                                      <p className="text-white text-xs font-semibold">Manter as metas seguintes</p>
+                                      <p className="text-xs text-[#8B949E]">
+                                        {horasBaseSemanal.toString().replace('.', ',')}h vale de {formatarDataCurta(dados.semanaEscolhida)} a {formatarDataCurta(dados.diaAnteriorFaixaPosteriorStr)}, e a partir de {formatarDataCurta(dados.faixaPosterior.semana_inicio)} volta a valer {dados.faixaPosterior.vencedora.horas_base.toString().replace('.', ',')}h
+                                      </p>
+                                    </div>
+                                  </label>
+
+                                  <label className="flex items-start gap-2.5 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="modoMetaPosterior"
+                                      value="substituir"
+                                      checked={modoMetaPosterior === 'substituir'}
+                                      onChange={() => setModoMetaPosterior('substituir')}
+                                      className="mt-0.5 accent-[#03A9F4]"
+                                    />
+                                    <div>
+                                      <p className="text-white text-xs font-semibold">Substituir as metas seguintes</p>
+                                      <p className="text-xs text-[#8B949E]">
+                                        {horasBaseSemanal.toString().replace('.', ',')}h vale de {formatarDataCurta(dados.semanaEscolhida)} em diante. {dados.qtdFaixasPosteriores === 1 ? '1 meta posterior será removida.' : `${dados.qtdFaixasPosteriores} metas posteriores serão removidas.`}
+                                      </p>
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )
                       })()}
                     </div>
@@ -601,30 +748,74 @@ export default function Ajustes() {
                   </div>
 
                   {/* Histórico */}
-                  {historicoHorasBaseSemanal.length > 0 && (
+                  {faixasHorasBaseSemanal.length > 0 && (
                     <div className="space-y-2 mt-2">
                       <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
                         Histórico
                       </p>
-                      <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                        {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
-                          <div key={h.id} className="flex items-start gap-2">
-                            <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                            <div>
-                              <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
-                              <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
-                              <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                      <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-3">
+                        {(verTodasHorasBaseSemanal ? faixasHorasBaseSemanal : faixasHorasBaseSemanal.slice(0, 3)).map((faixa, idx) => {
+                          const isVigente = idx === 0
+                          const temSubstituidas = faixa.substituidas.length > 0
+                          const aberta = substituidasAbertas[faixa.semana_inicio] || false
+
+                          return (
+                            <div key={faixa.semana_inicio} className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${isVigente ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                                <span className="text-sm text-white font-semibold">
+                                  {faixa.vencedora.horas_base.toString().replace('.', ',')}h
+                                </span>
+                                <span className="text-xs text-[#8B949E]">
+                                  {isVigente
+                                    ? `de ${formatarDataCurta(faixa.semana_inicio)} até hoje`
+                                    : `de ${formatarDataCurta(faixa.semana_inicio)} a ${formatarDataCurta(faixa.fim)}`
+                                  }
+                                </span>
+                                {isVigente && (
+                                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">
+                                    vigente
+                                  </span>
+                                )}
+                              </div>
+
+                              {temSubstituidas && (
+                                <div className="pl-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSubstituidas(faixa.semana_inicio)}
+                                    className="text-xs text-gray-500 hover:text-gray-400 transition-colors focus:outline-none flex items-center gap-1"
+                                  >
+                                    <span>{aberta ? '▲' : '▾'}</span>
+                                    <span>
+                                      {faixa.substituidas.length} {faixa.substituidas.length === 1 ? 'alteração anterior' : 'alterações anteriores'}
+                                    </span>
+                                  </button>
+
+                                  {aberta && (
+                                    <div className="mt-1.5 space-y-1 border-l border-gray-800/80 pl-2.5">
+                                      {faixa.substituidas.map(sub => (
+                                        <div key={sub.id} className="text-xs text-gray-600 flex items-center gap-2">
+                                          <span className="font-medium">{sub.horas_base.toString().replace('.', ',')}h</span>
+                                          <span>•</span>
+                                          <span>{new Date(sub.criado_em).toLocaleDateString('pt-BR')}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
-                      {historicoHorasBaseSemanal.length > 3 && (
+                      {faixasHorasBaseSemanal.length > 3 && (
                         <button
                           type="button"
                           onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
                           className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
                         >
-                          {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
+                          {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${faixasHorasBaseSemanal.length})`}
                         </button>
                       )}
                     </div>
@@ -815,7 +1006,7 @@ export default function Ajustes() {
               <div className="pt-4 border-t border-gray-800/80">
                 <button
                   type="submit"
-                  disabled={saving || metaSemanal <= 0}
+                  disabled={saving}
                   className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
                 >
                   {saving ? (
