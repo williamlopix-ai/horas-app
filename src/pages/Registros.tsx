@@ -697,17 +697,26 @@ export default function Registros() {
 
                                     {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
                                     <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
-                                      {/* Observação */}
-                                      <div className="flex-grow min-w-0 text-left">
-                                        {reg.observacao ? (
+                                      {/* Observação e Subcategoria / Fase */}
+                                      <div className="flex-grow min-w-0 text-left flex items-center gap-2">
+                                        {reg.subcategoria?.nome && (
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 font-medium shrink-0 inline-flex items-center gap-1 max-w-full">
+                                            {reg.subcategoria.fase?.nome && (
+                                              <>
+                                                <span className="text-gray-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                                <span className="text-gray-600">/</span>
+                                              </>
+                                            )}
+                                            <span className="text-gray-300 truncate">{reg.subcategoria.nome}</span>
+                                          </span>
+                                        )}
+                                        {reg.observacao && (
                                           <span
-                                            className="text-sm text-gray-400 block truncate"
+                                            className="text-sm text-gray-400 truncate min-w-0"
                                             title={reg.observacao}
                                           >
                                             {reg.observacao}
                                           </span>
-                                        ) : (
-                                          <span className="text-sm text-gray-600 italic"></span>
                                         )}
                                       </div>
 
@@ -830,17 +839,26 @@ export default function Registros() {
 
                             {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
                             <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
-                              {/* Observação */}
-                              <div className="flex-grow min-w-0 text-left">
-                                {reg.observacao ? (
+                              {/* Observação e Subcategoria / Fase */}
+                              <div className="flex-grow min-w-0 text-left flex items-center gap-2">
+                                {reg.subcategoria?.nome && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 font-medium shrink-0 inline-flex items-center gap-1 max-w-full">
+                                    {reg.subcategoria.fase?.nome && (
+                                      <>
+                                        <span className="text-gray-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                        <span className="text-gray-600">/</span>
+                                      </>
+                                    )}
+                                    <span className="text-gray-300 truncate">{reg.subcategoria.nome}</span>
+                                  </span>
+                                )}
+                                {reg.observacao && (
                                   <span
-                                    className="text-sm text-gray-400 block truncate"
+                                    className="text-sm text-gray-400 truncate min-w-0"
                                     title={reg.observacao}
                                   >
                                     {reg.observacao}
                                   </span>
-                                ) : (
-                                  <span className="text-sm text-gray-600 italic"></span>
                                 )}
                               </div>
 

@@ -45,7 +45,7 @@ export interface Registro {
   observacao: string | null
   semana_inicio: string | null
   subcategoria_id: string | null
-  subcategoria?: { nome: string } | null
+  subcategoria?: { nome: string; fase?: { nome: string } | null } | null
   criado_em: string
 }
 

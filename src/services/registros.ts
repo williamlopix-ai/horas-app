@@ -37,7 +37,7 @@ export async function listarRegistros(
     .select(`
       *,
       projeto:projetos(nome, cor, tipo, status, nome_original),
-      subcategoria:subcategorias(nome)
+      subcategoria:subcategorias(nome, fase:fases(nome))
     `)
     .eq('usuario_id', usuarioId)
     .order('data', { ascending: false })
