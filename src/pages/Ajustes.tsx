@@ -20,7 +20,7 @@ import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
-import { inicioDaSemana, intervaloDaSemana, type InicioSemana } from '../utils/semana'
+import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 
 export default function Ajustes() {
   const { user } = useAuth()
@@ -271,7 +271,7 @@ export default function Ajustes() {
     return inicioDaSemana(dataStr, inicioSemana)
   }
 
-  function formatarIntervaloSemana(dataStr: string): string {
+  function formatarIntervaloSemana(dataStr: string, prefixo: string = 'Semana de '): string {
     if (!dataStr) return ''
     const { inicio, fim } = intervaloDaSemana(dataStr, inicioSemana)
     const dias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
@@ -284,7 +284,43 @@ export default function Ajustes() {
     const m2 = String(fim.getMonth() + 1).padStart(2, '0')
     const ds2 = dias[fim.getDay()]
     
-    return `Semana de ${ds1} ${d1}/${m1} a ${ds2} ${d2}/${m2}`
+    return `${prefixo}${ds1} ${d1}/${m1} a ${ds2} ${d2}/${m2}`
+  }
+
+  const getDadosConfirmacaoMetaSemanal = () => {
+    if (!semanaInicioHorasBase) return null
+
+    const semanaEscolhida = ajustarParaInicioSemana(semanaInicioHorasBase)
+    const [y, m, d] = semanaEscolhida.split('-').map(Number)
+    const dtAnterior = new Date(y, m - 1, d)
+    dtAnterior.setDate(dtAnterior.getDate() - 7)
+    const semanaAnteriorStr = formatYYYYMMDD(dtAnterior)
+
+    const historicoFiltrado = historicoHorasBaseSemanal
+      .filter(h => h.semana_inicio <= semanaAnteriorStr)
+      .sort((a, b) => {
+        if (a.semana_inicio !== b.semana_inicio) {
+          return b.semana_inicio.localeCompare(a.semana_inicio)
+        }
+        return b.criado_em.localeCompare(a.criado_em)
+      })
+
+    const entradaAnterior = historicoFiltrado.length > 0 ? historicoFiltrado[0] : null
+
+    let datasSemanaAnteriorStr = ''
+    if (entradaAnterior) {
+      const { inicio: iPrev, fim: fPrev } = intervaloDaSemana(semanaAnteriorStr, inicioSemana)
+      const d1Prev = String(iPrev.getDate()).padStart(2, '0')
+      const m1Prev = String(iPrev.getMonth() + 1).padStart(2, '0')
+      const d2Prev = String(fPrev.getDate()).padStart(2, '0')
+      const m2Prev = String(fPrev.getMonth() + 1).padStart(2, '0')
+      datasSemanaAnteriorStr = `${d1Prev}/${m1Prev} a ${d2Prev}/${m2Prev}`
+    }
+
+    return {
+      entradaAnterior,
+      datasSemanaAnteriorStr
+    }
   }
 
   const handleSalvarHorasBaseSemanal = async () => {
@@ -489,6 +525,110 @@ export default function Ajustes() {
                       Domingo
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Meta Semanal */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Semanal</h3>
+                  <p className="text-xs text-gray-400">
+                    Total de horas que você se compromete a lançar por semana. Vale a partir da semana escolhida, sem alterar semanas anteriores.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Linha 1: Valores e Data */}
+                  <div className="flex flex-wrap gap-4 items-end">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        Horas
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        value={horasBaseSemanal}
+                        onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
+                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        A partir de
+                      </label>
+                      <input
+                        type="date"
+                        value={semanaInicioHorasBase}
+                        onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
+                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bloco de Confirmação de Vigência */}
+                  {semanaInicioHorasBase && (
+                    <div className="bg-[#0B0E14] border border-gray-800/80 rounded-xl p-3 text-xs text-[#8B949E] space-y-1">
+                      <p>
+                        Nova meta: <span className="text-white font-bold">{horasBaseSemanal.toString().replace('.', ',')}h</span>
+                      </p>
+                      <p>
+                        Vale a partir da {formatarIntervaloSemana(semanaInicioHorasBase, 'semana de ')}
+                      </p>
+                      {(() => {
+                        const dados = getDadosConfirmacaoMetaSemanal()
+                        if (!dados || !dados.entradaAnterior) return null
+                        return (
+                          <p>
+                            A semana anterior ({dados.datasSemanaAnteriorStr}) continua com <span className="text-white font-bold">{dados.entradaAnterior.horas_base.toString().replace('.', ',')}h</span>
+                          </p>
+                        )
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Linha: Salvar */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleSalvarHorasBaseSemanal}
+                      disabled={savingHorasBaseSemanal}
+                      className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                    >
+                      {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
+                    </button>
+                  </div>
+
+                  {/* Histórico */}
+                  {historicoHorasBaseSemanal.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        Histórico
+                      </p>
+                      <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                        {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
+                          <div key={h.id} className="flex items-start gap-2">
+                            <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                            <div>
+                              <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
+                              <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
+                              <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {historicoHorasBaseSemanal.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
+                          className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                        >
+                          {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -701,102 +841,8 @@ export default function Ajustes() {
                 <p className="text-sm text-gray-400">Gerencie suas metas e margens de horas billable.</p>
               </div>
 
-              {/* Horas Base Semanal */}
-              <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={() => setOpenBillableSection(openBillableSection === 'horasBaseSemanal' ? null : 'horasBaseSemanal')}
-                  className="w-full flex items-center justify-between text-left focus:outline-none"
-                >
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Semanal</h3>
-                    <p className="text-xs text-gray-400">Total de horas disponíveis por semana. Usada como base para todos os cálculos.</p>
-                  </div>
-                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseSemanal' ? 'rotate-0' : '-rotate-90'}`} />
-                </button>
-                {openBillableSection === 'horasBaseSemanal' && (
-                  <div className="space-y-4">
-                    {/* Linha 1: Valores e Data */}
-                    <div className="flex flex-wrap gap-4 items-end">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                          Horas
-                        </label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0"
-                          value={horasBaseSemanal}
-                          onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
-                        />
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                          A partir de
-                        </label>
-                        <input
-                          type="date"
-                          value={semanaInicioHorasBase}
-                          onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
-                        />
-                        {semanaInicioHorasBase && (
-                          <span className="text-xs text-[#8B949E]">
-                            {formatarIntervaloSemana(semanaInicioHorasBase)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Linha 2: Salvar */}
-                    <div>
-                      <button
-                        type="button"
-                        onClick={handleSalvarHorasBaseSemanal}
-                        disabled={savingHorasBaseSemanal}
-                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
-                      >
-                        {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
-                      </button>
-                    </div>
-
-                    {/* Histórico */}
-                    {historicoHorasBaseSemanal.length > 0 && (
-                      <div className="space-y-2 mt-2">
-                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                          Histórico
-                        </p>
-                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
-                          {(verTodasHorasBaseSemanal ? historicoHorasBaseSemanal : historicoHorasBaseSemanal.slice(0, 3)).map((h, idx) => (
-                            <div key={h.id} className="flex items-start gap-2">
-                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                              <div>
-                                <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
-                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
-                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {historicoHorasBaseSemanal.length > 3 && (
-                          <button
-                            type="button"
-                            onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
-                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
-                          >
-                            {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseSemanal.length})`}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* Horas Base Mensal */}
-              <div className="pt-4 border-t border-gray-800/80">
+              <div className="space-y-4">
                 <button
                   type="button"
                   onClick={() => setOpenBillableSection(openBillableSection === 'horasBaseMensal' ? null : 'horasBaseMensal')}
