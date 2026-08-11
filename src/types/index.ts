@@ -17,7 +17,7 @@ export interface Configuracao {
   id: string
   usuario_id: string
   meta_semanal: number
-  inicio_semana: 'segunda' | 'domingo'
+  inicio_semana: 'segunda' | 'domingo' | 'sabado'
   formato_horas: 'decimal' | 'hhmm'
   inicio_dia: string
   fim_dia: string

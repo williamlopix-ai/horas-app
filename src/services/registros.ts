@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { Registro } from '../types'
+import { inicioDaSemana } from '../utils/semana'
 
 // Função auxiliar para calcular a duração centesimal
 export function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): number {
@@ -24,18 +25,7 @@ export function calcularDuracaoCentesimal(horaInicio: string, horaFim: string): 
 
 // Função auxiliar para calcular a segunda-feira da semana de início sem bugs de fuso horário
 export function calcularSemanaInicio(dataStr: string): string {
-  const [year, month, day] = dataStr.split('-').map(Number)
-  const data = new Date(year, month - 1, day)
-  const diaSemana = data.getDay() // 0=dom, 1=seg...6=sab
-  const diasAtéSegunda = diaSemana === 0 ? 6 : diaSemana - 1
-  const segunda = new Date(data)
-  segunda.setDate(data.getDate() - diasAtéSegunda)
-  
-  const yyyy = segunda.getFullYear()
-  const mm = String(segunda.getMonth() + 1).padStart(2, '0')
-  const dd = String(segunda.getDate()).padStart(2, '0')
-  
-  return `${yyyy}-${mm}-${dd}`
+  return inicioDaSemana(dataStr, 'segunda')
 }
 
 export async function listarRegistros(

@@ -12,19 +12,12 @@ import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
+import { inicioDaSemana } from '../utils/semana'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
 function getSemanaInicioParaData(dataStr: string): string {
-  const [year, month, day] = dataStr.split('-').map(Number)
-  const data = new Date(year, month - 1, day)
-  const diaSemana = data.getDay()
-  const diasAteSegunda = diaSemana === 0 ? 6 : diaSemana - 1
-  data.setDate(data.getDate() - diasAteSegunda)
-  const yyyy = data.getFullYear()
-  const mm = String(data.getMonth() + 1).padStart(2, '0')
-  const dd = String(data.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+  return inicioDaSemana(dataStr, 'segunda')
 }
 
 export default function Resumo() {

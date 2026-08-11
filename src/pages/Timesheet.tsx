@@ -8,22 +8,11 @@ import { listarRegistros } from '../services/registros'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
+import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD } from '../utils/semana'
 
 // Funções auxiliares de data
 function getMonday(d: Date) {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  date.setDate(diff);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function formatYYYYMMDD(d: Date) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return inicioDaSemanaDate(d, 'segunda')
 }
 
 function formatWeekInterval(monday: Date) {
@@ -108,13 +97,7 @@ export default function Timesheet() {
   }
 
   const days = useMemo(() => {
-    const d = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentDate)
-      date.setDate(currentDate.getDate() + i)
-      d.push(date)
-    }
-    return d
+    return diasDaSemana(currentDate, 'segunda')
   }, [currentDate])
 
   const tableData = useMemo(() => {

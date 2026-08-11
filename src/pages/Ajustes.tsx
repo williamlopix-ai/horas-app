@@ -20,6 +20,7 @@ import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
+import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 
 export default function Ajustes() {
   const { user } = useAuth()
@@ -27,7 +28,7 @@ export default function Ajustes() {
 
   // Estados dos Campos de Configuração
   const [metaSemanal, setMetaSemanal] = useState<number>(42.5)
-  const [inicioSemana, setInicioSemana] = useState<'segunda' | 'domingo'>('segunda')
+  const [inicioSemana, setInicioSemana] = useState<InicioSemana>('segunda')
   const [formatoHoras, setFormatoHoras] = useState<'decimal' | 'hhmm'>('decimal')
   const [inicioDia, setInicioDia] = useState<string>('08:00')
   const [fimDia, setFimDia] = useState<string>('18:00')
@@ -158,11 +159,11 @@ export default function Ajustes() {
       // 4. Montar dados da Aba "Projetos"
       const sheetProjetosData = (projetos || []).map((proj: any) => {
         const tipoMapped = proj.tipo === 'projeto' ? 'Projeto' : proj.tipo === 'rotina' ? 'Rotina' : proj.tipo || '—'
-        
+
         const statusMapped = proj.status === 'ativo' ? 'Ativo'
           : proj.status === 'encerrado' ? 'Encerrado'
-          : proj.status === 'excluido' ? 'Excluído'
-          : proj.status || '—'
+            : proj.status === 'excluido' ? 'Excluído'
+              : proj.status || '—'
 
         const arquivadoMapped = proj.arquivado ? 'Sim' : 'Não'
         const horasContratadasMapped = typeof proj.horas_contratadas === 'number'
@@ -231,7 +232,7 @@ export default function Ajustes() {
         listarHistoricoHorasBaseMensal(),
         listarHistoricoMargemMensal()
       ])
-      
+
       setMetaSemanal(config.meta_semanal)
       setInicioSemana(config.inicio_semana)
       setFormatoHoras(config.formato_horas)
@@ -265,15 +266,7 @@ export default function Ajustes() {
   }, [user])
 
   function ajustarParaSegunda(dataStr: string): string {
-    const [year, month, day] = dataStr.split('-').map(Number)
-    const data = new Date(year, month - 1, day)
-    const diaSemana = data.getDay()
-    const diasAteSegunda = diaSemana === 0 ? 6 : diaSemana - 1
-    data.setDate(data.getDate() - diasAteSegunda)
-    const yyyy = data.getFullYear()
-    const mm = String(data.getMonth() + 1).padStart(2, '0')
-    const dd = String(data.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
+    return inicioDaSemana(dataStr, 'segunda')
   }
 
   const handleSalvarHorasBaseSemanal = async () => {
@@ -399,7 +392,7 @@ export default function Ajustes() {
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
-      
+
       <Sidebar />
 
       {/* Conteúdo Principal */}
@@ -430,250 +423,246 @@ export default function Ajustes() {
               </div>
             ))}
             <div className="pt-4 border-t border-gray-800/80">
-               <Skeleton className="w-48 h-12 rounded-xl" />
+              <Skeleton className="w-48 h-12 rounded-xl" />
             </div>
           </div>
         ) : (
           <>
             <form onSubmit={handleSave} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
-            
 
 
-            {/* 2. Início da Semana */}
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Início da Semana</h3>
-                <p className="text-xs text-gray-400">Escolha o dia em que o ciclo da semana se inicia para os resumos.</p>
-              </div>
-              <div className="flex justify-center sm:justify-start w-full">
-                <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setInicioSemana('segunda')}
-                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                      inicioSemana === 'segunda'
+
+              {/* 2. Início da Semana */}
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Início da Semana</h3>
+                  <p className="text-xs text-gray-400">Escolha o dia em que o ciclo da semana se inicia para os resumos.</p>
+                </div>
+                <div className="flex justify-center sm:justify-start w-full">
+                  <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setInicioSemana('segunda')}
+                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'segunda'
                         ? 'bg-[#03A9F4] text-white shadow'
                         : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Segunda-feira
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInicioSemana('domingo')}
-                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                      inicioSemana === 'domingo'
+                        }`}
+                    >
+                      Segunda-feira
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInicioSemana('domingo')}
+                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'domingo'
                         ? 'bg-[#03A9F4] text-white shadow'
                         : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Domingo
-                  </button>
+                        }`}
+                    >
+                      Domingo
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 3. Formato de Exibição das Horas */}
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Formato de Horas</h3>
-                <p className="text-xs text-gray-400">Selecione como deseja visualizar as horas no aplicativo.</p>
-              </div>
-              <div className="flex justify-center sm:justify-start w-full">
-                <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setFormatoHoras('decimal')}
-                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                      formatoHoras === 'decimal'
+              {/* 3. Formato de Exibição das Horas */}
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Formato de Horas</h3>
+                  <p className="text-xs text-gray-400">Selecione como deseja visualizar as horas no aplicativo.</p>
+                </div>
+                <div className="flex justify-center sm:justify-start w-full">
+                  <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setFormatoHoras('decimal')}
+                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${formatoHoras === 'decimal'
                         ? 'bg-[#03A9F4] text-white shadow'
                         : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    Decimal (ex: 1,50h)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormatoHoras('hhmm')}
-                    className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${
-                      formatoHoras === 'hhmm'
+                        }`}
+                    >
+                      Decimal (ex: 1,50h)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormatoHoras('hhmm')}
+                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${formatoHoras === 'hhmm'
                         ? 'bg-[#03A9F4] text-white shadow'
                         : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    HH:MM (ex: 01:30)
-                  </button>
+                        }`}
+                    >
+                      HH:MM (ex: 01:30)
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 4. Horário Padrão do Dia */}
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horário Padrão do Dia</h3>
-                <p className="text-xs text-gray-400">Defina os horários de início e fim da sua jornada de trabalho.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
-                  <label htmlFor="inicioDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                    Início
-                  </label>
-                  <input
-                    id="inicioDia"
-                    type="time"
-                    value={inicioDia}
-                    onChange={(e) => setInicioDia(e.target.value)}
-                    className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                  />
+              {/* 4. Horário Padrão do Dia */}
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horário Padrão do Dia</h3>
+                  <p className="text-xs text-gray-400">Defina os horários de início e fim da sua jornada de trabalho.</p>
                 </div>
-                <div className="flex flex-col gap-1.5 flex-1 w-full">
-                  <label htmlFor="fimDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                    Fim
-                  </label>
-                  <input
-                    id="fimDia"
-                    type="time"
-                    value={fimDia}
-                    onChange={(e) => setFimDia(e.target.value)}
-                    className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                  />
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col gap-1.5 flex-1 w-full">
+                    <label htmlFor="inicioDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Início
+                    </label>
+                    <input
+                      id="inicioDia"
+                      type="time"
+                      value={inicioDia}
+                      onChange={(e) => setInicioDia(e.target.value)}
+                      className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5 flex-1 w-full">
+                    <label htmlFor="fimDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Fim
+                    </label>
+                    <input
+                      id="fimDia"
+                      type="time"
+                      value={fimDia}
+                      onChange={(e) => setFimDia(e.target.value)}
+                      className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 5. Exceções por Dia da Semana */}
-            <div className="space-y-4 pt-4 border-t border-gray-800/80">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Exceções por Dia da Semana</h3>
-                <p className="text-xs text-[#8B949E] mt-1">Defina horários fixos para dias específicos da semana. Valem para novos lançamentos.</p>
-              </div>
+              {/* 5. Exceções por Dia da Semana */}
+              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Exceções por Dia da Semana</h3>
+                  <p className="text-xs text-[#8B949E] mt-1">Defina horários fixos para dias específicos da semana. Valem para novos lançamentos.</p>
+                </div>
 
-              {/* Lista de dias configurados */}
-              {horariosSemana.length > 0 && (
-                <div className="space-y-2">
-                  {horariosSemana.map(h => (
-                    <div key={h.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-xl p-3">
-                      <div>
-                        <div className="text-sm font-semibold text-white">{DIAS_SEMANA[h.dia_semana]}</div>
-                        <div className="text-xs text-[#8B949E]">{h.inicio_dia} às {h.fim_dia}</div>
+                {/* Lista de dias configurados */}
+                {horariosSemana.length > 0 && (
+                  <div className="space-y-2">
+                    {horariosSemana.map(h => (
+                      <div key={h.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-xl p-3">
+                        <div>
+                          <div className="text-sm font-semibold text-white">{DIAS_SEMANA[h.dia_semana]}</div>
+                          <div className="text-xs text-[#8B949E]">{h.inicio_dia} às {h.fim_dia}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoverDia(h.id)}
+                          className="p-2 text-gray-500 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-colors focus:outline-none"
+                          title="Remover"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Form de Adicionar Novo Dia */}
+                {showNovoDia ? (
+                  <div className="bg-[#0B0E14] border border-gray-800 rounded-xl p-4 space-y-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        Dia da Semana
+                      </label>
+                      <select
+                        value={novoDiaSemana}
+                        onChange={(e) => setNovoDiaSemana(Number(e.target.value))}
+                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                      >
+                        {diasDisponiveis.map(d => (
+                          <option key={d.index} value={d.index}>{d.nome}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex flex-col gap-1.5 flex-1">
+                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          Início
+                        </label>
+                        <input
+                          type="time"
+                          value={novoInicioDia}
+                          onChange={(e) => setNovoInicioDia(e.target.value)}
+                          className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5 flex-1">
+                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          Fim
+                        </label>
+                        <input
+                          type="time"
+                          value={novoFimDia}
+                          onChange={(e) => setNovoFimDia(e.target.value)}
+                          className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
                       <button
                         type="button"
-                        onClick={() => handleRemoverDia(h.id)}
-                        className="p-2 text-gray-500 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-colors focus:outline-none"
-                        title="Remover"
+                        onClick={() => setShowNovoDia(false)}
+                        className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAddDiaSemana}
+                        disabled={savingDia || diasDisponiveis.length === 0}
+                        className="flex-1 py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all focus:outline-none disabled:opacity-50"
+                      >
+                        {savingDia ? 'Salvando...' : 'Salvar'}
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Form de Adicionar Novo Dia */}
-              {showNovoDia ? (
-                <div className="bg-[#0B0E14] border border-gray-800 rounded-xl p-4 space-y-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                      Dia da Semana
-                    </label>
-                    <select
-                      value={novoDiaSemana}
-                      onChange={(e) => setNovoDiaSemana(Number(e.target.value))}
-                      className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                    >
-                      {diasDisponiveis.map(d => (
-                        <option key={d.index} value={d.index}>{d.nome}</option>
-                      ))}
-                    </select>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                        Início
-                      </label>
-                      <input
-                        type="time"
-                        value={novoInicioDia}
-                        onChange={(e) => setNovoInicioDia(e.target.value)}
-                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                        Fim
-                      </label>
-                      <input
-                        type="time"
-                        value={novoFimDia}
-                        onChange={(e) => setNovoFimDia(e.target.value)}
-                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowNovoDia(false)}
-                      className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleAddDiaSemana}
-                      disabled={savingDia || diasDisponiveis.length === 0}
-                      className="flex-1 py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all focus:outline-none disabled:opacity-50"
-                    >
-                      {savingDia ? 'Salvando...' : 'Salvar'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                horariosSemana.length < 6 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (diasDisponiveis.length > 0) {
-                        setNovoDiaSemana(diasDisponiveis[0].index)
-                        setShowNovoDia(true)
-                      }
-                    }}
-                    className="flex items-center gap-2 text-[#03A9F4] hover:text-[#0288D1] text-sm font-bold transition-colors focus:outline-none"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Adicionar dia
-                  </button>
-                )
-              )}
-            </div>
-
-            {/* Ação de Salvar */}
-            <div className="pt-4 border-t border-gray-800/80">
-              <button
-                type="submit"
-                disabled={saving || metaSemanal <= 0}
-                className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
-              >
-                {saving ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Salvando preferências...
-                  </>
                 ) : (
-                  'Salvar Configurações'
+                  horariosSemana.length < 6 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (diasDisponiveis.length > 0) {
+                          setNovoDiaSemana(diasDisponiveis[0].index)
+                          setShowNovoDia(true)
+                        }
+                      }}
+                      className="flex items-center gap-2 text-[#03A9F4] hover:text-[#0288D1] text-sm font-bold transition-colors focus:outline-none"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Adicionar dia
+                    </button>
+                  )
                 )}
-              </button>
-            </div>
+              </div>
+
+              {/* Ação de Salvar */}
+              <div className="pt-4 border-t border-gray-800/80">
+                <button
+                  type="submit"
+                  disabled={saving || metaSemanal <= 0}
+                  className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
+                >
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Salvando preferências...
+                    </>
+                  ) : (
+                    'Salvar Configurações'
+                  )}
+                </button>
+              </div>
 
             </form>
 

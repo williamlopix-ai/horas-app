@@ -18,6 +18,7 @@ import type { Registro, Projeto, HorarioDia, HorarioSemana } from '../types'
 import ModalRegistro from '../components/ModalRegistro'
 import ModalHorarioDia from '../components/ModalHorarioDia'
 import { Skeleton } from '../components/Skeleton'
+import { intervaloDaSemana } from '../utils/semana'
 
 // Helper para converter "HH:MM" em minutos para cálculo de gaps
 function timeToMinutes(time: string): number {
@@ -26,17 +27,7 @@ function timeToMinutes(time: string): number {
 }
 
 function getWeekRange(dateStr: string) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  const date = new Date(y, m - 1, d)
-  const day = date.getDay()
-  const diffToMonday = day === 0 ? -6 : 1 - day
-  const monday = new Date(date)
-  monday.setDate(date.getDate() + diffToMonday)
-  
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  
-  return { inicio: monday, fim: sunday }
+  return intervaloDaSemana(dateStr, 'segunda')
 }
 
 function getWeekKey(dateStr: string) {

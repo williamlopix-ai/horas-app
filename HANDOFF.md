@@ -100,11 +100,39 @@ id, projeto_id, usuario_id, nome, ordem, horas_contratadas, criado_em
 
 ## Próximos passos
 
-### Pendente — única etapa restante do plano original
-**Plano semanal (Fase 4):** dividir as horas contratadas por semana (ex.: 20h / 20h / 10h), com comparação entre planejado e realizado.
+### ⚠️ Protocolo para a próxima sessão
+Ao iniciar, além de ler este HANDOFF, **perguntar ao usuário se ele quer implementar agora as "Melhorias funcionais pendentes"** listadas abaixo — elas foram aprovadas em sessão anterior (protótipo de redesign) mas ainda não entraram no app real. Não presumir que ele já esqueceu ou desistiu delas.
+
+### Melhorias funcionais pendentes (aprovadas, ainda não implementadas)
+Todas independem do redesign visual e podem ser feitas antes dele, no app atual, via Antigravity:
+
+1. **Registros — observação e subcategoria visíveis na linha do lançamento.** Hoje ficam escondidas; replicar o padrão já usado na seção Lançamentos de `ProjetoDetalhe.tsx`.
+2. **Paleta de comandos / busca global (⌘K).** Buscar projeto, lançar horas, navegar entre telas. Biblioteca sugerida: `cmdk`.
+3. **Registros — navegação por semana.** Setas ‹ › e botão "Hoje". Hoje só existe filtro de dia específico e de projeto.
+4. **Modal de lançar horas — conferir campo de data.** Avaliar se falta um campo de data claro no fluxo atual.
+5. **Gap de tempo ocioso clicável.** A linha "Xh ocioso" entre dois lançamentos vira botão que abre o `ModalRegistro` já com `hora_inicio`/`hora_fim` preenchidos com os limites do gap.
+6. **Excluir registro com desfazer, não confirmação.** Excluir direto + toast "Desfazer" por ~6s (padrão Gmail/Linear). Vale **só para registro** — fase, subcategoria e projeto continuam com `ModalConfirmacao`, não mudar.
+7. **Aviso de dias incompletos em Registros.** Para cada dia já passado da semana corrente, comparar jornada esperada (`horarios_dia`/`horarios_semana`/padrão) contra o total lançado. Listar os dias abaixo do esperado, clicáveis (expande e rola até o dia). Nunca considerar dias futuros. Só informativo, nunca bloqueia, com botão de dispensar.
+8. **Estados vazios que agem.** Em vez de só "nenhum lançamento"/"nenhum lembrete", incluir um botão de ação direta (ex.: "Lançar a jornada", "Criar lembrete").
+
+Protótipo interativo de referência (não é o app real, é só demonstração visual/interação): `horas-prototipo.html`, gerado em sessão anterior — mostra as 8 melhorias acima funcionando, mais a paleta de comandos e os dois temas.
+
+### Pendente — plano semanal
+**Plano semanal:** dividir as horas contratadas por semana (ex.: 20h / 20h / 10h), com comparação entre planejado e realizado.
 - Tabela `plano_semanal` (id, projeto_id, usuario_id, semana_inicio, horas_planejadas) com RLS
 - Seção na página de detalhe do projeto
 - **Decisão pendente:** validar em uso real se essa divisão ajuda antes de implementar
+
+### Redesign visual — PAUSADO de propósito
+O usuário decidiu terminar as melhorias funcionais (acima) primeiro, e só depois migrar o layout. Não sugerir retomar por conta própria — só quando ele sinalizar.
+
+Já definido quando retomar:
+- **Tema escuro continua como padrão** (não claro — essa era a sugestão inicial, mas foi revertida). O escuro é redesenhado do zero (3 camadas de elevação, texto quase-branco, botão primário quase-branco), não é o `#0B0E14` atual.
+- Paleta neutra com viés azulado, acento azul só para foco/link, tríade de estado dessaturada (musgo/ocre/terracota) substituindo verde/âmbar/vermelho Material.
+- Tipografia em 3 papéis: Instrument Sans (títulos), Inter (interface), IBM Plex Mono (números, `tabular-nums` obrigatório).
+- Navegação agrupada por intenção, botão fixo "+ Lançar horas", atalhos 1-4, paleta de comandos ⌘K.
+- Execução: branch `redesign` a partir da `main` (nunca repositório separado), preview automático da Vercel, ordem tokens → primitivas → casca → telas → acabamento.
+- Documentos de referência já entregues: `horas-redesign.html` (plano completo com as 10 decisões) e `horas-prototipo.html` (protótipo navegável).
 
 ### Horizonte
 - Aba Gráficos no Resumo (recharts): drill-down por projeto/subcategoria, barras horas × dia
