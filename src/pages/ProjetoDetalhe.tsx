@@ -12,8 +12,10 @@ import { listarProjetos } from '../services/projetos'
 import { listarRegistros, atualizarRegistro, calcularSemanaInicio } from '../services/registros'
 import { subcategoriasService } from '../services/subcategorias'
 import { fasesService } from '../services/fases'
+import { listarPlanoSemanal, salvarPlanoSemana, excluirPlanoSemana } from '../services/plano_semanal'
+import { inicioDaSemana, intervaloDaSemana } from '../utils/semana'
 import { getErrorMessage } from '../utils/errors'
-import type { Projeto, Registro, Subcategoria, Fase } from '../types'
+import type { Projeto, Registro, Subcategoria, Fase, PlanoSemanal } from '../types'
 
 type RegistroComDetalhes = Registro & {
   projeto: {
@@ -41,6 +43,13 @@ export default function ProjetoDetalhe() {
   const [todosRegistros, setTodosRegistros] = useState<RegistroComDetalhes[]>([])
   const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([])
   const [fases, setFases] = useState<Fase[]>([])
+
+  // Estados do Plano Semanal
+  const [planosSemanais, setPlanosSemanais] = useState<PlanoSemanal[]>([])
+  const [semanaInputDate, setSemanaInputDate] = useState<string>('')
+  const [horasPlanejadasInput, setHorasPlanejadasInput] = useState<string>('')
+  const [salvandoPlano, setSalvandoPlano] = useState(false)
+  const [planoExcluindo, setPlanoExcluindo] = useState<PlanoSemanal | null>(null)
 
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
 
@@ -76,11 +85,12 @@ export default function ProjetoDetalhe() {
       if (!silencioso) setLoading(true)
       setError(null)
 
-      const [projs, todosRegs, subs, fas] = await Promise.all([
+      const [projs, todosRegs, subs, fas, planos] = await Promise.all([
         listarProjetos(user.id),
         listarRegistros(user.id),
         subcategoriasService.listarSubcategorias(id),
-        fasesService.listarFases(id)
+        fasesService.listarFases(id),
+        listarPlanoSemanal(user.id, id)
       ])
 
       const regsDoProjeto = todosRegs.filter(r => r.projeto_id === id)
@@ -91,6 +101,7 @@ export default function ProjetoDetalhe() {
       setRegistros(regsDoProjeto)
       setSubcategorias(subs)
       setFases(fas)
+      setPlanosSemanais(planos)
 
       const subIdsPorFase: Record<string, Set<string>> = {}
       fas.forEach(f => {
@@ -707,6 +718,105 @@ export default function ProjetoDetalhe() {
       </div>
     )
   }
+
+  // Auxiliares do Plano Semanal
+  const formatarIntervaloCurto = (inicio: Date, fim: Date) => {
+    const dias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+    const d1 = String(inicio.getDate()).padStart(2, '0')
+    const m1 = String(inicio.getMonth() + 1).padStart(2, '0')
+    const ds1 = dias[inicio.getDay()]
+
+    const d2 = String(fim.getDate()).padStart(2, '0')
+    const m2 = String(fim.getMonth() + 1).padStart(2, '0')
+    const ds2 = dias[fim.getDay()]
+
+    return `${ds1} ${d1}/${m1} a ${ds2} ${d2}/${m2}`
+  }
+
+  const semanaInicioCalculada = useMemo(() => {
+    if (!semanaInputDate) return ''
+    return inicioDaSemana(semanaInputDate, config.inicio_semana)
+  }, [semanaInputDate, config.inicio_semana])
+
+  const planoExistente = useMemo(() => {
+    if (!semanaInicioCalculada) return null
+    return planosSemanais.find(p => p.semana_inicio === semanaInicioCalculada) || null
+  }, [semanaInicioCalculada, planosSemanais])
+
+  const handleSalvarPlanoSemanal = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !id || !semanaInputDate) return
+    const val = parseFloat(horasPlanejadasInput.replace(',', '.'))
+    if (isNaN(val) || val < 0) return
+
+    try {
+      setSalvandoPlano(true)
+      await salvarPlanoSemana({
+        usuarioId: user.id,
+        projetoId: id,
+        semanaInicio: semanaInicioCalculada,
+        horasPlanejadas: val
+      })
+      await carregarDados(true)
+      setSemanaInputDate('')
+      setHorasPlanejadasInput('')
+      showToast('Plano semanal salvo!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao salvar plano semanal:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoPlano(false)
+    }
+  }
+
+  const handleConfirmarExclusaoPlano = async () => {
+    if (!planoExcluindo) return
+    try {
+      setSalvandoPlano(true)
+      await excluirPlanoSemana(planoExcluindo.id)
+      setPlanoExcluindo(null)
+      await carregarDados(true)
+      showToast('Plano semanal excluído!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao excluir plano semanal:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoPlano(false)
+    }
+  }
+
+  const handleSelecionarPlanoParaEdicao = (plano: PlanoSemanal) => {
+    setSemanaInputDate(plano.semana_inicio)
+    setHorasPlanejadasInput(plano.horas_planejadas.toString())
+  }
+
+  const totalPlanejado = useMemo(() => {
+    return planosSemanais.reduce((acc, p) => acc + p.horas_planejadas, 0)
+  }, [planosSemanais])
+
+  const planosOrdenados = useMemo(() => {
+    return [...planosSemanais].sort((a, b) => a.semana_inicio.localeCompare(b.semana_inicio))
+  }, [planosSemanais])
+
+  const planosComMetricas = useMemo(() => {
+    return planosOrdenados.map(plano => {
+      const realizado = registros
+        .filter(r => (r.semana_inicio || calcularSemanaInicio(r.data, config.inicio_semana)) === plano.semana_inicio)
+        .reduce((acc, r) => acc + r.duracao, 0)
+      const diferenca = realizado - plano.horas_planejadas
+      return {
+        ...plano,
+        realizado,
+        diferenca
+      }
+    })
+  }, [planosOrdenados, registros, config.inicio_semana])
+
+  const totalRealizadoPlanos = useMemo(() => {
+    return planosComMetricas.reduce((acc, p) => acc + p.realizado, 0)
+  }, [planosComMetricas])
+
+  const totalDiferencaPlanos = totalRealizadoPlanos - totalPlanejado
 
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const temFasesComContrato = fases.some(f => f.horas_contratadas !== null && f.horas_contratadas > 0)
@@ -1326,6 +1436,177 @@ export default function ProjetoDetalhe() {
               )}
             </div>
 
+            {/* Seção Plano Semanal */}
+            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-white">Plano semanal</h2>
+                <p className="text-xs text-[#8B949E] mt-1">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
+              </div>
+
+              {planosSemanais.length === 0 && (
+                <div className="bg-[#0B0E14]/60 border border-gray-800/80 rounded-xl p-4 text-xs text-[#8B949E]">
+                  Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
+                </div>
+              )}
+
+              {/* Form de adicionar/editar semana */}
+              <form onSubmit={handleSalvarPlanoSemanal} className="space-y-3">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex flex-col gap-1 min-w-[160px]">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Semana
+                    </label>
+                    <input
+                      type="date"
+                      value={semanaInputDate}
+                      onChange={(e) => setSemanaInputDate(e.target.value)}
+                      disabled={salvandoPlano}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1 w-36">
+                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      Horas planejadas
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={horasPlanejadasInput}
+                      onChange={(e) => setHorasPlanejadasInput(e.target.value)}
+                      placeholder="0"
+                      disabled={salvandoPlano}
+                      className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
+                    className="px-5 py-2.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 h-[42px]"
+                  >
+                    {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
+                  </button>
+                </div>
+
+                {semanaInputDate && (() => {
+                  const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
+                  const intervaloTexto = formatarIntervaloCurto(inicio, fim)
+                  return (
+                    <div className="text-xs text-[#8B949E]">
+                      Semana de {intervaloTexto}
+                      {planoExistente && (
+                        <span> — já existe plano de {planoExistente.horas_planejadas.toString().replace('.', ',')}h, será atualizado</span>
+                      )}
+                    </div>
+                  )
+                })()}
+              </form>
+
+              {/* Linha Informativa Comparação com Contratado */}
+              {temContratado && planosSemanais.length > 0 && (() => {
+                const excedeu = totalPlanejado > totalContratado!
+                const diff = Math.abs(totalContratado! - totalPlanejado)
+                return (
+                  <div className={`text-xs font-medium ${excedeu ? 'text-[#F44336]' : 'text-gray-300'}`}>
+                    Planejado: <span className="font-bold font-mono">{totalPlanejado.toFixed(2).replace('.', ',')}h</span> de{' '}
+                    <span className="font-bold font-mono">{totalContratado!.toFixed(2).replace('.', ',')}h</span> contratadas —{' '}
+                    {excedeu
+                      ? `${diff.toFixed(2).replace('.', ',')}h acima do contratado`
+                      : `faltam ${diff.toFixed(2).replace('.', ',')}h a planejar`
+                    }
+                  </div>
+                )
+              })()}
+
+              {/* Tabela de semanas planejadas */}
+              {planosComMetricas.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-[#8B949E] uppercase tracking-wider font-semibold">
+                        <th className="py-2 px-3">Semana</th>
+                        <th className="py-2 px-3 text-right">Planejado</th>
+                        <th className="py-2 px-3 text-right">Realizado</th>
+                        <th className="py-2 px-3 text-right">Diferença</th>
+                        <th className="py-2 px-2 text-center w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/50">
+                      {planosComMetricas.map((item) => {
+                        const { inicio, fim } = intervaloDaSemana(item.semana_inicio, config.inicio_semana)
+                        const d1 = String(inicio.getDate()).padStart(2, '0')
+                        const m1 = String(inicio.getMonth() + 1).padStart(2, '0')
+                        const d2 = String(fim.getDate()).padStart(2, '0')
+                        const m2 = String(fim.getMonth() + 1).padStart(2, '0')
+                        const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
+
+                        const corDiferenca = item.diferenca >= 0 ? '#4CAF50' : '#F44336'
+
+                        return (
+                          <tr
+                            key={item.id}
+                            onClick={() => handleSelecionarPlanoParaEdicao(item)}
+                            className="hover:bg-[#1E2530]/40 transition-colors cursor-pointer group"
+                          >
+                            <td className="py-2.5 px-3 text-white font-medium">
+                              {periodoStr}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                              {item.horas_planejadas.toFixed(2).replace('.', ',')}h
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                              {item.realizado.toFixed(2).replace('.', ',')}h
+                            </td>
+                            <td
+                              className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
+                              style={{ color: corDiferenca }}
+                            >
+                              {item.diferenca.toFixed(2).replace('.', ',')}h
+                            </td>
+                            <td className="py-2.5 px-2 text-center">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setPlanoExcluindo(item)
+                                }}
+                                className="p-1 text-gray-500 hover:text-[#F44336] transition-colors opacity-0 group-hover:opacity-100"
+                                title="Excluir plano semanal"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-gray-800 font-bold">
+                        <td className="py-3 px-3 text-white">Total</td>
+                        <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                          {totalPlanejado.toFixed(2).replace('.', ',')}h
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                          {totalRealizadoPlanos.toFixed(2).replace('.', ',')}h
+                        </td>
+                        <td
+                          className="py-3 px-3 text-right font-mono tabular-nums"
+                          style={{ color: totalDiferencaPlanos >= 0 ? '#4CAF50' : '#F44336' }}
+                        >
+                          {totalDiferencaPlanos.toFixed(2).replace('.', ',')}h
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-4 pt-2">
               <div>
                 <h2 className="text-xl font-bold text-white">Lançamentos</h2>
@@ -1467,6 +1748,17 @@ export default function ProjetoDetalhe() {
               textoCancelar="Cancelar"
               onConfirmar={handleConfirmarRemoverDivisao}
               onCancelar={() => setConfirmandoRemoverDivisao(false)}
+            />
+
+            <ModalConfirmacao
+              isOpen={planoExcluindo !== null}
+              titulo="Excluir Plano Semanal"
+              mensagem="Excluir este plano semanal? As horas lançadas no projeto continuam inalteradas."
+              perigo={true}
+              textoConfirmar="Excluir"
+              textoCancelar="Cancelar"
+              onConfirmar={handleConfirmarExclusaoPlano}
+              onCancelar={() => setPlanoExcluindo(null)}
             />
 
             {faseComSubsExcluindo && (() => {

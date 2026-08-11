@@ -87,3 +87,14 @@ export interface Fase {
   horas_contratadas: number | null
   criado_em: string
 }
+
+export interface PlanoSemanal {
+  id: string
+  usuario_id: string
+  projeto_id: string
+  fase_id: string | null
+  semana_inicio: string
+  horas_planejadas: number
+  criado_em: string
+}
+
