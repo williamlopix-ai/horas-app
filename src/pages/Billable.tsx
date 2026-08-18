@@ -20,7 +20,9 @@ import {
 } from '../services/metas_billable'
 import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
 import { SkeletonRow } from '../components/Skeleton'
-import { inicioDaSemanaDate, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
+import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
+
+const LABELS_DIA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 // Helper functions for week/month start date and formatting
 function getInicioSemana(d: Date, inicio: InicioSemana) {
@@ -380,37 +382,27 @@ export default function Billable() {
   }
 
   const days = useMemo(() => {
-    const d = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentDate)
-      date.setDate(currentDate.getDate() + i)
-      d.push(date)
-    }
-    return d
-  }, [currentDate])
+    return diasDaSemana(currentDate, config.inicio_semana)
+  }, [currentDate, config.inicio_semana])
 
   const tableData = useMemo(() => {
     const rows = billableProjetos.map(p => {
-      const getDuracao = (date: Date) => {
-        const dStr = formatYYYYMMDD(date)
-        return p.horas_por_dia[dStr] || 0
-      }
+      const diasValores = days.map(d => {
+        const dStr = formatYYYYMMDD(d)
+        return {
+          dataStr: dStr,
+          duracao: p.horas_por_dia[dStr] || 0
+        }
+      })
 
-      const seg = getDuracao(days[0])
-      const ter = getDuracao(days[1])
-      const qua = getDuracao(days[2])
-      const qui = getDuracao(days[3])
-      const sex = getDuracao(days[4])
-      const sab = getDuracao(days[5])
-      const dom = getDuracao(days[6])
-
-      const total = seg + ter + qua + qui + sex + sab + dom
+      const total = diasValores.reduce((acc, item) => acc + item.duracao, 0)
 
       return {
         projetoId: p.projeto_id,
         codigo: p.codigo_externo,
         nome: p.nome,
-        seg, ter, qua, qui, sex, sab, dom, total
+        diasValores,
+        total
       }
     })
 
@@ -421,17 +413,16 @@ export default function Billable() {
   }, [billableProjetos, days])
 
   const totals = useMemo(() => {
-    return tableData.reduce((acc, row) => ({
-      seg: acc.seg + row.seg,
-      ter: acc.ter + row.ter,
-      qua: acc.qua + row.qua,
-      qui: acc.qui + row.qui,
-      sex: acc.sex + row.sex,
-      sab: acc.sab + row.sab,
-      dom: acc.dom + row.dom,
-      total: acc.total + row.total
-    }), { seg: 0, ter: 0, qua: 0, qui: 0, sex: 0, sab: 0, dom: 0, total: 0 })
-  }, [tableData])
+    const totDias = Array(days.length).fill(0)
+    let totalGeral = 0
+    tableData.forEach(row => {
+      row.diasValores.forEach((dv, idx) => {
+        totDias[idx] += dv.duracao
+      })
+      totalGeral += row.total
+    })
+    return { dias: totDias, total: totalGeral }
+  }, [tableData, days])
 
   const weeksSorted = useMemo(() => {
     const setSemanas = new Set<string>()
@@ -484,13 +475,13 @@ export default function Billable() {
   const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
     if (duracao === 0) {
       return (
-        <td className="py-3 px-4 text-sm text-right text-[#8B949E] font-mono border-x border-gray-800/30">
+        <td key={dateStr} className="py-3 px-4 text-sm text-right text-[#8B949E] font-mono border-x border-gray-800/30">
           —
         </td>
       )
     }
     return (
-      <td className="py-3 px-4 text-sm text-right text-white font-mono border-x border-gray-800/30 font-semibold">
+      <td key={dateStr} className="py-3 px-4 text-sm text-right text-white font-mono border-x border-gray-800/30 font-semibold">
         <Link
           to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
           className="hover:text-[#03A9F4] transition-colors"
@@ -858,13 +849,11 @@ export default function Billable() {
                         <tr className="border-b-2 border-[#03A9F4]/30 bg-[#0B0E14] text-xs uppercase text-[#8B949E] tracking-wider">
                           <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold min-w-[100px]">WO</th>
                           <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold w-full">Nome</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Seg</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Ter</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Qua</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Qui</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Sex</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Sáb</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">Dom</th>
+                          {days.map((d) => (
+                            <th key={d.toISOString()} className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">
+                              {LABELS_DIA[d.getDay()]}
+                            </th>
+                          ))}
                           <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-24">Total</th>
                         </tr>
                       </thead>
@@ -896,13 +885,9 @@ export default function Billable() {
                                   BILLABLE
                                 </span>
                               </td>
-                              {renderCell(row.seg, formatYYYYMMDD(days[0]), row.projetoId)}
-                              {renderCell(row.ter, formatYYYYMMDD(days[1]), row.projetoId)}
-                              {renderCell(row.qua, formatYYYYMMDD(days[2]), row.projetoId)}
-                              {renderCell(row.qui, formatYYYYMMDD(days[3]), row.projetoId)}
-                              {renderCell(row.sex, formatYYYYMMDD(days[4]), row.projetoId)}
-                              {renderCell(row.sab, formatYYYYMMDD(days[5]), row.projetoId)}
-                              {renderCell(row.dom, formatYYYYMMDD(days[6]), row.projetoId)}
+                              {row.diasValores.map((dv) =>
+                                renderCell(dv.duracao, dv.dataStr, row.projetoId)
+                              )}
                               <td className={`py-3 px-4 text-right font-mono text-sm font-semibold ${
                                 row.total > 0 ? 'text-[#4CAF50]' : 'text-[#8B949E]'
                               }`}>
@@ -917,13 +902,11 @@ export default function Billable() {
                           <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
                             Total da Semana
                           </td>
-                          <td className={getFooterClass(totals.seg)}>{totals.seg === 0 ? '—' : totals.seg.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.ter)}>{totals.ter === 0 ? '—' : totals.ter.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.qua)}>{totals.qua === 0 ? '—' : totals.qua.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.qui)}>{totals.qui === 0 ? '—' : totals.qui.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.sex)}>{totals.sex === 0 ? '—' : totals.sex.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.sab)}>{totals.sab === 0 ? '—' : totals.sab.toFixed(2).replace('.', ',')}</td>
-                          <td className={getFooterClass(totals.dom)}>{totals.dom === 0 ? '—' : totals.dom.toFixed(2).replace('.', ',')}</td>
+                          {totals.dias.map((tot, idx) => (
+                            <td key={idx} className={getFooterClass(tot)}>
+                              {tot === 0 ? '—' : tot.toFixed(2).replace('.', ',')}
+                            </td>
+                          ))}
                           <td className={`py-4 px-4 text-right font-mono text-base font-black ${
                             totals.total >= metaReal ? 'text-[#4CAF50]' : 'text-[#F44336]'
                           }`}>
