@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar'
 import { listarProjetos } from '../services/projetos'
 import { useConfig } from '../contexts/ConfigContext'
 import { listarRegistros } from '../services/registros'
+import { buscarHorasBaseSemanal } from '../services/horas_base'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
@@ -37,6 +38,10 @@ function formatDuracao(duracao: number) {
   return duracao.toFixed(2).replace('.', ',');
 }
 
+function formatMeta(val: number): string {
+  return Number(val.toFixed(2)).toString().replace('.', ',');
+}
+
 export default function Timesheet() {
   const { user } = useAuth()
   const { showToast } = useToast()
@@ -44,6 +49,7 @@ export default function Timesheet() {
 
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
+  const [metaSemanaExibida, setMetaSemanaExibida] = useState<number>(config.meta_semanal)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -53,6 +59,8 @@ export default function Timesheet() {
 
   const toggleRow = (id: string) =>
     setSelectedRow(prev => (prev === id ? null : id))
+
+  const metaDiaria = metaSemanaExibida / 5
 
   const carregarDados = async () => {
     if (!user) return
@@ -66,13 +74,17 @@ export default function Timesheet() {
       const sunday = new Date(currentDate)
       sunday.setDate(currentDate.getDate() + 6)
 
-      const regs = await listarRegistros(user.id)
-
       const startStr = formatYYYYMMDD(currentDate)
       const endStr = formatYYYYMMDD(sunday)
 
+      const [regs, baseSemanal] = await Promise.all([
+        listarRegistros(user.id),
+        buscarHorasBaseSemanal(user.id, startStr)
+      ])
+
       const regsSemana = regs.filter(r => r.data >= startStr && r.data <= endStr)
       setRegistros(regsSemana)
+      setMetaSemanaExibida(baseSemanal ?? config.meta_semanal)
 
     } catch (err: any) {
       console.error('Erro ao carregar timesheet:', err)
@@ -204,7 +216,7 @@ export default function Timesheet() {
     let className = "py-4 px-4 text-center font-mono text-sm font-bold border-x border-gray-800/30 "
     if (duracao === 0) {
       className += "text-gray-500"
-    } else if (duracao > 0 && duracao < 8.5) {
+    } else if (duracao > 0 && duracao < metaDiaria) {
       className += "text-red-400"
     } else {
       className += "text-emerald-400"
@@ -276,20 +288,28 @@ export default function Timesheet() {
           </div>
 
           {/* Navegação Semanal */}
-          <div className="flex items-center justify-center gap-4 w-full md:w-auto md:flex-1 md:justify-center">
-            <button onClick={prevWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <span className="text-base font-bold text-white min-w-[200px] text-center select-none">
-              {formatWeekInterval(currentDate)}
-            </span>
-            <button onClick={nextWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </button>
+          <div className="flex flex-col items-center justify-center gap-1 w-full md:w-auto md:flex-1">
+            <div className="flex items-center justify-center gap-4">
+              <button onClick={prevWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <span className="text-base font-bold text-white min-w-[200px] text-center select-none">
+                {formatWeekInterval(currentDate)}
+              </span>
+              <button onClick={nextWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+            {/* Indicador no Mobile */}
+            <div className="md:hidden text-center text-xs text-[#8B949E]">
+              Meta: {formatMeta(metaSemanaExibida)}h/sem · {formatMeta(metaDiaria)}h/dia
+            </div>
           </div>
 
-          {/* Espaçador para centralizar a navegação no desktop */}
-          <div className="hidden md:block w-72" />
+          {/* Indicador no Desktop */}
+          <div className="hidden md:block w-72 text-right text-xs text-[#8B949E]">
+            Meta: {formatMeta(metaSemanaExibida)}h/sem · {formatMeta(metaDiaria)}h/dia
+          </div>
         </div>
 
         {/* Tabela ou Estado Vazio */}
