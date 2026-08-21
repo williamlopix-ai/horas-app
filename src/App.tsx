@@ -15,6 +15,7 @@ const Projetos  = lazy(() => import('./pages/Projetos'))
 const Ajustes   = lazy(() => import('./pages/Ajustes'))
 const Lembretes = lazy(() => import('./pages/Lembretes'))
 const ProjetoDetalhe = lazy(() => import('./pages/ProjetoDetalhe'))
+const UIKit = lazy(() => import('./pages/UIKit'))
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             {/* Rotas Públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/ui-kit" element={<UIKit />} />
             
             <Route
               path="/registros"
