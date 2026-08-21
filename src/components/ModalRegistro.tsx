@@ -64,6 +64,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   const [data, setData] = useState<string>(obterDataLocalHoje())
   const [horaInicio, setHoraInicio] = useState<string>('09:00')
   const [horaFim, setHoraFim] = useState<string>('18:00')
+  const [horasEditadasManualmente, setHorasEditadasManualmente] = useState(false)
   const [observacao, setObservacao] = useState<string>('')
   const [subcategoriaId, setSubcategoriaId] = useState<string>('')
   const [subcategoriasDisponiveis, setSubcategoriasDisponiveis] = useState<Subcategoria[]>([])
@@ -100,6 +101,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         setHoraInicio(registro.hora_inicio.slice(0, 5)) // Garantir formato HH:MM
         setHoraFim(registro.hora_fim.slice(0, 5)) // Garantir formato HH:MM
         setObservacao(registro.observacao || '')
+        setHorasEditadasManualmente(false)
       } else {
         setProjetoId('')
         setSubcategoriaId('')
@@ -107,6 +109,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         setHoraInicio('09:00')
         setHoraFim('18:00')
         setObservacao('')
+        setHorasEditadasManualmente(false)
       }
       setError(null)
     }
@@ -160,7 +163,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
   // Efeito para buscar horário padrão pela hierarquia quando data muda (apenas criação)
   useEffect(() => {
-    if (!isOpen || registro || !user || !data) return
+    if (!isOpen || registro || !user || !data || horasEditadasManualmente) return
 
     let montado = true
     const userId = user.id
@@ -205,7 +208,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     buscarHorariosHierarquia()
 
     return () => { montado = false }
-  }, [isOpen, registro, user, data, config])
+  }, [isOpen, registro, user, data, config, horasEditadasManualmente])
 
   // Validações em tempo real
   const validacaoErro = useMemo(() => {
@@ -458,7 +461,10 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                   type="time"
                   required
                   value={horaInicio}
-                  onChange={(e) => setHoraInicio(e.target.value)}
+                  onChange={(e) => {
+                    setHoraInicio(e.target.value)
+                    setHorasEditadasManualmente(true)
+                  }}
                   className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
                 />
               </div>
@@ -472,7 +478,10 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                   type="time"
                   required
                   value={horaFim}
-                  onChange={(e) => setHoraFim(e.target.value)}
+                  onChange={(e) => {
+                    setHoraFim(e.target.value)
+                    setHorasEditadasManualmente(true)
+                  }}
                   className={`bg-[#0B0E14] border rounded-xl px-4 py-3 text-sm text-white focus:outline-none w-full cursor-pointer transition-colors ${
                     validacaoErro ? 'border-red-500/50 focus:border-red-500' : 'border-gray-800 focus:border-[#03A9F4]'
                   }`}
