@@ -28,6 +28,8 @@ type RegistroComDetalhes = Registro & {
   subcategoria?: { nome: string } | null
 }
 
+const DESTINO_PENDENTE = '__escolher__'
+
 export default function ProjetoDetalhe() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -303,11 +305,6 @@ export default function ProjetoDetalhe() {
   }, [faseComSubsExcluindo, salvandoFase])
 
   const handleClicarExcluirFase = (fase: Fase) => {
-    if (fases.length <= 1) {
-      setConfirmandoRemoverDivisao(true)
-      return
-    }
-
     const subsDaFase = subcategorias.filter(s => s.fase_id === fase.id)
     if (subsDaFase.length === 0) {
       setFaseExcluindoId(fase.id)
@@ -316,12 +313,13 @@ export default function ProjetoDetalhe() {
         .filter(f => f.id !== fase.id)
         .sort((a, b) => a.ordem - b.ordem)
 
-      const padraoDestino = outrasFases.length > 0 ? outrasFases[0].id : ''
+      const padraoDestino = outrasFases.length > 0 ? DESTINO_PENDENTE : ''
       setFaseComSubsExcluindo({ faseId: fase.id, destinoFaseId: padraoDestino })
     }
   }
 
   const handleConfirmarExclusaoFaseComSubs = async (faseId: string, destinoFaseIdRaw: string) => {
+    if (destinoFaseIdRaw === DESTINO_PENDENTE) return
     try {
       setSalvandoFase(true)
       const destinoFaseId = destinoFaseIdRaw.trim() !== '' ? destinoFaseIdRaw : null
@@ -1257,7 +1255,7 @@ export default function ProjetoDetalhe() {
                       disabled={salvandoFase}
                       className="text-xs text-[#F44336] hover:underline font-semibold transition-colors disabled:opacity-50"
                     >
-                      Remover divisão em fases
+                      Remover todas as fases
                     </button>
                   </div>
                 </div>
@@ -1741,8 +1739,8 @@ export default function ProjetoDetalhe() {
 
             <ModalConfirmacao
               isOpen={confirmandoRemoverDivisao}
-              titulo="Remover divisão em fases"
-              mensagem="Todas as fases serão excluídas e o projeto volta ao modo simples. As subcategorias, os lançamentos e as horas contratadas são mantidos."
+              titulo="Remover todas as fases"
+              mensagem="Todas as fases deste projeto serão excluídas e ele volta ao modo simples. As subcategorias, os lançamentos e as horas contratadas são mantidos. Para remover apenas uma fase, use o ✕ da própria fase."
               perigo={true}
               textoConfirmar="Remover"
               textoCancelar="Cancelar"
@@ -1806,6 +1804,9 @@ export default function ProjetoDetalhe() {
                         disabled={salvandoFase}
                         className="w-full bg-[#0B0E14] border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] disabled:opacity-50"
                       >
+                        {faseComSubsExcluindo.destinoFaseId === DESTINO_PENDENTE && (
+                          <option value={DESTINO_PENDENTE} disabled>Escolha o destino</option>
+                        )}
                         {outrasFases.map(f => (
                           <option key={f.id} value={f.id}>
                             {f.nome}
@@ -1827,7 +1828,7 @@ export default function ProjetoDetalhe() {
                       <button
                         type="button"
                         onClick={() => handleConfirmarExclusaoFaseComSubs(faseAlvo.id, faseComSubsExcluindo.destinoFaseId)}
-                        disabled={salvandoFase}
+                        disabled={salvandoFase || faseComSubsExcluindo.destinoFaseId === DESTINO_PENDENTE}
                         className="w-full sm:flex-1 py-3 px-4 bg-[#F44336] hover:bg-red-600 active:bg-red-700 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 focus:outline-none disabled:opacity-50"
                       >
                         {salvandoFase ? 'Excluindo...' : 'Excluir fase'}
