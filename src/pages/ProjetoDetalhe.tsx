@@ -55,6 +55,11 @@ export default function ProjetoDetalhe() {
   const [planoExcluindo, setPlanoExcluindo] = useState<PlanoSemanal | null>(null)
 
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
+  const [secoesExpandidas, setSecoesExpandidas] = useState<Record<string, boolean>>({})
+
+  const toggleSecao = (chave: string) => {
+    setSecoesExpandidas(prev => ({ ...prev, [chave]: !prev[chave] }))
+  }
 
   // Estados de gestão de Fases na página
   const [editandoFaseId, setEditandoFaseId] = useState<string | null>(null)
@@ -105,19 +110,9 @@ export default function ProjetoDetalhe() {
       setFases(fas)
       setPlanosSemanais(planos)
 
-      const subIdsPorFase: Record<string, Set<string>> = {}
-      fas.forEach(f => {
-        const ids = subs.filter(s => s.fase_id === f.id).map(s => s.id)
-        subIdsPorFase[f.id] = new Set(ids)
-      })
-
       const expandidasMap: Record<string, boolean> = {}
       fas.forEach(f => {
-        const setIds = subIdsPorFase[f.id] || new Set()
-        const duracaoFase = regsDoProjeto
-          .filter(r => r.subcategoria_id && setIds.has(r.subcategoria_id))
-          .reduce((acc, r) => acc + r.duracao, 0)
-        expandidasMap[f.id] = duracaoFase > 0
+        expandidasMap[f.id] = false
       })
       setFasesExpandidas(expandidasMap)
 
@@ -148,11 +143,8 @@ export default function ProjetoDetalhe() {
     return `Semana de ${d}/${m}`
   }
 
-  const toggleSemana = (semanaKey: string, isFirst: boolean) => {
-    setSemanasExpandidas(prev => {
-      const atual = prev[semanaKey] !== undefined ? prev[semanaKey] : isFirst
-      return { ...prev, [semanaKey]: !atual }
-    })
+  const toggleSemana = (semanaKey: string) => {
+    setSemanasExpandidas(prev => ({ ...prev, [semanaKey]: !prev[semanaKey] }))
   }
 
   const registrosPorSemana = useMemo(() => {
@@ -987,7 +979,30 @@ export default function ProjetoDetalhe() {
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
+                <button
+                  type="button"
+                  onClick={() => toggleSecao('fases')}
+                  className="flex items-center gap-2 group focus:outline-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
+                  {!secoesExpandidas['fases'] && (
+                    <span className="text-xs text-[#8B949E] font-normal">
+                      {fases.length === 0
+                        ? `${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`
+                        : `${fases.length} ${fases.length === 1 ? 'fase' : 'fases'} · ${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`}
+                    </span>
+                  )}
+                </button>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -1012,7 +1027,7 @@ export default function ProjetoDetalhe() {
                   )}
                 </div>
               </div>
-              {fases.length > 0 ? (
+              {secoesExpandidas['fases'] && fases.length > 0 && (
                 <div className="space-y-4">
                   {fases.map((fase) => {
                     const subsDaFase = subcategorias.filter(s => s.fase_id === fase.id)
@@ -1347,7 +1362,9 @@ export default function ProjetoDetalhe() {
                   })()}
 
                 </div>
-              ) : (
+              )}
+
+              {secoesExpandidas['fases'] && fases.length === 0 && (
                 /* PROJETO SEM FASES */
                 <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-3">
                   {(() => {
@@ -1496,273 +1513,331 @@ export default function ProjetoDetalhe() {
             {/* Seção Plano Semanal */}
             <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white">Plano semanal</h2>
-                <p className="text-xs text-[#8B949E] mt-1">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
-              </div>
-
-              {planosSemanais.length === 0 && (
-                <div className="bg-[#0B0E14]/60 border border-gray-800/80 rounded-xl p-4 text-xs text-[#8B949E]">
-                  Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
-                </div>
-              )}
-
-              {/* Form de adicionar/editar semana */}
-              <form onSubmit={handleSalvarPlanoSemanal} className="space-y-3">
-                <div className="flex flex-wrap items-end gap-3">
-                  <div className="flex flex-col gap-1 min-w-[160px]">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Semana
-                    </label>
-                    <input
-                      type="date"
-                      value={semanaInputDate}
-                      onChange={(e) => setSemanaInputDate(e.target.value)}
-                      disabled={salvandoPlano}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1 w-36">
-                    <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
-                      Horas planejadas
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      value={horasPlanejadasInput}
-                      onChange={(e) => setHorasPlanejadasInput(e.target.value)}
-                      placeholder="0"
-                      disabled={salvandoPlano}
-                      className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
-                    />
-                  </div>
-
+                <div className="flex items-center justify-between">
                   <button
-                    type="submit"
-                    disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
-                    className="px-5 py-2.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 h-[42px]"
+                    type="button"
+                    onClick={() => toggleSecao('plano')}
+                    className="flex items-center gap-2 group focus:outline-none"
                   >
-                    {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <h2 className="text-xl font-bold text-white">Plano semanal</h2>
+                    {!secoesExpandidas['plano'] && (
+                      <span className="text-xs text-[#8B949E] font-normal">
+                        {planosSemanais.length === 1 ? '1 semana planejada' : `${planosSemanais.length} semanas planejadas`}
+                      </span>
+                    )}
                   </button>
                 </div>
+                {secoesExpandidas['plano'] && (
+                  <p className="text-xs text-[#8B949E] mt-1">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
+                )}
+              </div>
 
-                {semanaInputDate && (() => {
-                  const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
-                  const intervaloTexto = formatarIntervaloCurto(inicio, fim)
-                  return (
-                    <div className="text-xs text-[#8B949E]">
-                      Semana de {intervaloTexto}
-                      {planoExistente && (
-                        <span> — já existe plano de {planoExistente.horas_planejadas.toString().replace('.', ',')}h, será atualizado</span>
-                      )}
+              {secoesExpandidas['plano'] && (
+                <>
+                  {planosSemanais.length === 0 && (
+                    <div className="bg-[#0B0E14]/60 border border-gray-800/80 rounded-xl p-4 text-xs text-[#8B949E]">
+                      Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
                     </div>
-                  )
-                })()}
-              </form>
+                  )}
 
-              {/* Linha Informativa Comparação com Contratado */}
-              {temContratado && planosSemanais.length > 0 && (() => {
-                const excedeu = totalPlanejado > totalContratado!
-                const diff = Math.abs(totalContratado! - totalPlanejado)
-                return (
-                  <div className={`text-xs font-medium ${excedeu ? 'text-[#F44336]' : 'text-gray-300'}`}>
-                    Planejado: <span className="font-bold font-mono">{totalPlanejado.toFixed(2).replace('.', ',')}h</span> de{' '}
-                    <span className="font-bold font-mono">{totalContratado!.toFixed(2).replace('.', ',')}h</span> contratadas —{' '}
-                    {excedeu
-                      ? `${diff.toFixed(2).replace('.', ',')}h acima do contratado`
-                      : `faltam ${diff.toFixed(2).replace('.', ',')}h a planejar`
-                    }
-                  </div>
-                )
-              })()}
+                  {/* Form de adicionar/editar semana */}
+                  <form onSubmit={handleSalvarPlanoSemanal} className="space-y-3">
+                    <div className="flex flex-wrap items-end gap-3">
+                      <div className="flex flex-col gap-1 min-w-[160px]">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Semana
+                        </label>
+                        <input
+                          type="date"
+                          value={semanaInputDate}
+                          onChange={(e) => setSemanaInputDate(e.target.value)}
+                          disabled={salvandoPlano}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                        />
+                      </div>
 
-              {/* Tabela de semanas planejadas */}
-              {planosComMetricas.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-800 text-[#8B949E] uppercase tracking-wider font-semibold">
-                        <th className="py-2 px-3">Semana</th>
-                        <th className="py-2 px-3 text-right">Planejado</th>
-                        <th className="py-2 px-3 text-right">Realizado</th>
-                        <th className="py-2 px-3 text-right">Diferença</th>
-                        <th className="py-2 px-2 text-center w-10"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800/50">
-                      {planosComMetricas.map((item) => {
-                        const { inicio, fim } = intervaloDaSemana(item.semana_inicio, config.inicio_semana)
-                        const d1 = String(inicio.getDate()).padStart(2, '0')
-                        const m1 = String(inicio.getMonth() + 1).padStart(2, '0')
-                        const d2 = String(fim.getDate()).padStart(2, '0')
-                        const m2 = String(fim.getMonth() + 1).padStart(2, '0')
-                        const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
+                      <div className="flex flex-col gap-1 w-36">
+                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                          Horas planejadas
+                        </label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={horasPlanejadasInput}
+                          onChange={(e) => setHorasPlanejadasInput(e.target.value)}
+                          placeholder="0"
+                          disabled={salvandoPlano}
+                          className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                        />
+                      </div>
 
-                        const corDiferenca = item.diferenca >= 0 ? '#4CAF50' : '#F44336'
+                      <button
+                        type="submit"
+                        disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
+                        className="px-5 py-2.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 h-[42px]"
+                      >
+                        {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
+                      </button>
+                    </div>
 
-                        return (
-                          <tr
-                            key={item.id}
-                            onClick={() => handleSelecionarPlanoParaEdicao(item)}
-                            className="hover:bg-[#1E2530]/40 transition-colors cursor-pointer group"
-                          >
-                            <td className="py-2.5 px-3 text-white font-medium">
-                              {periodoStr}
+                    {semanaInputDate && (() => {
+                      const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
+                      const intervaloTexto = formatarIntervaloCurto(inicio, fim)
+                      return (
+                        <div className="text-xs text-[#8B949E]">
+                          Semana de {intervaloTexto}
+                          {planoExistente && (
+                            <span> — já existe plano de {planoExistente.horas_planejadas.toString().replace('.', ',')}h, será atualizado</span>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </form>
+
+                  {/* Linha Informativa Comparação com Contratado */}
+                  {temContratado && planosSemanais.length > 0 && (() => {
+                    const excedeu = totalPlanejado > totalContratado!
+                    const diff = Math.abs(totalContratado! - totalPlanejado)
+                    return (
+                      <div className={`text-xs font-medium ${excedeu ? 'text-[#F44336]' : 'text-gray-300'}`}>
+                        Planejado: <span className="font-bold font-mono">{totalPlanejado.toFixed(2).replace('.', ',')}h</span> de{' '}
+                        <span className="font-bold font-mono">{totalContratado!.toFixed(2).replace('.', ',')}h</span> contratadas —{' '}
+                        {excedeu
+                          ? `${diff.toFixed(2).replace('.', ',')}h acima do contratado`
+                          : `faltam ${diff.toFixed(2).replace('.', ',')}h a planejar`
+                        }
+                      </div>
+                    )
+                  })()}
+
+                  {/* Tabela de semanas planejadas */}
+                  {planosComMetricas.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-800 text-[#8B949E] uppercase tracking-wider font-semibold">
+                            <th className="py-2 px-3">Semana</th>
+                            <th className="py-2 px-3 text-right">Planejado</th>
+                            <th className="py-2 px-3 text-right">Realizado</th>
+                            <th className="py-2 px-3 text-right">Diferença</th>
+                            <th className="py-2 px-2 text-center w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800/50">
+                          {planosComMetricas.map((item) => {
+                            const { inicio, fim } = intervaloDaSemana(item.semana_inicio, config.inicio_semana)
+                            const d1 = String(inicio.getDate()).padStart(2, '0')
+                            const m1 = String(inicio.getMonth() + 1).padStart(2, '0')
+                            const d2 = String(fim.getDate()).padStart(2, '0')
+                            const m2 = String(fim.getMonth() + 1).padStart(2, '0')
+                            const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
+
+                            const corDiferenca = item.diferenca >= 0 ? '#4CAF50' : '#F44336'
+
+                            return (
+                              <tr
+                                key={item.id}
+                                onClick={() => handleSelecionarPlanoParaEdicao(item)}
+                                className="hover:bg-[#1E2530]/40 transition-colors cursor-pointer group"
+                              >
+                                <td className="py-2.5 px-3 text-white font-medium">
+                                  {periodoStr}
+                                </td>
+                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                                  {item.horas_planejadas.toFixed(2).replace('.', ',')}h
+                                </td>
+                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                                  {item.realizado.toFixed(2).replace('.', ',')}h
+                                </td>
+                                <td
+                                  className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
+                                  style={{ color: corDiferenca }}
+                                >
+                                  {item.diferenca.toFixed(2).replace('.', ',')}h
+                                </td>
+                                <td className="py-2.5 px-2 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setPlanoExcluindo(item)
+                                    }}
+                                    className="p-1 text-gray-500 hover:text-[#F44336] transition-colors opacity-0 group-hover:opacity-100"
+                                    title="Excluir plano semanal"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t-2 border-gray-800 font-bold">
+                            <td className="py-3 px-3 text-white">Total</td>
+                            <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                              {totalPlanejado.toFixed(2).replace('.', ',')}h
                             </td>
-                            <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
-                              {item.horas_planejadas.toFixed(2).replace('.', ',')}h
-                            </td>
-                            <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
-                              {item.realizado.toFixed(2).replace('.', ',')}h
+                            <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                              {totalRealizadoPlanos.toFixed(2).replace('.', ',')}h
                             </td>
                             <td
-                              className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
-                              style={{ color: corDiferenca }}
+                              className="py-3 px-3 text-right font-mono tabular-nums"
+                              style={{ color: totalDiferencaPlanos >= 0 ? '#4CAF50' : '#F44336' }}
                             >
-                              {item.diferenca.toFixed(2).replace('.', ',')}h
+                              {totalDiferencaPlanos.toFixed(2).replace('.', ',')}h
                             </td>
-                            <td className="py-2.5 px-2 text-center">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setPlanoExcluindo(item)
-                                }}
-                                className="p-1 text-gray-500 hover:text-[#F44336] transition-colors opacity-0 group-hover:opacity-100"
-                                title="Excluir plano semanal"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </td>
+                            <td></td>
                           </tr>
-                        )
-                      })}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2 border-gray-800 font-bold">
-                        <td className="py-3 px-3 text-white">Total</td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
-                          {totalPlanejado.toFixed(2).replace('.', ',')}h
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
-                          {totalRealizadoPlanos.toFixed(2).replace('.', ',')}h
-                        </td>
-                        <td
-                          className="py-3 px-3 text-right font-mono tabular-nums"
-                          style={{ color: totalDiferencaPlanos >= 0 ? '#4CAF50' : '#F44336' }}
-                        >
-                          {totalDiferencaPlanos.toFixed(2).replace('.', ',')}h
-                        </td>
-                        <td></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
             <div className="space-y-4 pt-2">
               <div>
-                <h2 className="text-xl font-bold text-white">Lançamentos</h2>
-                <p className="text-xs text-[#8B949E] mt-1">Clique para editar · use o olho para ver o dia completo em Registros</p>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => toggleSecao('lancamentos')}
+                    className="flex items-center gap-2 group focus:outline-none"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <h2 className="text-xl font-bold text-white">Lançamentos</h2>
+                    {!secoesExpandidas['lancamentos'] && (
+                      <span className="text-xs text-[#8B949E] font-normal">
+                        {registros.length === 1 ? '1 lançamento' : `${registros.length} lançamentos`}
+                      </span>
+                    )}
+                  </button>
+                </div>
+                {secoesExpandidas['lancamentos'] && (
+                  <p className="text-xs text-[#8B949E] mt-1">Clique para editar · use o olho para ver o dia completo em Registros</p>
+                )}
               </div>
-              {registrosPorSemana.length === 0 ? (
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-8 text-center">
-                  <p className="text-sm text-[#8B949E]">Nenhum lançamento neste projeto.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {registrosPorSemana.map((grupo, idx) => {
-                    const isFirst = idx === 0
-                    const isExpanded = semanasExpandidas[grupo.semanaInicio] !== undefined ? semanasExpandidas[grupo.semanaInicio] : isFirst
-                    return (
-                      <div key={grupo.semanaInicio} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                        <button type="button" onClick={() => toggleSemana(grupo.semanaInicio, isFirst)} className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors focus:outline-none">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
-                            <span className="font-bold text-white text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
-                          </div>
-                          <div className="font-mono text-sm font-semibold text-white">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
-                        </button>
-                        <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-gray-800/60' : 'max-h-0 opacity-0'}`}>
-                          <div className="flex flex-col gap-2 pt-3">
-                            {grupo.registros.map((reg) => {
-                              const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
-                              return (
-                                <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-xl bg-[#0B0E14]/60 hover:bg-[#1E2530]/60 border border-gray-800/80 transition-colors cursor-pointer flex flex-col gap-2 group">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 flex-wrap min-w-0">
-                                      <span className="font-mono text-xs text-[#8B949E] shrink-0">{formatarDataCurta(reg.data)}</span>
-                                      <span className="text-xs text-gray-300 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
-                                      {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] font-medium truncate max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
+
+              {secoesExpandidas['lancamentos'] && (
+                <>
+                  {registrosPorSemana.length === 0 ? (
+                    <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-8 text-center">
+                      <p className="text-sm text-[#8B949E]">Nenhum lançamento neste projeto.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {registrosPorSemana.map((grupo) => {
+                        const isExpanded = semanasExpandidas[grupo.semanaInicio] ?? false
+                        return (
+                          <div key={grupo.semanaInicio} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                            <button type="button" onClick={() => toggleSemana(grupo.semanaInicio)} className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors focus:outline-none">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span className="font-bold text-white text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
+                              </div>
+                              <div className="font-mono text-sm font-semibold text-white">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
+                            </button>
+                            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-gray-800/60' : 'max-h-0 opacity-0'}`}>
+                              <div className="flex flex-col gap-2 pt-3">
+                                {grupo.registros.map((reg) => {
+                                  const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
+                                  return (
+                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-xl bg-[#0B0E14]/60 hover:bg-[#1E2530]/60 border border-gray-800/80 transition-colors cursor-pointer flex flex-col gap-2 group">
+                                      <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 flex-wrap min-w-0">
+                                          <span className="font-mono text-xs text-[#8B949E] shrink-0">{formatarDataCurta(reg.data)}</span>
+                                          <span className="text-xs text-gray-300 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
+                                          {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] font-medium truncate max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
+                                        </div>
+                                        <div className="flex items-center gap-3 shrink-0">
+                                          <span className="font-mono text-sm font-bold text-[#03A9F4]">
+                                            {reg.duracao.toFixed(2).replace('.', ',')}h
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              const targetUrl = reg.projeto_id
+                                                ? `/registros?data=${reg.data}&projeto_id=${reg.projeto_id}`
+                                                : `/registros?data=${reg.data}`
+                                              navigate(targetUrl)
+                                            }}
+                                            className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors focus:outline-none"
+                                            title="Ver no dia"
+                                          >
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4"
+                                              fill="none"
+                                              viewBox="0 0 24 24"
+                                              stroke="currentColor"
+                                              strokeWidth={2}
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                              />
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                              />
+                                            </svg>
+                                          </button>
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4 text-gray-500 hover:text-[#03A9F4] transition-colors"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                            />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                      {reg.observacao && <p className="text-xs text-[#8B949E] break-words leading-relaxed">{reg.observacao}</p>}
                                     </div>
-                                    <div className="flex items-center gap-3 shrink-0">
-                                      <span className="font-mono text-sm font-bold text-[#03A9F4]">
-                                        {reg.duracao.toFixed(2).replace('.', ',')}h
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          const targetUrl = reg.projeto_id
-                                            ? `/registros?data=${reg.data}&projeto_id=${reg.projeto_id}`
-                                            : `/registros?data=${reg.data}`
-                                          navigate(targetUrl)
-                                        }}
-                                        className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors focus:outline-none"
-                                        title="Ver no dia"
-                                      >
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="h-4 w-4"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          stroke="currentColor"
-                                          strokeWidth={2}
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                          />
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                          />
-                                        </svg>
-                                      </button>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4 text-gray-500 hover:text-[#03A9F4] transition-colors"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={2}
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                        />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  {reg.observacao && <p className="text-xs text-[#8B949E] break-words leading-relaxed">{reg.observacao}</p>}
-                                </div>
-                              )
-                            })}
+                                  )
+                                })}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
