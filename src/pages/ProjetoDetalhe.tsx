@@ -68,13 +68,12 @@ export default function ProjetoDetalhe() {
   // Estados de gestão de Subcategorias na página
   const [editandoSubId, setEditandoSubId] = useState<string | null>(null)
   const [nomeSubEditando, setNomeSubEditando] = useState('')
+  const [editandoReservaId, setEditandoReservaId] = useState<string | null>(null)
+  const [valorReservaEditando, setValorReservaEditando] = useState('')
   const [subExcluindoId, setSubExcluindoId] = useState<string | null>(null)
   const [adicionandoEmFaseId, setAdicionandoEmFaseId] = useState<string | null>(null)
   const [novaSubNome, setNovaSubNome] = useState('')
   const [adicionandoSemFase, setAdicionandoSemFase] = useState(false)
-  const [modoAlocacao, setModoAlocacao] = useState(false)
-  const [alocacoes, setAlocacoes] = useState<Record<string, string>>({})
-  const [salvandoAlocacoes, setSalvandoAlocacoes] = useState(false)
   const [salvandoSub, setSalvandoSub] = useState(false)
 
   // Estados da seção Lançamentos / Modal de Registro
@@ -383,7 +382,8 @@ export default function ProjetoDetalhe() {
   }
 
   const handleStartEditSub = (sub: SubcategoriaBreakdownItem) => {
-    if (modoAlocacao || !sub.id) return
+    if (!sub.id) return
+    handleCancelEditReserva()
     setEditandoSubId(sub.id)
     setNomeSubEditando(sub.nome)
   }
@@ -391,6 +391,48 @@ export default function ProjetoDetalhe() {
   const handleCancelEditSub = () => {
     setEditandoSubId(null)
     setNomeSubEditando('')
+  }
+
+  const handleStartEditReserva = (sub: SubcategoriaBreakdownItem) => {
+    if (!sub.id) return
+    handleCancelEditSub()
+    setEditandoReservaId(sub.id)
+    setValorReservaEditando(
+      sub.horas_alocadas !== null && sub.horas_alocadas !== undefined
+        ? (Number.isInteger(sub.horas_alocadas)
+            ? sub.horas_alocadas.toString()
+            : sub.horas_alocadas.toString().replace('.', ','))
+        : ''
+    )
+  }
+
+  const handleCancelEditReserva = () => {
+    setEditandoReservaId(null)
+    setValorReservaEditando('')
+  }
+
+  const handleSaveEditReserva = async (subId: string, nome: string) => {
+    let valor: number | null = null
+    const raw = valorReservaEditando.trim()
+    if (raw) {
+      const parsed = parseFloat(raw.replace(',', '.'))
+      if (isNaN(parsed) || parsed < 0) {
+        showToast('Valor de horas inválido', 'error')
+        return
+      }
+      valor = parsed
+    }
+    try {
+      setSalvandoSub(true)
+      await subcategoriasService.atualizarSubcategoria(subId, nome, valor, undefined)
+      await carregarDados(true)
+      handleCancelEditReserva()
+    } catch (err: unknown) {
+      console.error('Erro ao salvar reserva:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoSub(false)
+    }
   }
 
   const handleSaveEditSub = async (subId: string) => {
@@ -477,61 +519,6 @@ export default function ProjetoDetalhe() {
     }
   }
 
-  const handleEntrarModoAlocacao = () => {
-    handleCancelEditSub()
-    const inicial: Record<string, string> = {}
-    subcategorias.forEach(sub => {
-      inicial[sub.id] = sub.horas_alocadas !== null && sub.horas_alocadas !== undefined
-        ? (Number.isInteger(sub.horas_alocadas) ? sub.horas_alocadas.toString() : sub.horas_alocadas.toString().replace('.', ','))
-        : ''
-    })
-    setAlocacoes(inicial)
-    setModoAlocacao(true)
-  }
-
-  const handleCancelarAlocacoes = () => {
-    setModoAlocacao(false)
-    setAlocacoes({})
-  }
-
-  const handleSalvarAlocacoes = async () => {
-    try {
-      setSalvandoAlocacoes(true)
-      const alteracoes = subcategorias.filter(sub => {
-        const rawVal = alocacoes[sub.id] ?? ''
-        let novoValor: number | null = null
-        if (rawVal.trim()) {
-          const parsed = parseFloat(rawVal.replace(',', '.'))
-          if (!isNaN(parsed)) novoValor = parsed
-        }
-        return novoValor !== (sub.horas_alocadas ?? null)
-      })
-
-      if (alteracoes.length > 0) {
-        await Promise.all(
-          alteracoes.map(sub => {
-            const rawVal = alocacoes[sub.id] ?? ''
-            let novoValor: number | null = null
-            if (rawVal.trim()) {
-              const parsed = parseFloat(rawVal.replace(',', '.'))
-              if (!isNaN(parsed)) novoValor = parsed
-            }
-            return subcategoriasService.atualizarSubcategoria(sub.id, sub.nome, novoValor)
-          })
-        )
-        await carregarDados(true)
-        showToast('Reservas salvas com sucesso!', 'success')
-      }
-      setModoAlocacao(false)
-      setAlocacoes({})
-    } catch (err: unknown) {
-      console.error('Erro ao salvar alocações:', err)
-      showToast(getErrorMessage(err), 'error')
-    } finally {
-      setSalvandoAlocacoes(false)
-    }
-  }
-
   const renderListaSubcategorias = (items: SubcategoriaBreakdownItem[]) => {
     if (!items || items.length === 0) {
       return (
@@ -543,24 +530,13 @@ export default function ProjetoDetalhe() {
 
     const temAlgumaAlocacao = items.some(sub => {
       if (sub.id === null) return false
-      if (modoAlocacao) {
-        const raw = alocacoes[sub.id] ?? ''
-        const parsed = parseFloat(raw.replace(',', '.'))
-        return !isNaN(parsed) && parsed > 0
-      }
       return sub.horas_alocadas !== null && sub.horas_alocadas > 0
     })
 
     const somaSemAlocacao = items.reduce((acc, sub) => {
       let temAloc = false
       if (sub.id !== null) {
-        if (modoAlocacao) {
-          const raw = alocacoes[sub.id] ?? ''
-          const parsed = parseFloat(raw.replace(',', '.'))
-          temAloc = !isNaN(parsed) && parsed > 0
-        } else {
-          temAloc = sub.horas_alocadas !== null && sub.horas_alocadas > 0
-        }
+        temAloc = sub.horas_alocadas !== null && sub.horas_alocadas > 0
       }
       if (!temAloc) {
         return acc + sub.duracao
@@ -576,24 +552,20 @@ export default function ProjetoDetalhe() {
         <div className="space-y-2.5">
           {items.map((sub) => {
             const isBaldeSemSub = sub.id === null
-            const rawAloc = modoAlocacao && !isBaldeSemSub ? (alocacoes[sub.id!] ?? '') : null
-            const horasAlocadasEfetivas = modoAlocacao && !isBaldeSemSub
-              ? (rawAloc && !isNaN(parseFloat(rawAloc.replace(',', '.'))) ? parseFloat(rawAloc.replace(',', '.')) : null)
-              : sub.horas_alocadas
-
-            const temAlocacao = !isBaldeSemSub && horasAlocadasEfetivas !== null && horasAlocadasEfetivas > 0
-            const excedeu = temAlocacao && sub.duracao > horasAlocadasEfetivas!
-            const percentualAlocado = temAlocacao ? Math.round((sub.duracao / horasAlocadasEfetivas!) * 100) : 0
-            const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / horasAlocadasEfetivas!) * 100)) : 0
+            const temAlocacao = !isBaldeSemSub && sub.horas_alocadas !== null && sub.horas_alocadas > 0
+            const excedeu = temAlocacao && sub.duracao > sub.horas_alocadas!
+            const percentualAlocado = temAlocacao ? Math.round((sub.duracao / sub.horas_alocadas!) * 100) : 0
+            const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / sub.horas_alocadas!) * 100)) : 0
 
             const duracaoFormatada = `${sub.duracao.toFixed(2).replace('.', ',')}h`
             const alocadoFormatado = temAlocacao
-              ? (Number.isInteger(horasAlocadasEfetivas)
-                  ? `${horasAlocadasEfetivas}h`
-                  : `${horasAlocadasEfetivas!.toString().replace('.', ',')}h`)
+              ? (Number.isInteger(sub.horas_alocadas)
+                  ? `${sub.horas_alocadas}h`
+                  : `${sub.horas_alocadas!.toString().replace('.', ',')}h`)
               : ''
 
-            const isEditingThisSub = !modoAlocacao && !isBaldeSemSub && editandoSubId === sub.id
+            const isEditingThisSub = !isBaldeSemSub && editandoSubId === sub.id
+            const isEditingReserva = !isBaldeSemSub && editandoReservaId === sub.id
 
             if (isEditingThisSub) {
               return (
@@ -649,6 +621,10 @@ export default function ProjetoDetalhe() {
               {
                 label: 'Renomear',
                 onClick: () => handleStartEditSub(sub)
+              },
+              {
+                label: 'Reservar horas',
+                onClick: () => handleStartEditReserva(sub)
               }
             ]
 
@@ -690,38 +666,54 @@ export default function ProjetoDetalhe() {
                   <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
                     <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                    {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && (
+                    {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
                       <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
                         sem reserva
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {modoAlocacao && !isBaldeSemSub ? (
-                      <>
-                        <span className="font-mono font-semibold text-white text-right text-xs">
-                          {duracaoFormatada}
-                        </span>
+                    {isEditingReserva ? (
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <input
                           type="text"
-                          value={alocacoes[sub.id!] ?? ''}
-                          onChange={(e) => {
-                            const val = e.target.value
-                            setAlocacoes(prev => ({ ...prev, [sub.id!]: val }))
-                          }}
+                          value={valorReservaEditando}
+                          onChange={(e) => setValorReservaEditando(e.target.value)}
                           placeholder="Horas"
+                          disabled={salvandoSub}
+                          autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault()
-                              handleSalvarAlocacoes()
+                              handleSaveEditReserva(sub.id!, sub.nome)
                             } else if (e.key === 'Escape') {
                               e.preventDefault()
-                              handleCancelarAlocacoes()
+                              handleCancelEditReserva()
                             }
                           }}
-                          className="w-24 bg-[#0B0E14] border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
+                          className="w-24 bg-[#0B0E14] border border-gray-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
                         />
-                      </>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEditReserva(sub.id!, sub.nome)}
+                          disabled={salvandoSub}
+                          className="p-1 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                          title="Confirmar"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEditReserva}
+                          disabled={salvandoSub}
+                          className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                          title="Cancelar"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     ) : (
                       <>
                         <div className="font-mono text-right shrink-0">
@@ -738,7 +730,7 @@ export default function ProjetoDetalhe() {
                             <MenuAcoes
                               itens={itensMenu}
                               rotulo={`Ações para ${sub.nome}`}
-                              desabilitado={salvandoSub || editandoSubId !== null}
+                              desabilitado={salvandoSub || editandoSubId !== null || editandoReservaId !== null}
                             />
                           </div>
                         )}
@@ -747,7 +739,7 @@ export default function ProjetoDetalhe() {
                   </div>
                 </div>
 
-                {temAlocacao && (
+                {temAlocacao && !isEditingReserva && (
                   <div className="flex items-center gap-2 mt-1">
                     <div className="flex-1 bg-[#0B0E14] h-1 rounded-full overflow-hidden">
                       <div
@@ -996,41 +988,29 @@ export default function ProjetoDetalhe() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
-                {!modoAlocacao && (
-                  <div className="flex items-center gap-3">
-                    {subcategorias.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleEntrarModoAlocacao}
-                        disabled={salvandoFase || salvandoSub}
-                        className="border border-gray-700 bg-transparent text-[#8B949E] hover:text-white rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
-                      >
-                        Reservar horas
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
-                      disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
-                      className="bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-lg px-3 py-1.5 text-xs transition-colors disabled:opacity-50"
-                    >
-                      {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
-                    </button>
-                    {fases.length > 0 && (
-                      <MenuAcoes
-                        itens={[
-                          {
-                            label: 'Remover todas as fases',
-                            perigo: true,
-                            onClick: () => setConfirmandoRemoverDivisao(true)
-                          }
-                        ]}
-                        rotulo="Opções das fases"
-                        desabilitado={salvandoFase || salvandoSub}
-                      />
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
+                    disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
+                    className="bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-lg px-3 py-1.5 text-xs transition-colors disabled:opacity-50"
+                  >
+                    {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
+                  </button>
+                  {fases.length > 0 && (
+                    <MenuAcoes
+                      itens={[
+                        {
+                          label: 'Remover todas as fases',
+                          perigo: true,
+                          onClick: () => setConfirmandoRemoverDivisao(true)
+                        }
+                      ]}
+                      rotulo="Opções das fases"
+                      desabilitado={salvandoFase || salvandoSub}
+                    />
+                  )}
+                </div>
               </div>
               {fases.length > 0 ? (
                 <div className="space-y-4">
@@ -1039,17 +1019,7 @@ export default function ProjetoDetalhe() {
                     const setSubIds = new Set(subsDaFase.map(s => s.id))
                     const regsDaFase = registros.filter(r => r.subcategoria_id && setSubIds.has(r.subcategoria_id))
                     const usadoFase = regsDaFase.reduce((acc, r) => acc + r.duracao, 0)
-                    const reservadoFase = modoAlocacao
-                      ? subsDaFase.reduce((acc, sub) => {
-                          const rawVal = alocacoes[sub.id] ?? ''
-                          let val = 0
-                          if (rawVal.trim()) {
-                            const parsed = parseFloat(rawVal.replace(',', '.'))
-                            if (!isNaN(parsed)) val = parsed
-                          }
-                          return acc + val
-                        }, 0)
-                      : subsDaFase.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+                    const reservadoFase = subsDaFase.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
                     const isExpanded = fasesExpandidas[fase.id] ?? false
                     const isEditingThisFase = editandoFaseId === fase.id
                     const subsMapeadas = subsDaFase.map(sub => {
@@ -1159,6 +1129,13 @@ export default function ProjetoDetalhe() {
                               <MenuAcoes
                                 itens={[
                                   {
+                                    label: 'Adicionar subcategoria',
+                                    onClick: () => {
+                                      setAdicionandoEmFaseId(fase.id)
+                                      setNovaSubNome('')
+                                    }
+                                  },
+                                  {
                                     label: 'Editar fase',
                                     onClick: () => handleStartEditFase(fase)
                                   },
@@ -1221,7 +1198,7 @@ export default function ProjetoDetalhe() {
 
                           {renderListaSubcategorias(subcategoriasComPercentual)}
 
-                          {!modoAlocacao && adicionandoEmFaseId === fase.id && (
+                          {adicionandoEmFaseId === fase.id && (
                             <div className="flex items-center gap-2 mt-3">
                               <input
                                 type="text"
@@ -1266,7 +1243,7 @@ export default function ProjetoDetalhe() {
                           )}
 
                           <div className="flex items-center justify-between gap-3 mt-3">
-                            {!modoAlocacao && adicionandoEmFaseId !== fase.id ? (
+                            {adicionandoEmFaseId !== fase.id ? (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1419,7 +1396,7 @@ export default function ProjetoDetalhe() {
                     return renderListaSubcategorias(subcategoriasComPercentual)
                   })()}
 
-                  {!modoAlocacao && adicionandoSemFase && (
+                  {adicionandoSemFase && (
                     <div className="flex items-center gap-2 mt-3">
                       <input
                         type="text"
@@ -1464,7 +1441,7 @@ export default function ProjetoDetalhe() {
                   )}
 
                   <div className="flex items-center justify-between gap-3 mt-3">
-                    {!modoAlocacao && !adicionandoSemFase ? (
+                    {!adicionandoSemFase ? (
                       <button
                         type="button"
                         onClick={() => {
@@ -1481,17 +1458,8 @@ export default function ProjetoDetalhe() {
                     )}
 
                     {projeto.horas_contratadas !== null && projeto.horas_contratadas > 0 && subcategorias.length > 0 && (() => {
-                      const somaAlocada = modoAlocacao
-                        ? subcategorias.reduce((acc, sub) => {
-                            const rawVal = alocacoes[sub.id] ?? ''
-                            let val = 0
-                            if (rawVal.trim()) {
-                              const parsed = parseFloat(rawVal.replace(',', '.'))
-                              if (!isNaN(parsed)) val = parsed
-                            }
-                            return acc + val
-                          }, 0)
-                        : subcategorias.reduce((acc, sub) => acc + (sub.horas_alocadas || 0), 0)
+                      const somaAlocada = subcategorias.reduce(
+                        (acc, sub) => acc + (sub.horas_alocadas || 0), 0)
 
                       const diff = Math.round((projeto.horas_contratadas - somaAlocada) * 100) / 100
                       if (diff > 0) {
@@ -1521,27 +1489,6 @@ export default function ProjetoDetalhe() {
                       }
                     })()}
                   </div>
-                </div>
-              )}
-
-              {modoAlocacao && (
-                <div className="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-gray-800/60">
-                  <button
-                    type="button"
-                    onClick={handleCancelarAlocacoes}
-                    disabled={salvandoAlocacoes}
-                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-lg transition-colors border border-gray-700 disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSalvarAlocacoes}
-                    disabled={salvandoAlocacoes}
-                    className="px-3 py-1.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
-                  >
-                    {salvandoAlocacoes ? 'Salvando...' : 'Concluir'}
-                  </button>
                 </div>
               )}
             </div>
