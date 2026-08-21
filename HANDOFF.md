@@ -415,63 +415,50 @@ Supabase, não só o diff.
 
 ### Redesign visual — FRENTE ATIVA a partir de 21/08/2026
 
-Deixou de estar pausado. O usuário sinalizou que vai atacar o layout inteiro
-para deixar o app mais limpo e profissional. As melhorias funcionais que
-seguravam o redesign estão suficientemente maduras.
+### Redesign visual — EM EXECUÇÃO (branch `redesign`)
 
-**Documentos de referência:** `horas-redesign.html` (plano com 10 decisões) e
-`horas-prototipo.html` (protótipo interativo navegável, 2 levas, com toggle
-claro/escuro e paleta ⌘K funcionando). ⚠️ Foram entregues no chat, **não estão
-no repositório** — confirmar que existem antes de começar; sem eles o plano
-precisa ser refeito.
+**Fase 1 — Tokens: CONCLUÍDA** (commit 78393da)
+Variáveis CSS em `src/index.css` (paleta escura + clara, raio, sombra,
+movimento, 8 cores de projeto `--proj-1..8`), mapeadas em `tailwind.config.js`.
+`data-theme="dark"` no `<html>`. Fontes locais via `@fontsource`
+(Instrument Sans, Inter Variable, IBM Plex Mono) importadas em `main.tsx`.
+Nenhuma tela foi alterada — os hex antigos seguem no lugar.
 
-**Decisões já fechadas:**
+**Fase 2 — Primitivas: CONCLUÍDA**
+Sete componentes em `src/components/ui/` + barrel `index.ts`:
+Button, Chip, Surface, Field (+ `classeCampo()`), Stat, DataRow, Sheet.
+Página de validação visual em `/ui-kit` (`src/pages/UIKit.tsx`), rota pública,
+com alternador de tema claro/escuro. É a referência viva das primitivas.
 
-1. Tema **escuro** continua padrão — mas redesenhado do zero, não o `#0B0E14`
-   atual.
-2. Paleta com 3 camadas de elevação no escuro (ex. `#0F1216` / `#141920` /
-   `#1A202A`), texto quase-branco em vez de branco puro, acento azul só para
-   foco e link, botão primário quase-branco (inversão correta do preto do tema
-   claro, não literal), tríade de estado dessaturada — musgo, ocre e terracota
-   no lugar do verde/âmbar/vermelho Material.
-3. Tipografia em 3 papéis: **Instrument Sans** (títulos), **Inter**
-   (interface), **IBM Plex Mono** (números). `tabular-nums` obrigatório em toda
-   coluna de horas.
-4. Menos bordas; hierarquia por espaço e tipografia. Escala de raio
-   4/6/10/14/999px.
-5. Quatro níveis de botão (primário, secundário, fantasma, destrutivo), no
-   máximo 1 primário por tela.
-6. Tokens de movimento 120/180/260ms, `cubic-bezier(.2,.8,.3,1)`, respeitando
-   `prefers-reduced-motion`.
-7. Navegação agrupada por intenção, botão fixo "+ Lançar horas" no topo da
-   sidebar, atalhos numéricos 1–4, paleta ⌘K (`cmdk`) — já prototipada.
-8. Ordem de execução: tokens → primitivas (Button, Field, Surface, Stat,
-   DataRow, Chip, Sheet) → casca e navegação → telas na ordem de uso
-   (Registros → ProjetoDetalhe → Resumo → Timesheet → Billable → Ajustes) →
-   acabamento.
-9. Branch **`redesign`** a partir da `main`, mesmo Supabase, preview automático
-   da Vercel para comparar lado a lado. Correções urgentes vêm da `main` para a
-   branch, **nunca o contrário**.
+**Próxima: Fase 3 — Casca.** Sidebar nova, paleta de comandos ⌘K (`cmdk`,
+ainda não instalada), atalhos numéricos 1–4, botão fixo "+ Lançar horas".
+Depois: Fase 4 (telas na ordem Registros → ProjetoDetalhe → Resumo →
+Timesheet → Billable → Ajustes, uma por sessão) e Fase 5 (acabamento).
 
-**O que o redesign NÃO pode perder** — tudo isto foi construído em 20/08 e
-custou uma sessão inteira:
+**Tokens disponíveis:** `bg-surface-0|1|2|3`, `text-ink-900|700|500|300`,
+`border-hair`/`border-hair-strong`, `accent`/`accent-bg`/`accent-fg`,
+`pri`/`pri-fg`/`pri-hover`, `ok`/`ok-bg`, `warn`/`warn-bg`, `bad`/`bad-bg`,
+`proj-1..8`, `rounded-chip|ctl|card|sheet`, `shadow-e1|e2|e3`,
+`font-display|ui|mono`, `duration-d1|d2|d3`, `ease-ez`.
 
-- O componente `MenuAcoes` e a hierarquia de três níveis (primário no
-  cabeçalho, secundário com contorno, contextual e destrutivo no kebab)
-- O glossário contratadas / previstas / reservadas / lançadas, e o princípio de
-  que cada grandeza tem sua palavra
-- A barra segmentada por fase
-- Reserva de horas por linha, sem modo global — ação perto do alvo
-- Seções e fases recolhidas por padrão, com contadores no cabeçalho
-- Sub-utilização em cinza; só o excesso em vermelho
-
-Ao migrar, esses padrões devem ser reimplementados com os tokens novos, não
-descartados.
-
-**Referências:** Linear, Things 3, Stripe Dashboard, Raycast, Notion Calendar,
-Vercel Dashboard, Radix Colors/Primitives, shadcn/ui, cmdk, Sonner/Vaul,
-Motion, o livro Refactoring UI, rauno.me/craft, Emil Kowalski, Josh Comeau,
-Mobbin, Apple HIG.
+**Armadilhas aprendidas nas fases 1 e 2:**
+- **Mudou `tailwind.config.js`? Reinicie o `npm run dev`.** O Tailwind lê a
+  config só na subida. Salvar não basta — as classes novas simplesmente não
+  são geradas, sem erro nem aviso. Custou uma rodada inteira de diagnóstico.
+- Nunca sobrescrever chaves padrão do Tailwind (`rounded-sm/md/lg`,
+  `shadow-sm/md/lg`). Usar nomes semânticos próprios.
+- `transitionDuration` deve apontar para `var(--d1)`, não para `'120ms'`
+  literal, senão o `@media prefers-reduced-motion` não tem efeito.
+- Tailwind 3 não aplica modificador de opacidade em cor vinda de `var()`.
+  Para fundo translúcido usar `color-mix(in srgb, var(--x) 15%, transparent)`
+  em style inline.
+- `noUnusedLocals` está ativo: import não usado quebra o `npx tsc -b`.
+- Modal com `aoFechar` no array de dependências do `useEffect` rouba o foco a
+  cada render do pai (arrow inline muda de identidade). Guardar numa ref.
+- Coluna de valor ou percentual em lista deve ser **sempre renderizada**,
+  vazia quando não se aplica. Renderização condicional desalinha as linhas.
+- **Não rodar `npm audit fix`** durante o redesign. Fica para depois, na `main`,
+  em commit próprio.
 
 ---
 
