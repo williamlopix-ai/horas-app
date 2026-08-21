@@ -971,18 +971,6 @@ export default function ProjetoDetalhe() {
                   <div className="h-full transition-all duration-500" style={{ width: `${percentualGeral}%`, backgroundColor: excedeuContratado ? '#F44336' : '#4CAF50' }} />
                 </div>
               )}
-              {fases.length === 0 && (
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    onClick={handleDividirEmFases}
-                    disabled={salvandoFase}
-                    className="text-xs text-[#03A9F4] hover:underline font-semibold inline-flex items-center gap-1 transition-colors disabled:opacity-50"
-                  >
-                    + Dividir em fases
-                  </button>
-                </div>
-              )}
             </div>
 
             <div className={`grid grid-cols-1 ${temContratado ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-6`}>
@@ -1013,20 +1001,31 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={handleEntrarModoAlocacao}
                       disabled={salvandoFase || salvandoSub}
-                      className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
+                      className="border border-gray-700 bg-transparent text-[#8B949E] hover:text-white rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
                     >
                       Alocar horas
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
+                    disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
+                    className="bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-lg px-3 py-1.5 text-xs transition-colors disabled:opacity-50"
+                  >
+                    {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
+                  </button>
                   {fases.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleAddFase}
-                      disabled={salvandoFase || salvandoSub}
-                      className="text-xs text-[#03A9F4] hover:underline font-semibold transition-colors disabled:opacity-50"
-                    >
-                      + Adicionar fase
-                    </button>
+                    <MenuAcoes
+                      itens={[
+                        {
+                          label: 'Remover todas as fases',
+                          perigo: true,
+                          onClick: () => setConfirmandoRemoverDivisao(true)
+                        }
+                      ]}
+                      rotulo="Opções das fases"
+                      desabilitado={salvandoFase || salvandoSub}
+                    />
                   )}
                 </div>
               </div>
@@ -1129,27 +1128,23 @@ export default function ProjetoDetalhe() {
                                 <span className="text-white font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> / {horasContratadasFormatadas}
                               </div>
                             </button>
-                            <div className="flex items-center gap-1 shrink-0 border-l border-gray-800/80 pl-3">
-                              <button
-                                type="button"
-                                onClick={() => handleStartEditFase(fase)}
-                                disabled={salvandoFase || editandoFaseId !== null}
-                                className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors disabled:opacity-50"
-                                title="Editar fase"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleClicarExcluirFase(fase)}
-                                disabled={salvandoFase || editandoFaseId !== null}
-                                className="p-1 text-gray-500 hover:text-[#F44336] transition-colors disabled:opacity-50"
-                                title="Excluir fase"
-                              >
-                                ✕
-                              </button>
+                            <div className="shrink-0 ml-1">
+                              <MenuAcoes
+                                itens={[
+                                  {
+                                    label: 'Editar fase',
+                                    onClick: () => handleStartEditFase(fase)
+                                  },
+                                  {
+                                    label: 'Excluir fase',
+                                    onClick: () => handleClicarExcluirFase(fase),
+                                    perigo: true,
+                                    separadorAntes: true
+                                  }
+                                ]}
+                                rotulo={`Ações da fase ${fase.nome}`}
+                                desabilitado={salvandoFase || salvandoSub || editandoFaseId !== null}
+                              />
                             </div>
                           </div>
                         )}
@@ -1298,10 +1293,15 @@ export default function ProjetoDetalhe() {
                     }
 
                     return (
-                      <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-base">Sem fase</span>
-                          <div className="font-mono text-sm font-semibold text-[#8B949E]">
+                      <div className="border border-dashed border-gray-800 rounded-2xl p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <span className="text-sm font-semibold text-[#8B949E] block">Sem fase</span>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Lançamentos que não pertencem a nenhuma fase. Some quando todos tiverem subcategoria.
+                            </p>
+                          </div>
+                          <div className="font-mono text-sm font-semibold text-[#8B949E] shrink-0">
                             <span className="text-white font-bold">{duracaoSemFase.toFixed(2).replace('.', ',')}h</span> / —
                           </div>
                         </div>
@@ -1310,16 +1310,6 @@ export default function ProjetoDetalhe() {
                     )
                   })()}
 
-                  <div className="pt-2 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setConfirmandoRemoverDivisao(true)}
-                      disabled={salvandoFase}
-                      className="text-xs text-[#F44336] hover:underline font-semibold transition-colors disabled:opacity-50"
-                    >
-                      Remover todas as fases
-                    </button>
-                  </div>
                 </div>
               ) : (
                 /* PROJETO SEM FASES */
