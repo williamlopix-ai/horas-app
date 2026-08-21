@@ -1,17 +1,17 @@
 # HANDOFF — Projeto HORAS
 
 > Documento de estado da sessão. Ler no início de cada nova sessão.
-> Última atualização: 11/08/2026
+> Última atualização: 20/08/2026 (fim da sessão)
 
 ---
 
 ## ⚠️ Pendências imediatas (ler primeiro)
 
-### 1. Limpeza no Supabase — a partir de ~18/08/2026
-Durante a migração do início da semana foram criadas 5 tabelas temporárias de
-backup. Elas estão com RLS ativo e sem policy (inacessíveis pela API), somam
-358 linhas e não atrapalham nada — mas devem ser removidas depois de 1 a 2
-semanas de uso real validado.
+### 1. Limpeza no Supabase — o gatilho está prestes a vencer
+As 5 tabelas temporárias criadas na migração de sábado continuam no banco.
+O gatilho combinado era **duas semanas fechadas** com a semana em sábado e os
+números do Resumo e do Billable batendo com o timesheet corporativo. A migração
+foi em 11/08; a segunda semana fecha em **22/08**.
 
 ```sql
 DROP TABLE _bkp_semana_registros;
@@ -21,13 +21,79 @@ DROP TABLE _bkp_semana_billable;
 DROP TABLE _bkp_semana_config;
 ```
 
-**Gatilho para rodar:** duas semanas fechadas com a semana em sábado, e os
-números do Resumo e do Billable batendo com o timesheet corporativo.
-
 ### 2. Coluna `configuracoes.meta_semanal` órfã
 Não é mais editável pelo formulário de Ajustes, mas continua no banco porque
 ainda serve de fallback dentro de `buscarHorasBaseSemanal`. **Não dropar** sem
 antes confirmar que o Resumo está correto por algumas semanas.
+
+### 3. VALE DH — reconstrução parcial pendente
+Ver "Incidente de 20/08" abaixo. O projeto hoje tem `Fase 1` (400h previstas,
+com todas as categorias) e `Fase 2` (vazia). A estrutura original tinha cerca
+de 5 fases, cujos nomes e horas se perderam. Redistribuir quando houver
+clareza sobre a divisão real.
+
+### 4. Três lançamentos sem subcategoria no VALE DH
+Somam 9h e mantêm o bloco "Sem fase" visível. Dois parecem lixo de teste.
+
+| data | horário | duração | observação |
+|---|---|---|---|
+| 02/06/2026 | 13:30–14:00 | 0,5h | teste survey |
+| 26/07/2026 | 04:00–12:00 | 8,0h | — |
+| 29/07/2026 | 13:30–14:00 | 0,5h | — |
+
+O de 26/07 começa às 4h da manhã — conferir se é deslocamento de campo real ou
+lançamento com hora errada. Atribuir categoria ou excluir; o bloco "Sem fase"
+some sozinho quando os 9h zerarem.
+
+---
+
+## 🔥 Incidente de 20/08 — perda das fases do VALE DH
+
+**O que aconteceu.** O usuário clicou no `✕` de uma fase esperando remover
+apenas aquela fase. Como restava só uma, `handleClicarExcluirFase` desviava
+para o fluxo "remover divisão em fases", que apagava **todas** as fases e
+zerava o `fase_id` de todas as subcategorias do projeto.
+
+**Causa raiz.** Um atalho redundante: o `✕` da última fase disparava uma ação
+destrutiva que já tinha botão próprio e rotulado no rodapé da seção. Mesmo
+ícone, dois alcances diferentes.
+
+**O que se perdeu.** Apenas as linhas da tabela `fases` (nome, ordem,
+`horas_contratadas`). Cerca de 5 fases.
+
+**O que NÃO se perdeu.** Subcategorias, `horas_alocadas` de cada uma, todos os
+registros, e `horas_contratadas` do projeto. `atribuirFaseEmLote` só atualiza
+`fase_id` e não toca em mais nada.
+
+**Por que não houve restore.** O `DELETE` é hard delete. Os logs do Postgres no
+Supabase não registram DML por padrão, então não há como recuperar a linha
+apagada a partir deles.
+
+**Corrigido na Etapa 1** (ver abaixo). O `✕` agora exclui sempre só a fase
+clicada.
+
+### Auditoria feita no banco durante o incidente
+
+Query que detecta projetos que perderam a divisão em fases (candidatos, não
+prova — é possível reservar horas sem nenhuma fase existir):
+
+```sql
+select p.nome as projeto, s.nome as subcategoria, s.horas_alocadas, s.criado_em
+from subcategorias s
+join projetos p on p.id = s.projeto_id
+where s.horas_alocadas is not null
+  and not exists (select 1 from fases f where f.projeto_id = p.id)
+order by p.nome, s.nome;
+```
+
+Retornou VALE DH e **klabin**. O klabin provavelmente nunca teve fases — as
+subcategorias já embutem as horas no próprio nome ("Realização das Entrevistas
+20h"), sugerindo reserva direta sem fase. Não foi alterado.
+
+**Achado colateral:** `NOVO TESTE JUL` tem fases com `ordem` 2 e 3, sem ordem 1
+— uma fase foi excluída ali em algum momento. `handleAddFase` usa
+`Math.max(...ordem) + 1`, então o buraco não gera duplicidade. Projeto de
+teste, sem ação.
 
 ---
 
@@ -47,245 +113,284 @@ antes confirmar que o Resumo está correto por algumas semanas.
 
 ## O que foi feito nesta sessão
 
-Sessão longa, com foco na mudança do início da semana e na unificação da meta
-semanal. Sete entregas, uma migração de banco e dois bugs latentes corrigidos.
+Sessão dedicada à tela `ProjetoDetalhe.tsx`. Cinco etapas, um componente novo,
+nenhuma migração de banco.
 
-### 1. Semana agora começa no SÁBADO
+### Etapa 1 — desarmar o `✕` da fase
 
-A semana do app vai de **sábado a sexta**, não mais de segunda a domingo.
-Executado em três etapas separadas, cada uma com commit próprio.
+`handleClicarExcluirFase` perdeu o desvio `if (fases.length <= 1)`. O `✕` agora
+exclui sempre apenas a fase clicada, mesmo sendo a última — as subcategorias
+caem para `fase_id = null` e o projeto volta ao modo simples naturalmente.
 
-**Etapa 1 — centralização.** Novo `src/utils/semana.ts` reunindo todo cálculo
-de início de semana. Antes existiam **6 implementações independentes e
-hardcoded** em `registros.ts`, `Registros.tsx`, `Timesheet.tsx`, `Billable.tsx`,
-`Resumo.tsx` e `Ajustes.tsx`.
+O modal de destino deixou de ter padrão arbitrário. Antes ele vinha
+pré-selecionado com `outrasFases[0].id` (a primeira fase por `ordem`, não a
+anterior), e o usuário confirmava sem perceber. Agora:
 
-```ts
-type InicioSemana = 'segunda' | 'domingo' | 'sabado'
+- constante `DESTINO_PENDENTE = '__escolher__'` no escopo do módulo
+- havendo outras fases → o select abre em "Escolha o destino" (opção
+  `disabled`) e o botão de confirmar fica desabilitado
+- sendo a última fase → "Deixar sem fase" vem pré-selecionado, pois é a única
+  opção possível
+- guarda no início de `handleConfirmarExclusaoFaseComSubs` para o caso de
+  chegar `DESTINO_PENDENTE`
 
-inicioDaSemana(dataStr, inicio)      // → 'YYYY-MM-DD'
-inicioDaSemanaDate(data, inicio)     // → Date
-intervaloDaSemana(dataStr, inicio)   // → { inicio: Date, fim: Date }
-diasDaSemana(dataInput, inicio)      // → Date[7]
-formatYYYYMMDD(d)                    // → 'YYYY-MM-DD'
-```
+**Atenção:** string vazia `''` significa "Deixar sem fase" e continua
+significando isso. Não confundir com `DESTINO_PENDENTE`.
 
-Regra: **sempre arredonda para trás**, nunca para a próxima semana. A fórmula é
-`(diaSemana - targetDay + 7) % 7` dias subtraídos.
+O botão do rodapé passou a se chamar **"Remover todas as fases"** (era "Remover
+divisão em fases"), e a mensagem do modal ganhou a linha "Para remover apenas
+uma fase, use o ✕ da própria fase".
 
-**Etapa 2 — ConfigContext.** Novo `src/contexts/ConfigContext.tsx`, montado
-dentro do `AuthProvider` em `App.tsx`. Expõe `config`, `loadingConfig`,
-`recarregarConfig` e `salvarConfig` via hook `useConfig()`. Antes, a
-configuração era buscada em 6 pontos independentes. Ganho colateral: salvar em
-Ajustes agora propaga para o app inteiro sem reload.
+### Etapa 2 — mover categoria entre fases
 
-Em seguida, o botão **Sábado** foi adicionado em Ajustes e o campo
-`inicio_semana` passou a ser realmente lido — antes era letra morta.
-
-**Etapa 3 — backfill.** Recálculo retroativo no Supabase:
-
-```sql
--- registros (304 linhas), recalculado a partir de `data`
-UPDATE registros
-SET semana_inicio = (data - ((EXTRACT(DOW FROM data)::int + 1) % 7))::date;
-```
-
-Mesma fórmula aplicada em `horas_base_semanal`, `metas_billable_margem`,
-`metas_billable_semanal` e `configuracoes.saldo_inicio_semana`.
-
-**Decisão registrada:** optou-se por retroatividade **total**, não híbrida.
-`semana_inicio` é dado derivado (rótulo de agrupamento), não algo digitado —
-manter dois regimes convivendo geraria bug por meses.
-
-**Correção no Timesheet:** as colunas passaram a ser preenchidas por
-`getDay()` real de cada data (`porDow`), não pela posição no array `days`.
-Sem isso, com a semana no sábado, todas as colunas ficariam trocadas. O
-`renderCell` também usa `getFormatDate(dow)` pelo mesmo motivo.
-
-### 2. Meta semanal unificada
-
-**Descoberta:** `configuracoes.meta_semanal` era um **campo fantasma** — existia
-no banco e no state, mas não tinha nenhum input na tela. Ficava travado em 42,5
-e ainda bloqueava o botão Salvar. Enquanto isso, "Horas Base Semanal", escondida
-dentro de "Configurações Billable", já era na prática a meta semanal, com
-histórico de vigência funcionando.
-
-Decisão: **são a mesma coisa.**
-
-- Seção movida para o card principal de Configurações, logo abaixo de "Início
-  da Semana", renomeada **Meta Semanal**, sempre visível (sem accordion)
-- `meta_semanal` removida do formulário (state, useEffect, trava do botão)
-- Export Excel passou a usar o valor real
-- **Horas Base Mensal permanece** dentro de Billable — é conceito de billable
-
-**Bug corrigido em `horas_base.ts`:** `buscarHorasBaseSemanal` e
-`buscarHorasBaseMensal` ordenavam por `criado_em`. Isso significa que cadastrar
-uma meta **retroativa** faria dela a mais recente, sobrescrevendo silenciosamente
-todas as metas posteriores. Agora ordenam por `semana_inicio` / `mes_inicio`
-DESC, com `criado_em` DESC apenas como desempate.
-
-**UI da seção:**
-
-- Histórico agrupado em **faixas** (uma por semana distinta). A vencedora de
-  cada semana é a de maior `criado_em`; as demais ficam recolhidas em
-  "▾ N alterações anteriores". Isso reduziu 10 linhas cruas a 2 faixas.
-- Cada faixa mostra **intervalo fechado**: "de 08/08 a 14/08". A mais recente
-  diz "até hoje" com tag verde `vigente`.
-- Bloco de confirmação ao vivo antes de salvar:
-
-  > Nova meta: **44h**
-  > Vale a partir da semana de sáb 15/08 a sex 21/08
-  > A semana anterior (08/08 a 14/08) continua com 42,5h
-
-- Ao inserir uma meta **no meio** do histórico, aparecem dois radios:
-  **Manter as metas seguintes** (limita a nova até a próxima) ou
-  **Substituir as metas seguintes** (default — apaga as posteriores via
-  `excluirHorasBaseSemanalAPartirDe`, com filtro `gt` estrito).
-
-### 3. Subcategoria e fase visíveis em Registros
-
-A query de `listarRegistros` passou a trazer a fase:
+Novo componente **`src/components/MenuAcoes.tsx`** — menu de três pontinhos
+genérico e reutilizável.
 
 ```ts
-subcategoria:subcategorias(nome, fase:fases(nome))
+type ItemMenu = {
+  label: string
+  onClick: () => void
+  perigo?: boolean
+  separadorAntes?: boolean
+  desabilitado?: boolean   // true + onClick vazio = rótulo de seção
+}
 ```
 
-O tipo `Registro` acompanhou. Na linha do lançamento aparece a tag
-"Fase / Subcategoria", com a fase em tom mais apagado. Sem subcategoria, nada
-é renderizado.
+**Armadilha resolvida:** o card da fase usa `rounded-2xl overflow-hidden`, que
+cortaria um painel `position: absolute`. O menu usa **`position: fixed`** com
+`top`/`left` calculados por `getBoundingClientRect()` na abertura, alinhado à
+direita do gatilho, abrindo para cima quando não cabe abaixo. Fecha ao clicar
+fora, no `Escape`, ao rolar (listener com `capture: true`) e no resize.
+`z-40` — acima dos cards, abaixo dos modais.
 
-**Atenção para o futuro:** `Registros.tsx` tem **dois blocos de renderização
-separados** (modo Lista e modo Por Projeto, ternário por volta da linha 613).
-Qualquer alteração na linha do lançamento precisa ser feita nos dois.
+Na linha da subcategoria, os dois ícones (lápis e `✕`) viraram um único menu.
+Item "Mover para..." lista todas as fases exceto a atual, mais "Sem fase".
 
-### 4. Ordenação manual de projetos
+`handleMoverSubcategoria` chama
+`atualizarSubcategoria(subId, nome, undefined, novaFaseId)`.
+**O terceiro parâmetro DEVE ser `undefined`** — passar `null` apagaria as horas
+reservadas. Depois de salvar, se a fase de destino ficar acima do previsto,
+dispara um segundo toast de alerta.
 
-Coluna `ordem` (integer) em `projetos`, preenchida por migration em ordem
-alfabética particionada por `usuario_id` + `tipo`.
+### Etapa 3a — hierarquia de ações
 
-Drag and drop com `@dnd-kit/core`, `@dnd-kit/sortable` e `@dnd-kit/utilities`
-(o drag nativo do HTML5 não funciona em touch, e o app é PWA mobile).
+- Cabeçalho do card da fase: os dois ícones viraram um `MenuAcoes` com "Editar
+  fase" e "Excluir fase". A guarda `editandoFaseId !== null` foi preservada —
+  sem ela seria possível abrir o menu de uma fase enquanto outra está em edição
+  inline, descartando alterações não salvas.
+- Ponto de entrada único para criar fase: "+ Dividir em fases" saiu do card de
+  progresso. O cabeçalho da seção passou a ter um botão primário azul cujo
+  texto depende do estado ("Dividir em fases" quando `fases.length === 0`,
+  "+ Nova fase" caso contrário).
+- "Remover todas as fases" saiu do rodapé e foi para um `MenuAcoes` no
+  cabeçalho da seção.
+- O bloco "Sem fase" deixou de parecer uma fase real: borda tracejada, título
+  em cinza menor, e a linha explicativa "Lançamentos que não pertencem a
+  nenhuma fase. Some quando todos tiverem subcategoria." O usuário tentou
+  excluí-lo antes disso — ele é calculado, não existe no banco.
 
-Regras decididas:
-- Drag **só na aba Projetos** — Rotina não tem alça
-- **Só itens ativos** são arrastáveis
-- Encerrados e excluídos ficam no fim, sem alça, e não recebem drop
-- Não se arrasta entre grupos
-- Ordenação em **dois níveis**: status primeiro, depois `ordem` (necessário
-  porque a migration numerou alfabeticamente sem separar status)
+### Etapa 3b — glossário de horas e barra segmentada
 
-Alça dedicada de 6 pontinhos com `stopPropagation` (a linha inteira é clicável).
-Sensores: `PointerSensor` (distance 8) e `TouchSensor` (delay 200, tolerance 6),
-para o toque não disparar drag ao rolar a página. Atualização otimista com
-rollback em erro, sem toast no sucesso.
+O problema: três grandezas diferentes exibidas como `X / Y`, indistinguíveis.
 
-A ordem vale **em todo o app** — `listarProjetos` ordena por ela, então os
-dropdowns de projeto também respeitam.
+**Glossário aprovado — usar exatamente estas palavras:**
 
-### 5. Navegação de semana por setas
+| Nível | Termo | Frase natural |
+|---|---|---|
+| Projeto | **contratadas** | "o projeto tem 400h contratadas" |
+| Fase | **previstas** | "essa fase tem 40h previstas" |
+| Categoria | **reservadas** | "reservei 10h para essa categoria" |
+| Realizado | **lançadas** | "já lancei 4h" |
 
-O `<select>` de Semana em Registros foi **removido**. No lugar:
+O verbo "alocar" virou **"reservar"** em todo texto visível. Nenhuma variável,
+state, handler ou coluna foi renomeada — `horas_alocadas`, `alocadoFormatado`,
+`temAlocacao` e afins seguem com os nomes atuais.
 
-```
-[‹]  08/08 a 14/08  [›]  [Hoje]
-```
+**"planejado" é palavra proibida neste contexto** — já pertence a
+`plano_semanal.horas_planejadas`, e os dois conceitos convivem na mesma tela.
 
-- Setas avançam/recuam 7 dias
-- "Hoje" volta para a semana corrente e fica desabilitado quando já está nela
-- Navegar **limpa o filtro de Dia Específico** (que tem precedência e faria a
-  tela parecer travada)
-- O valor especial `'todas'` deixou de existir
-- Agora é possível navegar para semanas **sem nenhum lançamento** — antes o
-  dropdown só listava semanas com registro
+Mudanças concretas:
 
-### 6. Plano semanal por projeto
+- Cabeçalho da fase: `80,25h de 400h previstas`, ou `80,25h lançadas` quando
+  não há orçamento
+- Linha da categoria: `28,75h de 30h reservadas`, ou só `24,00h` sem reserva
+- Barra segmentada dentro da fase expandida: verde = lançadas, azul =
+  reservadas sem uso, vazio = não reservado; barra inteira vermelha quando as
+  lançadas superam o previsto. Ambos os segmentos são clampados ao teto antes
+  de virar percentual, então nunca somam mais de 100.
+- Sub-reserva deixou de ser alerta amarelo: virou texto discreto "Restam Xh
+  para reservar". Só o **excesso** é vermelho ("Xh além das Yh previstas").
+- `temPrevisto` exige `> 0`, então fase com 0h previstas não exibe mais a tarja
+  verde "Totalmente reservado", que era sem sentido.
 
-Nova tabela `plano_semanal` com RLS e 4 policies:
+**Acabamento aplicado depois do primeiro teste:**
 
-```
-id, usuario_id, projeto_id, fase_id (nullable), semana_inicio,
-horas_planejadas, criado_em
-```
+- A legenda da barra repetia o número do cabeçalho ("94h reservadas de 400h") —
+  removida, ficaram só os dois rótulos coloridos.
+- A coluna de percentual só era renderizada sem reserva, então aparecia e
+  sumia, desalinhando os menus. Agora é sempre renderizada com `w-10`, vazia
+  quando não se aplica.
+- **"sem reserva" estava sendo usado para duas grandezas diferentes.**
+  Desambiguado: o rodapé da lista virou "Xh lançadas fora de reserva" (horas
+  lançadas em categorias sem reserva) e o aviso da fase virou "Restam Xh para
+  reservar" (orçamento não distribuído).
+- O botão "+ adicionar subcategoria" ganhou contorno e passou a dividir a linha
+  com o aviso de reserva, alinhados nas pontas opostas.
+- O container flex desse rodapé é **sempre** renderizado; só o conteúdo da
+  esquerda alterna. Amarrá-lo ao estado de "adicionando" fazia o aviso sumir
+  quando o formulário estava aberto.
 
-`projeto_id` usa `ON DELETE CASCADE` (plano sem projeto não significa nada);
-`fase_id` usa `SET NULL`, seguindo o padrão das subcategorias.
+### Etapa 3d — reserva por linha, fim do modo global
 
-**Armadilha aprendida — leia antes de mexer:**
+O modo global de reserva foi **removido inteiro**. O botão "Concluir" ficava no
+rodapé da página, fora da tela, enquanto o usuário digitava no topo.
 
-O `.upsert()` do Supabase **não funciona** nesta tabela. Índice parcial gera
-erro `42P10` ("no unique or exclusion constraint matching the ON CONFLICT
-specification"), e índice comum nas três colunas **duplica**, porque no
-Postgres `NULL` nunca conflita com `NULL`.
+Removidos: states `modoAlocacao`, `alocacoes`, `salvandoAlocacoes`; handlers
+`handleEntrarModoAlocacao`, `handleCancelarAlocacoes`, `handleSalvarAlocacoes`;
+o botão "Reservar horas" do cabeçalho; a barra "Cancelar / Concluir"; e todos
+os ramos condicionais espalhados pelo arquivo.
 
-Solução final — dois índices parciais complementares:
+No lugar: edição inline por linha, espelhando o par `editandoSubId` /
+`nomeSubEditando` que já existia.
 
-```sql
-CREATE UNIQUE INDEX plano_semanal_unico_sem_fase
-  ON plano_semanal (projeto_id, semana_inicio) WHERE fase_id IS NULL;
+- states `editandoReservaId` e `valorReservaEditando`
+- item "Reservar horas" no menu da categoria
+- a linha vira input com `✓` e `✕` ao lado; Enter salva, Escape cancela; campo
+  vazio remove a reserva
+- `handleSaveEditReserva` valida **antes** de qualquer efeito colateral —
+  validação dentro do `try`, depois de `setSalvandoSub(true)`, deixava o editor
+  aberto sem sinal visual de rejeição
+- chama `atualizarSubcategoria(subId, nome, valor, undefined)`. **O quarto
+  parâmetro DEVE ser `undefined`** — `null` moveria a categoria para fora da
+  fase
+- renomear e reservar nunca coexistem: cada um cancela o outro
+- `MenuAcoes` das linhas ganhou `editandoReservaId !== null` no `desabilitado`
 
-CREATE UNIQUE INDEX plano_semanal_unico_com_fase
-  ON plano_semanal (projeto_id, fase_id, semana_inicio) WHERE fase_id IS NOT NULL;
-```
+Como o modo sumiu, `reservadoFase` e `somaAlocada` passaram a ler sempre do
+banco, sem ramo alternativo.
 
-E o service faz **busca-antes-de-decidir**: `select` com `.is('fase_id', null)`
-(nunca `.eq` para nulos), depois `update` ou `insert`.
+"Adicionar subcategoria" entrou no topo do menu da fase, **mantendo** também o
+botão do rodapé. Decisão consciente: o item de menu é atalho para quando a
+lista é longa demais para rolar.
 
-Diferente do histórico de metas, aqui **não se empilha versão**: editar a
-semana atualiza a linha existente. Plano é intenção presente, não histórico.
+### Etapa 4 — horas digitadas deixam de se perder ao trocar a data
 
-**UI:** seção "Plano semanal" em `ProjetoDetalhe.tsx`, entre fases e Lançamentos.
-Formulário (data + horas, com a data puxada para o início da semana), tabela
-Semana / Planejado / Realizado / Diferença com total no rodapé, cores verde e
-vermelho na diferença, linha informativa comparando com o total contratado
-(some quando o projeto não tem contratado), clique na linha para editar,
-exclusão com `ModalConfirmacao`.
+`src/components/ModalRegistro.tsx`
 
-O "realizado" é calculado localmente a partir dos registros já carregados, que
-já vêm filtrados por projeto. O total contratado reutiliza o `totalContratado`
-que a página já calcula pela regra híbrida.
+Bug: o `useEffect` que busca o horário padrão pela hierarquia
+(`horarios_dia` → `horarios_semana` → padrão global) rodava a cada mudança de
+`data` e sobrescrevia `horaInicio` e `horaFim`. Quem digitava as horas e depois
+corrigia a data perdia o que tinha digitado.
 
-**Decisão:** plano no nível do **projeto**. O `fase_id` existe no banco
-reservado, mas a UI por fase não foi construída — se surgir a necessidade, o
-banco já está pronto.
+Correção: novo state `horasEditadasManualmente`, zerado nos dois ramos do efeito
+de abertura (edição e criação), ligado nos `onChange` dos dois campos de hora, e
+somado à guarda e ao array de dependências do efeito do horário padrão.
 
-### 7. Correção de brinde
+O preenchimento automático continua funcionando ao abrir o modal e ao escolher a
+data pela primeira vez. A hierarquia de busca não mudou.
 
-O export Excel escrevia "Domingo" quando a configuração era sábado — o ternário
-de `inicio_semana` tinha só dois braços e não acompanhou a opção nova.
+### Etapa 5 — tudo nasce recolhido em ProjetoDetalhe
+
+- **Fases** nascem fechadas. Antes, `expandidasMap[f.id] = duracaoFase > 0`
+  abria sozinha toda fase com horas lançadas. Agora é sempre `false`, e o
+  cálculo de `subIdsPorFase`/`duracaoFase` que só servia para isso foi removido.
+- **Semanas de Lançamentos** nascem fechadas. O `isFirst` sumiu de
+  `toggleSemana` e do cálculo de `isExpanded`, que virou
+  `semanasExpandidas[chave] ?? false`.
+- **As três seções viraram recolhíveis**: "Fases & Subcategorias", "Plano
+  semanal" e "Lançamentos". State `secoesExpandidas` com as chaves `'fases'`,
+  `'plano'` e `'lancamentos'`, todas ausentes (= recolhidas) por padrão. O
+  título virou botão com chevron que gira; o parágrafo descritivo de cada seção
+  só aparece expandido.
+- **Contadores no cabeçalho recolhido** — "3 fases · 9 subcategorias",
+  "2 semanas planejadas", "31 lançamentos" — para não precisar abrir só para
+  descobrir o que tem dentro.
+- As ações da direita (botão azul primário, `MenuAcoes`) continuam visíveis com
+  a seção recolhida e ficam **fora** do `<button>` do título, então clicar nelas
+  não recolhe a seção.
+
+**Armadilha do refactor:** a seção de fases era um ternário
+`fases.length > 0 ? (...) : (/* PROJETO SEM FASES */)`. Envolvê-lo numa
+condição de expansão quase perdeu o ramo `else`. A forma final usa **duas
+condições irmãs** em vez de ternário aninhado — mais legível e impossível de
+quebrar silenciosamente. O único projeto que exercita o segundo bloco é o
+**klabin**, o único sem fases; testar sempre nele.
 
 ---
 
 ## Estado atual do banco
 
-### Tabelas novas
-- `plano_semanal` — com RLS, 4 policies e 2 índices únicos parciais
+**Nenhuma alteração de schema nesta sessão.** Nenhuma tabela, coluna, migration
+ou índice novo. Todo o trabalho foi de interface e lógica de tela.
 
-### Colunas novas
-- `projetos.ordem` — integer, nullable
-
-### Alterações de dado
-- `registros.semana_inicio` — 304 linhas recalculadas para sábado
-- `horas_base_semanal.semana_inicio` — recalculada
-- `metas_billable_margem.semana_inicio` — recalculada
-- `metas_billable_semanal.semana_inicio` — recalculada
-- `configuracoes.saldo_inicio_semana` — recalculada
-
-### Tabelas temporárias (remover — ver Pendências)
-`_bkp_semana_registros`, `_bkp_semana_horas_base`, `_bkp_semana_margem`,
-`_bkp_semana_billable`, `_bkp_semana_config`
+Tabelas temporárias ainda pendentes de remoção: `_bkp_semana_registros`,
+`_bkp_semana_horas_base`, `_bkp_semana_margem`, `_bkp_semana_billable`,
+`_bkp_semana_config`.
 
 ---
 
 ## Próximos passos
 
-### Melhorias funcionais restantes
-Da lista de 8 aprovadas no protótipo, sobraram 4:
+### Etapa 3c — renomear subcategoria para categoria (só na interface)
+
+**Decisão tomada:** renomear **apenas o texto visível**. A tabela
+`subcategorias`, a coluna `registros.subcategoria_id`, o tipo `Subcategoria`, o
+service e os nomes de variáveis **permanecem como estão**.
+
+O termo aparece cerca de 200 vezes no código — 81 em `ProjetoDetalhe.tsx`, 53
+em `ModalProjeto.tsx`, 35 em `ModalRegistro.tsx`, mais `Resumo.tsx` e
+`Registros.tsx`. Renomear a coluna significaria migration, 8 arquivos tocados,
+quebra do export Excel e risco real de regressão, por ganho zero.
+
+**Nota de tradução permanente: "categoria" na tela = `subcategoria` no código.**
+
+Arquivos a varrer: `ProjetoDetalhe.tsx`, `ModalRegistro.tsx`, `ModalProjeto.tsx`,
+`Resumo.tsx`, `Registros.tsx`.
+
+### Auditoria por trigger no Postgres — decidida, não iniciada
+
+O usuário quer rastrear cada ação para diagnosticar incidentes futuros. Foram
+avaliados dois caminhos e **o Caminho B foi escolhido**:
+
+- **Caminho A (rejeitado)** — log na aplicação, chamando `registrarEvento` em
+  cada handler. Captura a intenção, mas exige instrumentar dezenas de pontos,
+  é fácil esquecer um, e feature nova nasce sem rastro.
+- **Caminho B (escolhido)** — função genérica `SECURITY DEFINER` disparada em
+  `INSERT/UPDATE/DELETE`, gravando `auth.uid()`, a operação, a tabela e
+  `OLD`/`NEW` como `jsonb`. Impossível de burlar ou esquecer, feature nova já
+  nasce auditada, e **guarda a linha inteira antes do DELETE** — recuperar uma
+  fase apagada vira um `INSERT` a partir do `jsonb`. Zero mudança no app.
+
+Decisões ainda em aberto:
+1. Quais tabelas auditar. Sugestão: `projetos`, `fases`, `subcategorias`,
+   `plano_semanal`, `horas_base_semanal`, `configuracoes` (estrutura, onde a
+   perda dói). Incluir `registros` dobra o volume.
+2. Se haverá tela de leitura ou se basta consultar por SQL.
+
+**Modelo: Gemini 3.1 Pro (High).** O SQL deve ser revisado antes de rodar no
+Supabase, não só o diff.
+
+### Acabamentos menores identificados e não feitos
+
+- **Percentuais com denominadores diferentes.** Na linha da categoria, o `96%`
+  abaixo da barrinha é "lançadas ÷ reservadas", enquanto o `30%` de uma
+  categoria sem reserva é "lançadas ÷ total da fase". Grandezas distintas,
+  formatação idêntica — mesmo pecado que a 3b resolveu nos números absolutos.
+- **Regra híbrida do total contratado.** Em `ProjetoDetalhe.tsx`,
+  `totalContratado` usa a soma das fases quando existe alguma com horas,
+  sobrescrevendo `projeto.horas_contratadas`. Dar 100h à Fase 2 do VALE DH faria
+  o cabeçalho dizer 500h contratadas, sem aviso de que ultrapassa o contrato
+  real de 400h. Cabe um alerta quando a soma das fases exceder o contratado.
+- **Mobile.** A linha da categoria ficou bem mais longa com o glossário
+  ("28,75h de 30h reservadas" contra "28,75h / 30h"). O nome tem `min-w-0` e
+  quebra linha, mas convém verificar em tela estreita com nome comprido.
+
+### Melhorias funcionais restantes (da lista de 8 aprovadas no protótipo)
 
 - **Paleta de comandos ⌘K** — buscar projeto, lançar horas, navegar entre
   telas. Biblioteca sugerida: `cmdk`. É a de maior escopo.
 - **Gap de tempo ocioso clicável** — a linha "Xh disponíveis" vira botão que
-  abre o `ModalRegistro` já com `hora_inicio` e `hora_fim` preenchidos com os
-  limites do gap.
+  abre o `ModalRegistro` já com `hora_inicio` e `hora_fim` preenchidos.
 - **Excluir registro com desfazer** — excluir direto + toast "Desfazer" por
   ~6s, padrão Gmail/Linear. Vale **só para registro**; fase, subcategoria,
   projeto e plano semanal continuam com `ModalConfirmacao`.
@@ -295,31 +400,132 @@ Da lista de 8 aprovadas no protótipo, sobraram 4:
   Informativo, nunca bloqueia, com botão de dispensar.
 - **Estados vazios que agem** — botão de ação direta em vez de só texto.
 
-*(O item "campo de data no modal" foi encerrado: já existia e estava claro.)*
-
 ### Horizonte
+
 - Aba Gráficos no Resumo (recharts): drill-down por projeto/subcategoria
-- Plano semanal **por fase** — banco já preparado, UI não construída
-- Alerta de planejado × realizado fora da página do projeto (só construir se
-  sentir falta em uso real)
+- Plano semanal **por fase** — banco já preparado (`plano_semanal.fase_id`),
+  UI não construída
+- Arraste para mover categorias entre fases (hoje só pelo menu) — só construir
+  se sentir falta em uso real
+- Ordem manual de categorias dentro da fase — exigiria coluna `ordem` nova em
+  `subcategorias`, migration e backfill. Hoje a ordem é automática: primeiro as
+  com horas lançadas (maior para menor), depois as zeradas em ordem alfabética
+- Alerta de planejado × realizado fora da página do projeto
 - Notificações Push via Supabase Edge Functions (VAPID, sem Firebase)
 
-### Redesign visual — PAUSADO de propósito
-Terminar as melhorias funcionais primeiro. Não sugerir retomar por conta
-própria — só quando o usuário sinalizar.
+### Redesign visual — FRENTE ATIVA a partir de 21/08/2026
 
-Já definido: tema escuro continua padrão (redesenhado do zero, não o `#0B0E14`
-atual); paleta neutra com viés azulado; tipografia em 3 papéis (Instrument
-Sans, Inter, IBM Plex Mono com `tabular-nums`); branch `redesign` a partir da
-`main`. Referências em `horas-redesign.html` e `horas-prototipo.html`.
+Deixou de estar pausado. O usuário sinalizou que vai atacar o layout inteiro
+para deixar o app mais limpo e profissional. As melhorias funcionais que
+seguravam o redesign estão suficientemente maduras.
+
+**Documentos de referência:** `horas-redesign.html` (plano com 10 decisões) e
+`horas-prototipo.html` (protótipo interativo navegável, 2 levas, com toggle
+claro/escuro e paleta ⌘K funcionando). ⚠️ Foram entregues no chat, **não estão
+no repositório** — confirmar que existem antes de começar; sem eles o plano
+precisa ser refeito.
+
+**Decisões já fechadas:**
+
+1. Tema **escuro** continua padrão — mas redesenhado do zero, não o `#0B0E14`
+   atual.
+2. Paleta com 3 camadas de elevação no escuro (ex. `#0F1216` / `#141920` /
+   `#1A202A`), texto quase-branco em vez de branco puro, acento azul só para
+   foco e link, botão primário quase-branco (inversão correta do preto do tema
+   claro, não literal), tríade de estado dessaturada — musgo, ocre e terracota
+   no lugar do verde/âmbar/vermelho Material.
+3. Tipografia em 3 papéis: **Instrument Sans** (títulos), **Inter**
+   (interface), **IBM Plex Mono** (números). `tabular-nums` obrigatório em toda
+   coluna de horas.
+4. Menos bordas; hierarquia por espaço e tipografia. Escala de raio
+   4/6/10/14/999px.
+5. Quatro níveis de botão (primário, secundário, fantasma, destrutivo), no
+   máximo 1 primário por tela.
+6. Tokens de movimento 120/180/260ms, `cubic-bezier(.2,.8,.3,1)`, respeitando
+   `prefers-reduced-motion`.
+7. Navegação agrupada por intenção, botão fixo "+ Lançar horas" no topo da
+   sidebar, atalhos numéricos 1–4, paleta ⌘K (`cmdk`) — já prototipada.
+8. Ordem de execução: tokens → primitivas (Button, Field, Surface, Stat,
+   DataRow, Chip, Sheet) → casca e navegação → telas na ordem de uso
+   (Registros → ProjetoDetalhe → Resumo → Timesheet → Billable → Ajustes) →
+   acabamento.
+9. Branch **`redesign`** a partir da `main`, mesmo Supabase, preview automático
+   da Vercel para comparar lado a lado. Correções urgentes vêm da `main` para a
+   branch, **nunca o contrário**.
+
+**O que o redesign NÃO pode perder** — tudo isto foi construído em 20/08 e
+custou uma sessão inteira:
+
+- O componente `MenuAcoes` e a hierarquia de três níveis (primário no
+  cabeçalho, secundário com contorno, contextual e destrutivo no kebab)
+- O glossário contratadas / previstas / reservadas / lançadas, e o princípio de
+  que cada grandeza tem sua palavra
+- A barra segmentada por fase
+- Reserva de horas por linha, sem modo global — ação perto do alvo
+- Seções e fases recolhidas por padrão, com contadores no cabeçalho
+- Sub-utilização em cinza; só o excesso em vermelho
+
+Ao migrar, esses padrões devem ser reimplementados com os tokens novos, não
+descartados.
+
+**Referências:** Linear, Things 3, Stripe Dashboard, Raycast, Notion Calendar,
+Vercel Dashboard, Radix Colors/Primitives, shadcn/ui, cmdk, Sonner/Vaul,
+Motion, o livro Refactoring UI, rauno.me/craft, Emil Kowalski, Josh Comeau,
+Mobbin, Apple HIG.
 
 ---
 
 ## Padrões aprendidos — não reverter
 
+### Novos nesta sessão
+
+- **A fase do registro é lida por join, nunca copiada.** `registros` guarda só
+  `subcategoria_id`; a fase chega via
+  `subcategoria:subcategorias(nome, fase:fases(nome))`. Por isso mudar a fase
+  de uma categoria atualiza **todos** os lançamentos, passados e futuros, na
+  hora, sem migração. **Nunca adicionar `fase_id` a `registros`** "por
+  performance" — isso mata a garantia.
+- **Ação perto do alvo.** Botão de salvar no rodapé enquanto o usuário digita
+  no topo é falha de projeto, não detalhe. Foi o que matou o modo global de
+  reserva.
+- **Um destrutivo, um gatilho.** O mesmo ícone nunca pode ter dois alcances
+  diferentes conforme o estado. Foi a causa raiz do incidente.
+- **Nunca pré-selecionar destino em ação destrutiva irreversível.** Padrão
+  arbitrário vira confirmação automática.
+- **Menu em card com `overflow-hidden` exige `position: fixed`** com
+  `getBoundingClientRect()`. `absolute` é cortado.
+- **`atualizarSubcategoria(id, nome, horasAlocadas?, faseId?)`** — passar
+  `undefined` no parâmetro que **não** se quer alterar. `null` apaga o valor.
+- **Cada grandeza tem sua palavra.** Dois números com formato igual e
+  significado diferente na mesma tela é bug de leitura. Vale também para
+  textos: "sem reserva" chegou a significar duas coisas.
+- **Sub-utilização não é alerta.** Amarelo só quando algo está errado; estado
+  normal é cinza. Alarme falso treina o usuário a ignorar alarmes.
+- **Blocos calculados não podem parecer entidades editáveis.** O "Sem fase"
+  parecia uma fase e o usuário tentou excluí-lo.
+- **Container de layout sempre renderizado, conteúdo alternando dentro.**
+  Amarrar o container a um estado faz elementos irmãos sumirem junto.
+- **Nada nasce expandido.** Estado inicial aberto engorda a página e esconde o
+  que vem depois. Recolhido por padrão, com contador no cabeçalho dizendo o que
+  tem dentro.
+- **Não envolver ternário em condição — usar condições irmãs.** Embrulhar
+  `a ? (X) : (Y)` numa nova condição faz o ramo `else` se perder sem erro de
+  compilação. Preferir `{cond && a && (X)}` e `{cond && !a && (Y)}`.
+- **Preenchimento automático precisa saber se o usuário já interveio.** Um
+  efeito que reage a um campo e sobrescreve outro apaga trabalho. Marcar a
+  edição manual com um flag e respeitá-la.
+- **`{cond && (` seguido de `{` não compila.** Dentro da expressão vem JSX, não
+  outra chave — falta o fragmento `<>`.
+- **O diff do Antigravity às vezes sai mal formatado** (linhas sem `+`, tags
+  órfãs) sem que o código esteja errado — a representação interna dele está
+  íntegra. Validar pela lógica, aplicar, e rodar `npx tsc -b` na hora. JSX
+  desbalanceado não passa no TypeScript.
+
+### Anteriores
+
 - **Cores semânticas em totais, não em células individuais**
-- **Histórico de metas com start-date** — e ordenado por vigência, nunca por
-  data de criação
+- **Histórico de metas com start-date** — ordenado por vigência, nunca por data
+  de criação
 - **Tabs sobre toggles** para visualizações distintas
 - **Exceções de horário nunca retroagem**
 - **Projetos encerrados preservam horas** — filtrar por `.neq('status','excluido')`
@@ -336,8 +542,9 @@ Sans, Inter, IBM Plex Mono com `tabular-nums`); branch `redesign` a partir da
 - **`.is('campo', null)` e nunca `.eq`** para nulos no Supabase
 - **Índice parcial não funciona com `.upsert()`** — usar busca-antes-de-decidir
 - **Registros.tsx tem 2 blocos de renderização** — alterar sempre os dois
-- **`type` explícito em imports de tipo** — o projeto usa `verbatimModuleSyntax`;
-  esquecer isso causou erro em 3 etapas diferentes desta sessão
+- **`type` explícito em imports de tipo** — o projeto usa `verbatimModuleSyntax`.
+  Quebrou duas vezes nesta sessão também: `import React` é obrigatório quando se
+  usa `React.MouseEvent`, e `import { type ItemMenu }` precisa da palavra-chave
 
 ---
 
@@ -375,12 +582,22 @@ duração = horas_inteiras + (minutos / 60)
 | Background primário | `#0B0E14` |
 | Superfície / Sidebar | `#161B22` |
 | Ação primária | `#03A9F4` |
+| Ação primária (hover) | `#0288D1` |
 | Sucesso | `#4CAF50` |
 | Alerta | `#FFC107` |
 | Erro | `#F44336` |
 | Texto primário | `#FFFFFF` |
 | Texto secundário | `#8B949E` |
 | Fonte | Inter |
+
+**Hierarquia de botões estabelecida nesta sessão:**
+
+- **Primário** — `bg-[#03A9F4] text-white font-bold rounded-lg px-3 py-1.5
+  text-xs`. No máximo um por seção.
+- **Secundário (contorno)** — `border border-gray-700 bg-transparent
+  text-[#8B949E] hover:text-white hover:border-gray-600 rounded-lg px-3 py-1.5
+  text-xs font-semibold`.
+- **Contextual e destrutivo** — dentro do `MenuAcoes` do próprio item.
 
 ---
 
@@ -393,23 +610,32 @@ duração = horas_inteiras + (minutos / 60)
 5. Usuário testa no localhost
 6. Usuário commita e faz push (PowerShell, sem caracteres especiais)
 
-> **Nunca aprovar em cima do resumo do agente.** Nesta sessão, o resumo afirmou
-> ter alterado "ambos os modos de visualização" quando só um constava no diff.
-> Exigir sempre o diff completo, sem elisões.
+> **Nunca aprovar em cima do resumo do agente.** Exigir sempre o diff completo,
+> sem elisões.
+
+**Conversa nova no Antigravity** sempre que criar arquivo novo ou virar de
+contexto arquitetural. Contexto velho é a principal fonte de o agente "lembrar"
+de coisas que não foram pedidas.
 
 ### Seleção de modelo no Antigravity
 
+Disponíveis em 20/08/2026: Gemini 3.7 Flash, 3.6 Flash e 3.5 Flash (todos com
+Low/Medium/High) e Gemini 3.1 Pro (Low/High). **Preferir sempre a versão mais
+nova do tier Flash — hoje 3.7.**
+
 | Complexidade | Modelo |
 |---|---|
-| Baixa (CSS pontual, correção TS, renomeação) | Gemini 3.6 Flash (Low) |
-| Média (multi-arquivo, lógica leve) | Gemini 3.6 Flash (Medium) |
-| Alta (novas telas, UI complexa) | Gemini 3.6 Flash (High) |
-| Arquitetura (banco, migrations, tabelas novas) | Gemini 3.1 Pro (High/Low) |
+| Baixa — CSS pontual, renomeação, correção TS single-file | 3.7 Flash (Low) |
+| Média — multi-arquivo, ou single-file com lógica de estado | 3.7 Flash (Medium) |
+| Alta — novas telas, UI complexa, remover conceito inteiro | 3.7 Flash (High) |
+| Arquitetura leve | 3.1 Pro (Low) |
+| Arquitetura — banco, migrations, triggers, tabelas novas | 3.1 Pro (High) |
 
 ### Regras do prompt para o Antigravity
 Todo prompt deve incluir: arquivos a ler antes de editar, arquivos protegidos,
-comportamento esperado, critérios de aceite, e as instruções de **não rodar
-`npx tsc -b`**, **não commitar** e **mostrar o diff completo sem elisões**.
+comportamento esperado, critérios de aceite, o lembrete de `verbatimModuleSyntax`
+para imports de tipo, e as instruções de **não rodar `npx tsc -b`**, **não
+commitar** e **mostrar o diff completo sem elisões**.
 
 ---
 
@@ -430,3 +656,31 @@ SELECT * FROM configuracoes;
 SELECT * FROM plano_semanal;
 SELECT * FROM horas_base_semanal;
 ```
+
+> O incidente de 20/08 mostrou o custo de não ter esses CSVs. Enquanto a
+> auditoria por trigger não existir, este é o único mecanismo de recuperação.
+> Rodar antes de qualquer operação estrutural em fases ou subcategorias.
+
+---
+
+## Mapa de arquivos
+
+| Problema | Arquivo |
+|---|---|
+| Tela de registros | `src/pages/Registros.tsx` |
+| Tela de resumo | `src/pages/Resumo.tsx` |
+| Tela de projetos | `src/pages/Projetos.tsx` |
+| Detalhe do projeto (fases, categorias, plano) | `src/pages/ProjetoDetalhe.tsx` |
+| Tela de configurações | `src/pages/Ajustes.tsx` |
+| Grade timesheet | `src/pages/Timesheet.tsx` |
+| Tela billable | `src/pages/Billable.tsx` |
+| Menu de três pontinhos | `src/components/MenuAcoes.tsx` |
+| Modal de registro | `src/components/ModalRegistro.tsx` |
+| Modal de projeto | `src/components/ModalProjeto.tsx` |
+| Cálculo de semana | `src/utils/semana.ts` |
+| Configuração global | `src/contexts/ConfigContext.tsx` |
+| Cálculo centesimal | `src/services/registros.ts` |
+| Fases | `src/services/fases.ts` |
+| Subcategorias | `src/services/subcategorias.ts` |
+| Metas semanais/mensais | `src/services/horas_base.ts` |
+| Plano semanal | `src/services/plano_semanal.ts` |
