@@ -6,6 +6,7 @@ import { useConfig } from '../contexts/ConfigContext'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
+import MenuAcoes, { type ItemMenu } from '../components/MenuAcoes'
 import ModalConfirmacao from '../components/ModalConfirmacao'
 import { SkeletonCard } from '../components/Skeleton'
 import { listarProjetos } from '../services/projetos'
@@ -424,6 +425,40 @@ export default function ProjetoDetalhe() {
     }
   }
 
+  const handleMoverSubcategoria = async (
+    subId: string,
+    nome: string,
+    novaFaseId: string | null
+  ) => {
+    try {
+      setSalvandoSub(true)
+      await subcategoriasService.atualizarSubcategoria(subId, nome, undefined, novaFaseId)
+      await carregarDados(true)
+      showToast('Subcategoria movida com sucesso!', 'success')
+
+      if (novaFaseId && id) {
+        const [novasSubs, novasFases] = await Promise.all([
+          subcategoriasService.listarSubcategorias(id),
+          fasesService.listarFases(id)
+        ])
+        const faseDestino = novasFases.find(f => f.id === novaFaseId)
+        if (faseDestino && faseDestino.horas_contratadas !== null && faseDestino.horas_contratadas !== undefined && faseDestino.horas_contratadas > 0) {
+          const subsFaseDestino = novasSubs.filter(s => s.fase_id === novaFaseId)
+          const somaAlocadas = subsFaseDestino.reduce((acc, s) => acc + (s.horas_alocadas || 0), 0)
+          const diff = Math.round((somaAlocadas - faseDestino.horas_contratadas) * 100) / 100
+          if (diff > 0) {
+            showToast(`Fase ${faseDestino.nome} ficou ${formatarHoras(diff)}h acima das horas previstas`, 'error')
+          }
+        }
+      }
+    } catch (err: unknown) {
+      console.error('Erro ao mover subcategoria:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoSub(false)
+    }
+  }
+
   const handleConfirmAddSubcategoria = async (faseId: string | null) => {
     if (!novaSubNome.trim() || !user || !projeto) return
     try {
@@ -607,6 +642,48 @@ export default function ProjetoDetalhe() {
               )
             }
 
+            const subOriginal = subcategorias.find(s => s.id === sub.id)
+            const faseAtualId = subOriginal?.fase_id ?? null
+
+            const itensMenu: ItemMenu[] = [
+              {
+                label: 'Renomear',
+                onClick: () => handleStartEditSub(sub)
+              }
+            ]
+
+            if (fases.length > 0) {
+              itensMenu.push({
+                label: 'MOVER PARA',
+                onClick: () => {},
+                desabilitado: true,
+                separadorAntes: true
+              })
+
+              fases
+                .filter(f => f.id !== faseAtualId)
+                .forEach(f => {
+                  itensMenu.push({
+                    label: f.nome,
+                    onClick: () => handleMoverSubcategoria(sub.id!, sub.nome, f.id)
+                  })
+                })
+
+              if (faseAtualId !== null) {
+                itensMenu.push({
+                  label: 'Sem fase',
+                  onClick: () => handleMoverSubcategoria(sub.id!, sub.nome, null)
+                })
+              }
+            }
+
+            itensMenu.push({
+              label: 'Excluir',
+              onClick: () => setSubExcluindoId(sub.id),
+              perigo: true,
+              separadorAntes: true
+            })
+
             return (
               <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
                 <div className="flex justify-between items-center text-xs gap-2">
@@ -656,27 +733,12 @@ export default function ProjetoDetalhe() {
                           </span>
                         )}
                         {!isBaldeSemSub && (
-                          <div className="flex items-center gap-1 shrink-0 ml-1">
-                            <button
-                              type="button"
-                              onClick={() => handleStartEditSub(sub)}
-                              disabled={salvandoSub || editandoSubId !== null}
-                              className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors disabled:opacity-50"
-                              title="Editar subcategoria"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSubExcluindoId(sub.id)}
-                              disabled={salvandoSub || editandoSubId !== null}
-                              className="p-1 text-gray-500 hover:text-[#F44336] transition-colors disabled:opacity-50"
-                              title="Excluir subcategoria"
-                            >
-                              ✕
-                            </button>
+                          <div className="shrink-0 ml-1">
+                            <MenuAcoes
+                              itens={itensMenu}
+                              rotulo={`Ações para ${sub.nome}`}
+                              desabilitado={salvandoSub || editandoSubId !== null}
+                            />
                           </div>
                         )}
                       </>
