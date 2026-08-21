@@ -80,6 +80,7 @@ export default function ProjetoDetalhe() {
   const [novaSubNome, setNovaSubNome] = useState('')
   const [adicionandoSemFase, setAdicionandoSemFase] = useState(false)
   const [salvandoSub, setSalvandoSub] = useState(false)
+  const [baldeExpandido, setBaldeExpandido] = useState(false)
 
   // Estados da seção Lançamentos / Modal de Registro
   const [isModalRegistroOpen, setIsModalRegistroOpen] = useState(false)
@@ -558,6 +559,71 @@ export default function ProjetoDetalhe() {
 
             const isEditingThisSub = !isBaldeSemSub && editandoSubId === sub.id
             const isEditingReserva = !isBaldeSemSub && editandoReservaId === sub.id
+
+            if (isBaldeSemSub) {
+              const orfaos = registros
+                .filter(r => !r.subcategoria_id)
+                .sort((a, b) => a.data.localeCompare(b.data))
+
+              return (
+                <div key="sem_sub" className="space-y-1 py-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setBaldeExpandido(v => !v)}
+                    className="w-full flex justify-between items-center text-xs gap-2 text-left focus:outline-none group"
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-4 w-4 text-gray-500 shrink-0 transition-transform duration-200 ${baldeExpandido ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="font-mono text-right shrink-0">
+                        <span className="font-bold text-white">{duracaoFormatada}</span>
+                      </div>
+                      <span className="font-mono w-10 text-right font-medium text-[#6B7280] shrink-0">
+                        {sub.percentual ?? 0}%
+                      </span>
+                    </div>
+                  </button>
+
+                  {baldeExpandido && orfaos.length > 0 && (
+                    <div className="mt-2 ml-4 pl-3 border-l border-gray-800 space-y-1">
+                      <p className="text-xs text-gray-500 mb-1">Clique em um lançamento para atribuir uma categoria.</p>
+                      {orfaos.map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => abrirEditarRegistro(r)}
+                          className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-[#1E2530]/40 transition-colors text-left focus:outline-none"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span className="font-mono text-[#8B949E] shrink-0">{formatarDataCurta(r.data)}</span>
+                            <span className="text-gray-400 font-mono shrink-0">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</span>
+                            {r.observacao ? (
+                              <span className="text-gray-300 truncate" title={r.observacao}>{r.observacao}</span>
+                            ) : (
+                              <span className="text-gray-600 italic">sem observação</span>
+                            )}
+                          </div>
+                          <span className="font-mono font-semibold text-white shrink-0">
+                            {r.duracao.toFixed(2).replace('.', ',')}h
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
 
             if (isEditingThisSub) {
               return (
