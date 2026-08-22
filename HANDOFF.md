@@ -1,7 +1,7 @@
 # HANDOFF — Projeto HORAS
 
 > Documento de estado da sessão. Ler no início de cada nova sessão.
-> Última atualização: 22/08/2026 (fim da sessão)
+> Última atualização: 22/08/2026 (fim da sessão — 9 etapas do redesign)
 
 ---
 
@@ -125,18 +125,38 @@ teste, sem ação.
 
 ---
 
-## O que foi feito nesta sessão (22/08) — Fase 3.1 do redesign
+## O que foi feito nesta sessão (22/08)
 
-Sessão curta e cirúrgica, inteira na branch `redesign`, num único arquivo:
-`src/components/Sidebar.tsx`. Nenhuma migração de banco, nenhuma tela tocada.
-O detalhamento está em **Redesign visual → Fase 3.1**, mais abaixo.
+Sessão longa, inteira na branch `redesign`. **Nove etapas concluídas**, nove
+commits, nenhuma migração de banco. O detalhamento de cada uma está em
+**Redesign visual**, mais abaixo.
 
-Dois aprendizados de processo que valem mais que o código entregue:
+| Etapa | Entrega |
+|---|---|
+| 3.1 | Sidebar nova (tokens, links por array, drawer corrigido) |
+| 3.2 | Paleta de comandos `cmdk` + campo de busca `Ctrl K` |
+| 3.3 | Botão "Lançar horas" fixo na sidebar |
+| 4.1a / 4.1b / 4.1c | `Registros.tsx` migrada por inteiro |
+| 4.2a | Casca do `ProjetoDetalhe.tsx` |
+| 4.2b-1 | `renderListaSubcategorias` |
+| 4.2b-2 | Seção Fases & Subcategorias |
+
+**RETOMAR EM: leva 4.2c — Plano Semanal.**
+
+Também nesta sessão: auditoria de números mágicos no código (ver "Correções
+pendentes"), e o documento de instruções do projeto Claude foi reescrito por
+inteiro — a versão anterior ainda dizia "semana de segunda a domingo" e
+"Timesheet Fase 2 pendente", ambos desatualizados havia semanas.
+
+Três aprendizados de processo que valem mais que o código entregue:
 
 1. **A Fase 3.0 foi planejada por engano e cancelada.** Ver abaixo.
-2. **O agente encolheu o alvo de toque por conta própria** num app que é PWA de
-   celular. Diff proposto ≠ diff aprovado: a revisão pegou três desvios que não
-   estavam no pedido.
+2. **Diff proposto ≠ diff aprovado.** A revisão pegou bugs reais em 5 das 9
+   levas — bordas que não renderizariam, alvo de toque encolhido de 48 para
+   40px, larguras anuladas por conflito de classe. Nenhum apareceria num teste
+   superficial.
+3. **Quebrar tela grande em levas pequenas funciona.** 987 + 2046 linhas
+   migradas sem uma regressão.
 
 ---
 
@@ -513,26 +533,180 @@ fossem pedidos:
 2. Itens de `py-3`/`h-5` para `py-2.5`/`h-4` — alvo de toque de ~48px para ~40px
 3. Logo do `<aside>` encolhido de `h-6` para `h-5`
 
-**Próxima: Fase 3.2 — paleta de comandos.** `cmdk` (ainda não instalada) +
-**campo falso de busca no topo da sidebar**: lupa + "Buscar..." + badge do
-atalho. O campo é obrigatório — atalho de teclado sozinho é invisível para quem
-não sabe que existe e inútil no PWA do celular, que não tem teclado físico.
+**Fase 3.2 — Paleta de comandos: CONCLUÍDA**
+`cmdk@1.1.1` instalado. Dois arquivos novos + Sidebar alterada.
 
-Decisões pendentes para a 3.2:
-- **São 7 links, não 4.** O plano original previa atalhos numéricos 1–4.
-  Decidir: vira 1–7, ou só as quatro telas principais ganham atalho?
-- O badge deve dizer **`Ctrl K`**, não `⌘K` — o ambiente é Windows. O `⌘` é
-  notação de Mac.
+- **`src/components/PaletaComandos.tsx`** — usa `<Command.Dialog>`, que traz
+  Radix por baixo e já entrega focus trap, retorno de foco, `aria-modal` e
+  bloqueio de scroll. Não reimplementar nada disso à mão.
+- **`src/components/itensNav.ts`** — `ITENS_NAV` foi extraído para cá.
+  Sidebar importa PaletaComandos, e PaletaComandos precisava de ITENS_NAV:
+  importar de Sidebar criaria **ciclo**. Funcionava por acidente (a constante
+  só é lida dentro do render), mas quebraria no dia em que alguém a usasse no
+  topo do módulo, e atrapalha o HMR.
+- **Dois grupos:** "Navegação" (os 7 itens) e "Projetos", este carregado
+  **sob demanda** na primeira abertura, via `listarProjetos(user.id, false)`
+  (o segundo parâmetro já filtra arquivados no banco) e depois filtrado por
+  `status === 'ativo'`. **`arquivado` e `status` são campos DIFERENTES** — sem
+  o segundo filtro, projeto excluído apareceria na busca.
+- Falha do carregamento é **silenciosa**: o grupo some, a navegação continua.
+- **Campo falso de busca** no topo da sidebar: `<button>` com aparência de
+  campo — lupa + "Buscar..." + `<kbd>Ctrl K</kbd>`. Atalho sozinho é invisível
+  para quem não sabe que existe e inútil no PWA do celular.
+- **`Ctrl K` funciona mesmo com foco num input** (o ramo tem `return` cedo);
+  `preventDefault` obrigatório, senão o Chrome rouba para a barra de endereço.
+- Estilização via data-attributes (`[cmdk-item]`, `[data-selected="true"]`),
+  porque o cmdk 1.1.1 é **100% headless** e não injeta CSS.
 
-Depois: **3.3** (botão fixo "+ Lançar horas"), **Fase 4** (telas na ordem
-Registros → ProjetoDetalhe → Resumo → Timesheet → Billable → Ajustes, uma por
-sessão) e **Fase 5** (acabamento).
+**Atalhos numéricos 1–4: implementados e REMOVIDOS na mesma sessão.**
+Funcionavam, com guarda completa (INPUT/TEXTAREA/SELECT/contentEditable,
+paleta aberta, modificadores). **Decisão do usuário: remover.** O risco de
+navegação acidental não compensa o ganho — o `Ctrl K` cobre todas as telas com
+zero risco, e no celular, que é o uso principal, atalho numérico não existe.
+Se um dia voltar, a guarda está descrita acima.
+
+**Comportamento conhecido da busca:** o `value` de cada projeto é
+`nome + codigo_externo`, e o cmdk usa busca **fuzzy**, não substring. Por isso
+digitar um único dígito traz projetos pelo código, e "resu" casa com
+"Treinamento **Re**cebido Sa**u**de". É padrão de paleta de comandos e foi
+**aceito como está**. Se incomodar em uso real, a saída é exigir 2+ caracteres
+para exibir o grupo Projetos.
+
+**Fase 3.3 — Botão "Lançar horas": CONCLUÍDA**
+Botão primário de largura total no topo da sidebar, entre o campo de busca e
+a navegação.
+
+**Decisão de arquitetura — OPÇÃO A.** O botão **navega** para
+`/registros?novo=1`; `Registros.tsx` detecta o parâmetro e abre o modal.
+A alternativa (Opção B) era promover o `ModalRegistro` para um contexto
+global montado no `App.tsx` — descartada: mexeria no arquivo mais crítico do
+app para atender o caso raro de lançar horas estando em outra tela. Se o
+usuário sentir que navegar incomoda, a B continua possível e aí terá
+justificativa real.
+
+Detalhes que a implementação exigiu:
+- O tratamento de `novo=1` entrou **dentro do useEffect que já lia a
+  querystring**, não num segundo efeito. Dois efeitos escutando `searchParams`
+  com um deles chamando `setSearchParams` é receita de loop.
+- O parâmetro é removido com `setSearchParams(proximos, { replace: true })`
+  preservando `data` e `projeto_id` (o fluxo vindo do Timesheet).
+  **Sem a remoção**, fechar o modal e apertar F5 o reabriria.
+- `setIsSidebarOpen(false)` no `onClick` é necessário: o efeito da Fase 3.1
+  que fecha o drawer depende de `location.pathname`, e ele **não muda** quando
+  já se está em `/registros`.
+- O botão "+ Novo Registro" do topo de Registros **permanece**. Dois caminhos
+  para a mesma ação, intencional.
+
+**Próxima: Fase 4 — telas, uma por vez.**
 
 **Tokens disponíveis:** `bg-surface-0|1|2|3`, `text-ink-900|700|500|300`,
 `border-hair`/`border-hair-strong`, `accent`/`accent-bg`/`accent-fg`,
 `pri`/`pri-fg`/`pri-hover`, `ok`/`ok-bg`, `warn`/`warn-bg`, `bad`/`bad-bg`,
 `proj-1..8`, `rounded-chip|ctl|card|sheet`, `shadow-e1|e2|e3`,
 `font-display|ui|mono`, `duration-d1|d2|d3`, `ease-ez`.
+
+### Fase 5 — acabamento (fila já formada)
+
+Itens levantados durante as fases 3 e 4, todos adiados de propósito:
+
+- **Sidebar com barra de rolagem.** Com o campo de busca e o botão "Lançar
+  horas", os 7 itens estouram a altura em janela média e aparece scroll.
+- **Mover a busca para o RODAPÉ**, como no protótipo original — abaixo do
+  email, não no topo. Decisão do usuário em 22/08.
+- **Agrupar os itens de navegação por intenção**, também como no protótipo:
+  "RELATÓRIOS" (Timesheet, Billable) e "GESTÃO" (Projetos, Lembretes), com
+  Ajustes isolado. Bastaria um campo `grupo` no `ITENS_NAV`.
+- **Botão flutuante de "Lançar horas" no mobile.** Hoje o botão da sidebar só
+  aparece depois de abrir o `☰`. Adiado para quando a tela de Registros for
+  reavaliada por inteiro.
+- **Botão primário quase-branco — decisão em aberto.** O token `pri` é
+  `#E9ECF1` com texto escuro, correto pela especificação (inversão do tema
+  claro, padrão Linear/Vercel). Mas no escuro atual ele parece desabilitado, e
+  convive na mesma tela com o azul ciano dos botões ainda não migrados. Só dá
+  para julgar de verdade quando todas as telas estiverem migradas.
+
+---
+
+### Fase 4 — migração das telas (EM ANDAMENTO)
+
+Ordem: Registros → **ProjetoDetalhe** → Resumo → Timesheet → Billable →
+Ajustes.
+
+**Método que funcionou: quebrar a tela em LEVAS pequenas, uma por commit.**
+`Registros.tsx` tem 987 linhas e `ProjetoDetalhe.tsx` tem 2046. Reescrever de
+uma vez, no fluxo mais crítico do app, é como se perdeu quase um ramo inteiro
+na Etapa 5 de 20/08. Cada leva tem escopo declarado por delimitador de
+comentário no arquivo, e o prompt proíbe explicitamente tocar no resto.
+
+#### `src/pages/Registros.tsx` — MIGRADA POR INTEIRO ✅
+
+- **4.1a — casca.** Container, `<main>`, header, bloco de erro, card de
+  filtros, toggle de visualização. `max-w-5xl` e `lg:ml-[240px]` preservados.
+- **4.1b — cartões de dia.** Skeleton, estado vazio, cabeçalho do dia, chevron,
+  container de recolhimento. **Aditivo:** o estado vazio ganhou botão
+  "Lançar horas" (mata um item da lista de melhorias pendentes). O botão do
+  cabeçalho do dia trocou o ícone de `+` por `Clock` — ele **edita** a jornada,
+  não adiciona nada; ícone de adicionar ali era enganoso.
+- **4.1c — lançamentos.** As duas árvores (modo Lista e modo Por Projeto),
+  gaps de tempo ocioso, tags de projeto, ícones de ação.
+
+#### `src/pages/ProjetoDetalhe.tsx` — PARCIAL
+
+- **4.2a — casca.** Voltar, erro, skeleton, "não encontrado", cabeçalho do
+  projeto, barra de progresso geral, cards de métrica. `max-w-6xl` preservado.
+- **4.2b-1 — `renderListaSubcategorias`.** A função de ~316 linhas que fica
+  ANTES do return. Tem **sete estados visuais** distintos.
+- **4.2b-2 — seção Fases & Subcategorias** dentro do return: cabeçalho,
+  cards de fase, edição inline, barra segmentada, formulário de subcategoria,
+  rodapé de reserva, bloco "Sem fase", ramo projeto-sem-fases.
+
+**FALTAM, nesta ordem:**
+- **4.2c — Plano Semanal** (~220 linhas, começa no comentário
+  `{/* Seção Plano Semanal */}`)
+- **4.2d — Lançamentos + modais** (~250 linhas, até o fim do arquivo)
+
+Depois: Resumo, Timesheet, Billable, Ajustes.
+
+**Cores que são DADO, nunca token:**
+- `projeto.cor` vem do banco. Aparece em `style` inline nas tags de Registros
+  (`${projCor}12` e `${projCor}44`, alfa em hex de 8 dígitos) e no círculo do
+  cabeçalho de ProjetoDetalhe. **Substituir por token apagaria a identidade
+  visual de cada projeto.** A concatenação também impede: `var(--x)12` é CSS
+  inválido.
+- Os fallbacks `#6B7280` (excluído) e `#9CA3AF` (encerrado) alimentam a mesma
+  variável e por isso permanecem hex.
+- **Mas `#F44336` e `#4CAF50` em style inline SÃO tema disfarçado de dado** —
+  esses viram `var(--bad)` e `var(--ok)`.
+
+**Armadilhas novas na Fase 4:**
+- **`classeCampo()` já inclui `w-full`.** Combinado com `flex-1` ou `w-24`,
+  são duas declarações de largura no mesmo elemento e o `w-full` vence.
+  Quebrou os 6 inputs inline de ProjetoDetalhe: o campo de nome virou um
+  quadradinho e o de horas ocupou a linha. Solução:
+  `${classeCampo()} !flex-1 !w-auto min-w-0` ou `${classeCampo()} !w-24`.
+  **Vai voltar a aparecer em Ajustes, que tem muitos campos.**
+- **`Surface` não aceita prop `padding` junto com classe `p-`.** Mesmo
+  conflito. Use `padding="nenhum"` quando quiser controlar pelo className.
+- **`Skeleton` e `SkeletonCard` tinham hex fixo DENTRO do componente.**
+  Corrigidos na origem. Isso mudou a cor de carregamento de 7 telas de uma vez
+  — Timesheet, Resumo, Projetos, ProjetoDetalhe, Lembretes, Billable, Ajustes.
+  Esperado e desejável.
+- **A escala de raio tem apelido diferente do nome da variável:**
+  `rounded-chip`→`--r-xs` 4px · `rounded-ctl`→`--r-sm` 6px ·
+  `rounded-card`→`--r-md` 10px · `rounded-sheet`→`--r-lg` 14px.
+  Procurar por `--r-chip` no `index.css` não acha nada.
+- **Duas bordas no mesmo elemento se anulam.** `border-l-[3px] border-l-accent
+  border border-hair` → o `border` genérico vem depois e faz 1px em todos os
+  lados, matando a faixa de 3px.
+- **`token/número` continua sendo o erro mais recorrente do agente.**
+  Apareceu três vezes na sessão: `border-bad/30`, `bg-surface-1/30`,
+  `bg-ok/10`. Sempre incluir a proibição no prompt.
+
+**Candidatos a refatoração estrutural — DEPOIS da Fase 5:**
+- `renderListaSubcategorias` — 316 linhas, 7 estados, merece ser componente
+- As duas árvores de linha de lançamento em `Registros.tsx` são quase
+  idênticas. Não foram unificadas de propósito: extrair no meio de uma
+  migração visual seria misturar dois riscos.
 
 **Armadilhas novas na Fase 3.1:**
 - **`--accent` é `#5C87F7` (índigo), não `#03A9F4` (ciano).** A sidebar nova usa
@@ -591,6 +765,14 @@ sessão) e **Fase 5** (acabamento).
 - **Reescrita de arquivo inteiro exige checklist do que não pode se perder.**
   Aqui era a lógica do badge de lembretes. Definir isso *antes* de olhar o diff,
   senão a leitura vira busca genérica por erro.
+- **O agente aplica sem esperar confirmação, mesmo instruído a aguardar.**
+  Aconteceu em 3 das 9 levas da sessão. Não foi grave porque os diffs estavam
+  bons, mas a regra existe para os casos em que NÃO estão. Repetir a instrução
+  em maiúsculas no fim do prompt reduziu a frequência, não eliminou.
+- **A revisão do diff pega bugs que o relatório não pega.** Nesta sessão:
+  `border-bad/30` que não renderizaria, `bg-surface-1/30` idem, alvo de toque
+  encolhido de 48 para 40px, faixa de 3px anulada por borda genérica, e o
+  conflito `w-full` do `classeCampo`. Nenhum apareceria em teste superficial.
 - **Exigir do agente um relatório de leitura antes do diff.** Foi ele que
   revelou o `--accent` índigo, a ausência de `BarChart3` e a existência de
   `--accent-bg`. Perguntas que forçam o agente a citar valores reais do disco
