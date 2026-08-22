@@ -589,7 +589,7 @@ export default function Resumo() {
                 ABA: DIÁRIO
                ========================================================================= */}
             {abaAtiva === 'diario' && (
-              <div className="animate-in fade-in duration-300">
+              <div>
                 {viewMode === 'cards' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                     {resumoDias.map((dia) => {
@@ -598,55 +598,58 @@ export default function Resumo() {
                       const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
 
                       return (
-                        <div key={dia.data} className="bg-[#161B22] border border-gray-800 rounded-xl p-5 space-y-4 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                        <Surface
+                          key={dia.data}
+                          elevacao={1}
+                          comBorda
+                          padding="nenhum"
+                          className="p-5 space-y-4 flex flex-col justify-between hover:border-hair-strong transition-colors duration-d1 ease-ez"
+                        >
                           {/* Cabeçalho */}
                           <div className="flex justify-between items-start gap-4">
                             <div>
-                              <h3 className="text-sm font-bold text-white capitalize leading-snug">{dia.titulo}</h3>
+                              <h3 className="text-sm font-display font-bold text-ink-900 leading-snug">{dia.titulo}</h3>
                             </div>
                             <div className="shrink-0">
-                              {dia.atingiuMeta ? (
-                                <span className="inline-flex p-1 rounded-full bg-emerald-500/10 text-emerald-400" title="Meta atingida">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                </span>
-                              ) : (
-                                <span className="inline-flex p-1 rounded-full bg-red-500/10 text-red-400" title="Meta não atingida">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                                </span>
-                              )}
+                              <Chip tom={dia.atingiuMeta ? 'ok' : 'erro'}>
+                                {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
+                              </Chip>
                             </div>
                           </div>
 
                           {/* Dados */}
-                          <div className="flex justify-between py-2 border-y border-gray-800/60">
+                          <div className="flex justify-between py-2 border-y border-hair">
                             <div>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Trabalhado</span>
-                              <span className="text-base font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-0.5 font-ui">Trabalhado</span>
+                              <span className="text-base font-mono font-bold text-ink-900 tabular-nums">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
                             </div>
                             <div className="text-right">
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-0.5">Diferença</span>
-                              <span className="text-base font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-0.5 font-ui">Diferença</span>
+                              <span className="text-base font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span>
                             </div>
                           </div>
 
                           {/* Progresso */}
                           <div className="space-y-1.5">
                             <div className="flex justify-between items-center text-[10px] font-semibold">
-                              <span className="text-gray-400">Meta: {dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span>
-                              <span style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span>
+                              <span className="text-ink-500">Meta: {dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span>
+                              <span style={{ color: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{dia.percentual}%</span>
                             </div>
-                            <div className="w-full bg-[#0B0E14] h-2 rounded-full overflow-hidden border border-gray-800/50">
-                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                            <div className="w-full bg-surface-0 h-2 rounded-full overflow-hidden border border-hair">
+                              <div
+                                className="h-full rounded-full transition-all duration-d2 ease-ez"
+                                style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}
+                              />
                             </div>
                           </div>
-                        </div>
+                        </Surface>
                       )
                     })}
                   </div>
                 )}
 
                 {viewMode === 'lista' && (
-                  <div className="flex flex-col gap-2 bg-[#161B22] border border-gray-800 rounded-2xl p-4 divide-y divide-gray-800/60">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-2 p-4 divide-y divide-hair">
                     {resumoDias.map((dia) => {
                       const valorDiferenca = dia.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
@@ -654,27 +657,27 @@ export default function Resumo() {
                       return (
                         <div key={dia.data} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${dia.atingiuMeta ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                            <span className="font-bold text-white capitalize truncate">{dia.titulo}</span>
+                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${dia.atingiuMeta ? 'bg-ok' : 'bg-bad'}`} />
+                            <span className="font-bold text-ink-900 truncate">{dia.titulo}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
-                            <div>Trabalhado: <span className="font-mono font-bold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Meta: <span className="font-mono text-gray-300">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
-                            <div>Concluído: <span className="font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</span></div>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-ink-500">
+                            <div>Trabalhado: <span className="font-mono font-bold text-ink-900 tabular-nums">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-ink-700 tabular-nums">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Diferença: <span className="font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span></div>
+                            <div>Concluído: <span className="font-mono font-bold tabular-nums" style={{ color: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{dia.percentual}%</span></div>
                           </div>
                         </div>
                       )
                     })}
-                  </div>
+                  </Surface>
                 )}
 
                 {viewMode === 'tabela' && (
-                  <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-gray-800 bg-[#1E2530]/40 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          <tr className="border-b border-hair bg-surface-2 text-xs font-bold text-ink-500 uppercase tracking-wider">
                             <th className="py-3.5 px-6">Dia</th>
                             <th className="py-3.5 px-6 text-right">Trabalhado</th>
                             <th className="py-3.5 px-6 text-right">Meta</th>
@@ -683,26 +686,22 @@ export default function Resumo() {
                             <th className="py-3.5 px-6 text-center">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-800/60 text-sm">
+                        <tbody className="divide-y divide-hair text-sm">
                           {resumoDias.map((dia) => {
                             const valorDiferenca = dia.diferenca
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={dia.data} className="hover:bg-[#1E2530]/20 transition-colors">
-                                <td className="py-4 px-6 font-semibold text-white capitalize">{dia.titulo}</td>
-                                <td className="py-4 px-6 text-right font-mono font-semibold text-white">{dia.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-gray-400">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</td>
+                              <tr key={dia.data} className="hover:bg-surface-2 transition-colors">
+                                <td className="py-4 px-6 font-semibold text-ink-900">{dia.titulo}</td>
+                                <td className="py-4 px-6 text-right font-mono font-semibold text-ink-900 tabular-nums">{dia.totalHoras.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-ink-500 tabular-nums">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{dia.percentual}%</td>
                                 <td className="py-4 px-6 text-center">
-                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${dia.atingiuMeta
-                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                    : 'bg-red-500/10 border-red-500/20 text-red-400'
-                                    }`}>
-                                    <span className={`h-1.5 w-1.5 rounded-full ${dia.atingiuMeta ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                  <Chip tom={dia.atingiuMeta ? 'ok' : 'erro'}>
                                     {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
-                                  </span>
+                                  </Chip>
                                 </td>
                               </tr>
                             )
@@ -710,7 +709,7 @@ export default function Resumo() {
                         </tbody>
                       </table>
                     </div>
-                  </div>
+                  </Surface>
                 )}
               </div>
             )}
