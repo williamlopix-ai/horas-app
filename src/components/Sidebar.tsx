@@ -1,35 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import {
-  Clock,
-  ChartNoAxesColumn,
-  Table2,
-  CircleDollarSign,
-  FolderKanban,
-  Settings,
-  Bell
-} from 'lucide-react'
+import { Clock, Search } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { listarLembretes } from '../services/lembretes'
 import MenuAcoes from './MenuAcoes'
-
-const ITENS_NAV = [
-  { rota: '/registros', rotulo: 'Registros',  Icone: Clock },
-  { rota: '/resumo',    rotulo: 'Resumo',     Icone: ChartNoAxesColumn },
-  { rota: '/timesheet', rotulo: 'Timesheet',  Icone: Table2 },
-  { rota: '/billable',  rotulo: 'Billable',   Icone: CircleDollarSign },
-  { rota: '/projetos',  rotulo: 'Projetos',   Icone: FolderKanban,
-    prefixos: ['/projeto'] },
-  { rota: '/ajustes',   rotulo: 'Ajustes',    Icone: Settings },
-  { rota: '/lembretes', rotulo: 'Lembretes',  Icone: Bell,
-    badge: true },
-]
+import PaletaComandos from './PaletaComandos'
+import { ITENS_NAV } from './itensNav'
 
 export default function Sidebar() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [pendentesCount, setPendentesCount] = useState(0)
+  const [paletaAberta, setPaletaAberta] = useState(false)
 
   // Lógica de badge de lembretes (preservada)
   useEffect(() => {
@@ -44,6 +27,21 @@ export default function Sidebar() {
       .catch(() => { /* silencioso: badge é secundário, não quebra a navegação */ })
     return () => { ativo = false }
   }, [user])
+
+  // Atalho de teclado (Ctrl+K/Cmd+K para abrir/fechar a paleta de comandos)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setPaletaAberta(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   // Fecha drawer ao navegar
   useEffect(() => {
@@ -118,7 +116,25 @@ export default function Sidebar() {
           <span className="text-xl font-display font-bold tracking-tight text-ink-900">HORAS</span>
         </div>
 
-        <nav aria-label="Navegação principal" className="flex-1 p-4 space-y-1.5">
+        {/* Botão de busca / trigger da paleta de comandos */}
+        <div className="px-4 pt-4 pb-2">
+          <button
+            type="button"
+            onClick={() => setPaletaAberta(true)}
+            aria-label="Abrir paleta de comandos"
+            className="w-full min-h-[44px] px-3 flex items-center justify-between bg-surface-2 border border-hair rounded-ctl text-sm text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
+          >
+            <div className="flex items-center gap-2.5 truncate">
+              <Search className="w-4 h-4 shrink-0 text-ink-500" />
+              <span className="truncate">Buscar...</span>
+            </div>
+            <kbd className="px-1.5 py-0.5 text-[11px] font-mono text-ink-500 bg-surface-3 rounded border border-hair shrink-0">
+              Ctrl K
+            </kbd>
+          </button>
+        </div>
+
+        <nav aria-label="Navegação principal" className="flex-1 p-4 pt-2 space-y-1.5 overflow-y-auto">
           {ITENS_NAV.map(item => {
             const ativo = isItemAtivo(item)
             const { rota, rotulo, Icone } = item
@@ -154,6 +170,11 @@ export default function Sidebar() {
           />
         </div>
       </aside>
+
+      <PaletaComandos
+        aberta={paletaAberta}
+        aoFechar={() => setPaletaAberta(false)}
+      />
     </>
   )
 }
