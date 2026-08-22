@@ -514,26 +514,13 @@ export default function Billable() {
 
   const getFooterClass = (duracao: number) => {
     let className = "py-4 px-4 text-right font-mono text-sm font-bold border-x border-gray-800/30 "
-    if (duracao === 0) {
-      className += "text-[#8B949E]"
-    } else if (duracao > 0 && duracao < 8.5) {
-      className += "text-[#F44336]"
-    } else {
-      className += "text-[#4CAF50]"
-    }
+    className += duracao === 0 ? "text-[#8B949E]" : "text-white"
     return className
   }
 
   const getFooterClassMensal = (duracao: number) => {
     let className = "py-4 px-4 text-right font-mono text-sm font-bold border-x border-gray-800/30 "
-    const threshold = horasBase / 4
-    if (duracao === 0) {
-      className += "text-[#8B949E]"
-    } else if (duracao > 0 && duracao < threshold) {
-      className += "text-[#F44336]"
-    } else {
-      className += "text-[#4CAF50]"
-    }
+    className += duracao === 0 ? "text-[#8B949E]" : "text-white"
     return className
   }
 
@@ -889,7 +876,7 @@ export default function Billable() {
                                 renderCell(dv.duracao, dv.dataStr, row.projetoId)
                               )}
                               <td className={`py-3 px-4 text-right font-mono text-sm font-semibold ${
-                                row.total > 0 ? 'text-[#4CAF50]' : 'text-[#8B949E]'
+                                row.total === 0 ? 'text-[#8B949E]' : 'text-white'
                               }`}>
                                 {row.total === 0 ? '—' : row.total.toFixed(2).replace('.', ',')}
                               </td>
@@ -1185,7 +1172,7 @@ export default function Billable() {
                                 renderCellMensal(val, weeksSorted[idx], row.projetoId)
                               )}
                               <td className={`py-3 px-4 text-right font-mono text-sm font-semibold ${
-                                row.total > 0 ? 'text-[#4CAF50]' : 'text-[#8B949E]'
+                                row.total === 0 ? 'text-[#8B949E]' : 'text-white'
                               }`}>
                                 {row.total === 0 ? '—' : row.total.toFixed(2).replace('.', ',')}
                               </td>
