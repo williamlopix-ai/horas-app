@@ -13,7 +13,7 @@ import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
-import { AlertTriangle, ChartNoAxesColumn, LayoutGrid, List, Table2 } from 'lucide-react'
+import { AlertTriangle, ChartNoAxesColumn, ChevronDown, LayoutGrid, List, Table2 } from 'lucide-react'
 import { Chip, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
@@ -718,19 +718,19 @@ export default function Resumo() {
                 ABA: PROJETOS 
                ========================================================================= */}
             {abaAtiva === 'projetos' && (
-              <div className="space-y-8 animate-in fade-in duration-300">
+              <div className="space-y-8">
                 <div className="flex items-center justify-end">
                   <button
                     type="button"
                     onClick={() => setApenasBillable(v => !v)}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                    className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                   >
                     <span
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${apenasBillable ? 'bg-[#03A9F4]' : 'bg-gray-600'
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasBillable ? 'bg-accent' : 'bg-surface-3'
                         }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${apenasBillable ? 'translate-x-4' : 'translate-x-1'
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-d1 ease-ez ${apenasBillable ? 'translate-x-4' : 'translate-x-1'
                           }`}
                       />
                     </span>
@@ -739,9 +739,9 @@ export default function Resumo() {
                 </div>
                 {/* Seção Projetos */}
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-4">Projetos</h2>
+                  <h2 className="text-xl font-display font-bold text-ink-900 mb-4">Projetos</h2>
                   {projetosVisiveis.length === 0 ? (
-                    <div className="text-sm text-gray-500 bg-[#161B22] p-4 rounded-xl border border-gray-800">Nenhum projeto registrado.</div>
+                    <Surface elevacao={1} comBorda padding="nenhum" className="p-4 text-sm text-ink-500">Nenhum projeto registrado.</Surface>
                   ) : (
                     <div className="space-y-10">
                       {/* Ativos */}
@@ -757,42 +757,44 @@ export default function Resumo() {
                               const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
 
                               return (
-                                <div
+                                <Surface
                                   key={proj.id}
+                                  elevacao={1}
+                                  comBorda
+                                  padding="nenhum"
                                   onClick={() => navigate(`/projeto/${proj.id}`)}
-                                  className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 cursor-pointer"
+                                  className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
                                         <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                       </span>
-                                      <span className="font-bold text-white uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
+                                      <span className="font-bold text-ink-900 uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
                                     </div>
                                   </div>
-                                  <hr className="border-gray-800/80" />
+                                  <hr className="border-hair" />
                                   <div className="flex-1 space-y-3">
                                     {temContrato ? (
-                                      <p className="text-sm font-medium text-[#8B949E]">
-                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
-                                      </p>
-                                    ) : (
-                                      <p className="text-sm font-medium text-[#8B949E]">
-                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                      <p className="text-sm font-medium text-ink-500">
+                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
+                                      </p>) : (
+                                      <p className="text-sm font-medium text-ink-500">
+                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
                                       </p>
                                     )}
                                     {temContrato && (
                                       <div className="space-y-2">
                                         <div className="flex items-center gap-3">
-                                          <div className="flex-1 bg-[#0B0E14] h-[6px] rounded-full overflow-hidden border border-gray-800/50">
-                                            <div className="h-full transition-all duration-500" style={{ width: `${percentual}%`, backgroundColor: passou ? '#F44336' : '#4CAF50' }} />
+                                          <div className="flex-1 bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
+                                            <div className="h-full transition-all duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
                                           </div>
-                                          <span className="text-sm font-bold" style={{ color: passou ? '#F44336' : '#4CAF50' }}>{percentual}%</span>
+                                          <span className="text-sm font-bold font-mono tabular-nums" style={{ color: passou ? 'var(--bad)' : 'var(--ok)' }}>{percentual}%</span>
                                         </div>
                                         {passou ? (
-                                          <p className="text-sm font-bold text-red-500">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
+                                          <p className="text-sm font-bold text-bad font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
                                         ) : (
-                                          <p className="text-sm font-bold text-emerald-500">{diff.toFixed(2).replace('.', ',')}h restantes</p>
+                                          <p className="text-sm font-bold text-ok font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h restantes</p>
                                         )}
                                       </div>
                                     )}
@@ -801,17 +803,17 @@ export default function Resumo() {
                                     <div className="pt-2">
                                       <button
                                         onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
-                                        className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                        className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                       >
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                        <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                       </button>
-                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                      <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                         <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                       </div>
                                     </div>
                                   )}
-                                </div>
+                                </Surface>
                               )
                             })}
                           </div>
@@ -931,7 +933,7 @@ export default function Resumo() {
                                     <div className="flex-1 space-y-3">
                                       {temContrato ? (
                                         <p className="text-sm font-medium text-[#8B949E]">
-                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
                                         </p>
                                       ) : (
                                         <p className="text-sm font-medium text-[#8B949E]">
