@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
-import { AlertTriangle, ArrowLeft, Check, ChevronDown, Trash2, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Trash2, X } from 'lucide-react'
 import { Button, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
@@ -1776,7 +1776,7 @@ export default function ProjetoDetalhe() {
               )}
             </div>
 
-            <div className="space-y-4 pt-2">
+            <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between">
                   <button
@@ -1784,64 +1784,53 @@ export default function ProjetoDetalhe() {
                     onClick={() => toggleSecao('lancamentos')}
                     className="flex items-center gap-2 group focus:outline-none"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                    <h2 className="text-xl font-bold text-white">Lançamentos</h2>
+                    <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
+                    <h2 className="text-xl font-display font-bold text-ink-900">Lançamentos</h2>
                     {!secoesExpandidas['lancamentos'] && (
-                      <span className="text-xs text-[#8B949E] font-normal">
+                      <span className="text-xs text-ink-500 font-ui font-normal">
                         {registros.length === 1 ? '1 lançamento' : `${registros.length} lançamentos`}
                       </span>
                     )}
                   </button>
                 </div>
                 {secoesExpandidas['lancamentos'] && (
-                  <p className="text-xs text-[#8B949E] mt-1">Clique para editar · use o olho para ver o dia completo em Registros</p>
+                  <p className="text-xs text-ink-500 mt-1 ml-6">Clique para editar · use o olho para ver o dia completo em Registros</p>
                 )}
               </div>
 
               {secoesExpandidas['lancamentos'] && (
                 <>
                   {registrosPorSemana.length === 0 ? (
-                    <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-8 text-center">
-                      <p className="text-sm text-[#8B949E]">Nenhum lançamento neste projeto.</p>
-                    </div>
+                    <Surface elevacao={1} comBorda padding="nenhum" className="p-8 text-center">
+                      <p className="text-sm text-ink-500">Nenhum lançamento neste projeto.</p>
+                    </Surface>
                   ) : (
                     <div className="space-y-4">
                       {registrosPorSemana.map((grupo) => {
                         const isExpanded = semanasExpandidas[grupo.semanaInicio] ?? false
                         return (
-                          <div key={grupo.semanaInicio} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                            <button type="button" onClick={() => toggleSemana(grupo.semanaInicio)} className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors focus:outline-none">
+                          <Surface key={grupo.semanaInicio} elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
+                            <button type="button" onClick={() => toggleSemana(grupo.semanaInicio)} className="w-full flex items-center justify-between p-5 hover:bg-surface-3 transition-colors duration-d1 ease-ez focus:outline-none">
                               <div className="flex items-center gap-3 min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                                <span className="font-bold text-white text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
+                                <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d3 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                <span className="font-bold text-ink-900 text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
                               </div>
-                              <div className="font-mono text-sm font-semibold text-white">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
+                              <div className="font-mono text-sm font-semibold text-ink-900">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
                             </button>
-                            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-gray-800/60' : 'max-h-0 opacity-0'}`}>
+                            <div className={`overflow-hidden transition-all duration-d3 ease-ez ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-hair' : 'max-h-0 opacity-0'}`}>
                               <div className="flex flex-col gap-2 pt-3">
                                 {grupo.registros.map((reg) => {
                                   const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
                                   return (
-                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-xl bg-[#0B0E14]/60 hover:bg-[#1E2530]/60 border border-gray-800/80 transition-colors cursor-pointer flex flex-col gap-2 group">
+                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-2 group">
                                       <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3 flex-wrap min-w-0">
-                                          <span className="font-mono text-xs text-[#8B949E] shrink-0">{formatarDataCurta(reg.data)}</span>
-                                          <span className="text-xs text-gray-300 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
-                                          {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] font-medium truncate max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
+                                          <span className="font-mono text-xs text-ink-500 shrink-0">{formatarDataCurta(reg.data)}</span>
+                                          <span className="text-xs text-ink-700 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
+                                          {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-3 border border-hair-strong text-ink-500 font-medium truncate max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0">
-                                          <span className="font-mono text-sm font-bold text-[#03A9F4]">
+                                          <span className="font-mono text-sm font-bold text-accent">
                                             {reg.duracao.toFixed(2).replace('.', ',')}h
                                           </span>
                                           <button
@@ -1853,52 +1842,21 @@ export default function ProjetoDetalhe() {
                                                 : `/registros?data=${reg.data}`
                                               navigate(targetUrl)
                                             }}
-                                            className="p-1 text-gray-500 hover:text-[#03A9F4] transition-colors focus:outline-none"
+                                            className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors focus:outline-none"
                                             title="Ver no dia"
                                           >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
-                                              strokeWidth={2}
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                              />
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                              />
-                                            </svg>
+                                            <Eye className="h-4 w-4" />
                                           </button>
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4 text-gray-500 hover:text-[#03A9F4] transition-colors"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={2}
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                            />
-                                          </svg>
+                                          <Pencil className="h-4 w-4 text-ink-500 hover:text-accent transition-colors" />
                                         </div>
                                       </div>
-                                      {reg.observacao && <p className="text-xs text-[#8B949E] break-words leading-relaxed">{reg.observacao}</p>}
+                                      {reg.observacao && <p className="text-xs text-ink-500 break-words leading-relaxed">{reg.observacao}</p>}
                                     </div>
                                   )
                                 })}
                               </div>
                             </div>
-                          </div>
+                          </Surface>
                         )
                       })}
                     </div>
