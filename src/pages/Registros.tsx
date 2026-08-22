@@ -11,7 +11,9 @@ import {
   Clock,
   FolderKanban,
   List,
+  Pencil,
   Plus,
+  Trash2,
   X
 } from 'lucide-react'
 import { Button, Surface, classeCampo } from '../components/ui'
@@ -719,22 +721,22 @@ export default function Registros() {
                           const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
                           return (
-                            <div key={projId} className="bg-[#161B22]/30 border border-gray-800/60 rounded-xl p-3 mb-2 flex flex-col gap-2">
+                            <div key={projId} className="bg-surface-1 border border-hair rounded-card p-3 mb-2 flex flex-col gap-2">
                               {/* Header do Projeto */}
-                              <div className="flex justify-between items-center border-b border-gray-800/40 pb-2">
+                              <div className="flex justify-between items-center border-b border-hair pb-2">
                                 <div className="flex items-center gap-2">
                                   {itemProj.projeto?.tipo === 'rotina' ? (
                                     <span
                                       title={projNome}
-                                      className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-[4px] text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-chip text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{
                                         borderColor: projCor,
                                         color: projCor
                                       }}
                                     >
                                       <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                      {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
                                   ) : (
                                     <span
@@ -748,26 +750,26 @@ export default function Registros() {
                                     >
                                       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
                                       <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
-                                      {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                      {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                      {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
+                                      {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-400">
-                                  Subtotal: <span className="font-mono font-bold text-[#03A9F4]">{itemProj.subtotal.toFixed(2).replace('.', ',')}h</span>
+                                <div className="text-xs text-ink-500 font-ui">
+                                  Subtotal: <span className="font-mono font-bold text-accent">{itemProj.subtotal.toFixed(2).replace('.', ',')}h</span>
                                 </div>
                               </div>
 
                               {/* Registros deste projeto */}
                               <div className="flex flex-col gap-1">
                                 {itemProj.records.map((reg) => (
-                                  <div key={reg.id} className="bg-[#161B22]/50 p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm">
+                                  <div key={reg.id} className="bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm">
                                     {/* Linha 1 no Mobile: [horário] */}
                                     <div className="flex items-center justify-between md:contents w-full">
                                       {/* Horários */}
                                       <div className="shrink-0 text-left md:w-[130px]">
-                                        <span className="text-sm font-mono font-semibold text-gray-300">
-                                          {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                        <span className="text-sm font-mono font-semibold text-ink-700">
+                                          {reg.hora_inicio.slice(0, 5)} <span className="text-ink-300">→</span> {reg.hora_fim.slice(0, 5)}
                                         </span>
                                       </div>
                                     </div>
@@ -777,19 +779,19 @@ export default function Registros() {
                                       {/* Observação e Subcategoria / Fase */}
                                       <div className="flex-grow min-w-0 text-left flex items-center gap-2">
                                         {reg.subcategoria?.nome && (
-                                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 font-medium shrink-0 inline-flex items-center gap-1 max-w-full">
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                             {reg.subcategoria.fase?.nome && (
                                               <>
-                                                <span className="text-gray-500 truncate">{reg.subcategoria.fase.nome}</span>
-                                                <span className="text-gray-600">/</span>
+                                                <span className="text-ink-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                                <span className="text-ink-300">/</span>
                                               </>
                                             )}
-                                            <span className="text-gray-300 truncate">{reg.subcategoria.nome}</span>
+                                            <span className="text-ink-700 truncate">{reg.subcategoria.nome}</span>
                                           </span>
                                         )}
                                         {reg.observacao && (
                                           <span
-                                            className="text-sm text-gray-400 truncate min-w-0"
+                                            className="text-sm text-ink-500 truncate min-w-0 font-ui"
                                             title={reg.observacao}
                                           >
                                             {reg.observacao}
@@ -801,30 +803,30 @@ export default function Registros() {
                                       <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
                                         {/* Duração */}
                                         <div className="shrink-0 md:w-[80px] md:text-right">
-                                          <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                          <span className="text-sm font-mono font-bold text-accent">
                                             {reg.duracao.toFixed(2).replace('.', ',')}h
                                           </span>
                                         </div>
 
                                         {/* Ações */}
-                                        <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                           <button
+                                            type="button"
                                             onClick={() => abrirEditarRegistroModal(reg)}
-                                            className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                            className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Editar Lançamento"
                                           >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
+                                            <Pencil className="w-4 h-4 shrink-0" />
+                                            <span className="sr-only">Editar Lançamento</span>
                                           </button>
                                           <button
+                                            type="button"
                                             onClick={() => handleExcluir(reg.id)}
-                                            className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                            className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Excluir Lançamento"
                                           >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
+                                            <Trash2 className="w-4 h-4 shrink-0" />
+                                            <span className="sr-only">Excluir Lançamento</span>
                                           </button>
                                         </div>
                                       </div>
@@ -849,10 +851,14 @@ export default function Registros() {
                           else descStr = `${h}h ${m}min disponíveis`
 
                           return (
-                            <div key={`gap-${index}`} className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-red-500/10 border-l-2 border-red-500/30 text-red-400">
+                            <div
+                              key={`gap-${index}`}
+                              style={{ borderLeftColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+                              className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-bad-bg border-l-2 text-bad rounded-r-ctl font-ui"
+                            >
                               <span className="text-[10px]">○</span>
                               <span className="font-mono text-[10px] sm:text-xs">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
-                              <span className="mx-1">·</span>
+                              <span className="mx-1 opacity-60">·</span>
                               <span>{descStr}</span>
                             </div>
                           )
@@ -869,7 +875,7 @@ export default function Registros() {
                         return (
                           <div
                             key={reg.id}
-                            className="bg-[#161B22] p-3 rounded-lg flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-[#1a212a] transition-colors group text-sm"
+                            className="bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm"
                           >
                             {/* Linha 1 no Mobile: [TAG] [horário] */}
                             <div className="flex items-center justify-between md:contents w-full">
@@ -878,15 +884,15 @@ export default function Registros() {
                                 {reg.projeto?.tipo === 'rotina' ? (
                                   <span
                                     title={projNome}
-                                    className={`inline-flex items-center gap-1 py-1 px-2 rounded-[4px] text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                    className={`inline-flex items-center gap-1 py-1 px-2 rounded-chip text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                     style={{
                                       borderColor: projCor,
                                       color: projCor
                                     }}
                                   >
                                     <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
-                                    {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                    {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                    {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
+                                    {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                   </span>
                                 ) : (
                                   <span
@@ -900,16 +906,16 @@ export default function Registros() {
                                   >
                                     <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
                                     <span className={`line-clamp-2 break-words ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
-                                    {isEncerrado && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Encerrado</span>}
-                                    {isExcluido && <span className="ml-1 px-1 bg-gray-500/20 rounded text-[9px] not-italic shrink-0">Excluído</span>}
+                                    {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
+                                    {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                   </span>
                                 )}
                               </div>
 
                               {/* Horários */}
                               <div className="shrink-0 text-right md:text-center md:w-[130px]">
-                                <span className="text-sm font-mono font-semibold text-gray-300">
-                                  {reg.hora_inicio.slice(0, 5)} <span className="text-gray-500">→</span> {reg.hora_fim.slice(0, 5)}
+                                <span className="text-sm font-mono font-semibold text-ink-700">
+                                  {reg.hora_inicio.slice(0, 5)} <span className="text-ink-300">→</span> {reg.hora_fim.slice(0, 5)}
                                 </span>
                               </div>
                             </div>
@@ -919,19 +925,19 @@ export default function Registros() {
                               {/* Observação e Subcategoria / Fase */}
                               <div className="flex-grow min-w-0 text-left flex items-center gap-2">
                                 {reg.subcategoria?.nome && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 font-medium shrink-0 inline-flex items-center gap-1 max-w-full">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                     {reg.subcategoria.fase?.nome && (
                                       <>
-                                        <span className="text-gray-500 truncate">{reg.subcategoria.fase.nome}</span>
-                                        <span className="text-gray-600">/</span>
+                                        <span className="text-ink-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                        <span className="text-ink-300">/</span>
                                       </>
                                     )}
-                                    <span className="text-gray-300 truncate">{reg.subcategoria.nome}</span>
+                                    <span className="text-ink-700 truncate">{reg.subcategoria.nome}</span>
                                   </span>
                                 )}
                                 {reg.observacao && (
                                   <span
-                                    className="text-sm text-gray-400 truncate min-w-0"
+                                    className="text-sm text-ink-500 truncate min-w-0 font-ui"
                                     title={reg.observacao}
                                   >
                                     {reg.observacao}
@@ -943,30 +949,30 @@ export default function Registros() {
                               <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
                                 {/* Duração */}
                                 <div className="shrink-0 md:w-[80px] md:text-right">
-                                  <span className="text-sm font-mono font-bold text-[#03A9F4]">
+                                  <span className="text-sm font-mono font-bold text-accent">
                                     {reg.duracao.toFixed(2).replace('.', ',')}h
                                   </span>
                                 </div>
 
                                 {/* Ações */}
-                                <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                   <button
+                                    type="button"
                                     onClick={() => abrirEditarRegistroModal(reg)}
-                                    className="p-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none"
+                                    className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Editar Lançamento"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
+                                    <Pencil className="w-4 h-4 shrink-0" />
+                                    <span className="sr-only">Editar Lançamento</span>
                                   </button>
                                   <button
+                                    type="button"
                                     onClick={() => handleExcluir(reg.id)}
-                                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors focus:outline-none"
+                                    className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Excluir Lançamento"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    <Trash2 className="w-4 h-4 shrink-0" />
+                                    <span className="sr-only">Excluir Lançamento</span>
                                   </button>
                                 </div>
                               </div>
