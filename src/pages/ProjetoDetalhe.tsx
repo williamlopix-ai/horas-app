@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
-import { AlertTriangle, ArrowLeft, Check, ChevronDown, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Trash2, X } from 'lucide-react'
 import { Button, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
@@ -1583,7 +1583,7 @@ export default function ProjetoDetalhe() {
             </div>
 
             {/* Seção Plano Semanal */}
-            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-6">
+            <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between">
                   <button
@@ -1591,42 +1591,35 @@ export default function ProjetoDetalhe() {
                     onClick={() => toggleSecao('plano')}
                     className="flex items-center gap-2 group focus:outline-none"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                    <h2 className="text-xl font-bold text-white">Plano semanal</h2>
+                    <ChevronDown
+                      className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
+                    />
+                    <h2 className="text-xl font-display font-bold text-ink-900">Plano semanal</h2>
                     {!secoesExpandidas['plano'] && (
-                      <span className="text-xs text-[#8B949E] font-normal">
+                      <span className="text-xs text-ink-500 font-ui font-normal">
                         {planosSemanais.length === 1 ? '1 semana planejada' : `${planosSemanais.length} semanas planejadas`}
                       </span>
                     )}
                   </button>
                 </div>
                 {secoesExpandidas['plano'] && (
-                  <p className="text-xs text-[#8B949E] mt-1">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
+                  <p className="text-xs text-ink-500 mt-1 ml-6">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
                 )}
               </div>
 
               {secoesExpandidas['plano'] && (
-                <>
+                <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-5">
                   {planosSemanais.length === 0 && (
-                    <div className="bg-[#0B0E14]/60 border border-gray-800/80 rounded-xl p-4 text-xs text-[#8B949E]">
+                    <p className="text-xs text-ink-500">
                       Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
-                    </div>
+                    </p>
                   )}
 
                   {/* Form de adicionar/editar semana */}
                   <form onSubmit={handleSalvarPlanoSemanal} className="space-y-3">
                     <div className="flex flex-wrap items-end gap-3">
                       <div className="flex flex-col gap-1 min-w-[160px]">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Semana
                         </label>
                         <input
@@ -1634,12 +1627,12 @@ export default function ProjetoDetalhe() {
                           value={semanaInputDate}
                           onChange={(e) => setSemanaInputDate(e.target.value)}
                           disabled={salvandoPlano}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                          className={`${classeCampo()} !font-mono`}
                         />
                       </div>
 
                       <div className="flex flex-col gap-1 w-36">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Horas planejadas
                         </label>
                         <input
@@ -1650,24 +1643,27 @@ export default function ProjetoDetalhe() {
                           onChange={(e) => setHorasPlanejadasInput(e.target.value)}
                           placeholder="0"
                           disabled={salvandoPlano}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                          className={`${classeCampo()} !font-mono`}
                         />
                       </div>
 
-                      <button
+                      <Button
+                        variante="primario"
+                        tamanho="md"
                         type="submit"
+                        carregando={salvandoPlano}
                         disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
-                        className="px-5 py-2.5 bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-xl text-sm transition-all disabled:opacity-50 h-[42px]"
+                        className="min-h-[44px]"
                       >
                         {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
-                      </button>
+                      </Button>
                     </div>
 
                     {semanaInputDate && (() => {
                       const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
                       const intervaloTexto = formatarIntervaloCurto(inicio, fim)
                       return (
-                        <div className="text-xs text-[#8B949E]">
+                        <div className="text-xs text-ink-500">
                           Semana de {intervaloTexto}
                           {planoExistente && (
                             <span> — já existe plano de {planoExistente.horas_planejadas.toString().replace('.', ',')}h, será atualizado</span>
@@ -1682,7 +1678,7 @@ export default function ProjetoDetalhe() {
                     const excedeu = totalPlanejado > totalContratado!
                     const diff = Math.abs(totalContratado! - totalPlanejado)
                     return (
-                      <div className={`text-xs font-medium ${excedeu ? 'text-[#F44336]' : 'text-gray-300'}`}>
+                      <div className={`text-xs font-medium ${excedeu ? 'text-bad' : 'text-ink-700'}`}>
                         Planejado: <span className="font-bold font-mono">{totalPlanejado.toFixed(2).replace('.', ',')}h</span> de{' '}
                         <span className="font-bold font-mono">{totalContratado!.toFixed(2).replace('.', ',')}h</span> contratadas —{' '}
                         {excedeu
@@ -1698,7 +1694,7 @@ export default function ProjetoDetalhe() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-gray-800 text-[#8B949E] uppercase tracking-wider font-semibold">
+                          <tr className="border-b border-hair text-ink-500 uppercase tracking-wider font-semibold">
                             <th className="py-2 px-3">Semana</th>
                             <th className="py-2 px-3 text-right">Planejado</th>
                             <th className="py-2 px-3 text-right">Realizado</th>
@@ -1706,7 +1702,7 @@ export default function ProjetoDetalhe() {
                             <th className="py-2 px-2 text-center w-10"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-800/50">
+                        <tbody className="divide-y divide-hair">
                           {planosComMetricas.map((item) => {
                             const { inicio, fim } = intervaloDaSemana(item.semana_inicio, config.inicio_semana)
                             const d1 = String(inicio.getDate()).padStart(2, '0')
@@ -1715,21 +1711,21 @@ export default function ProjetoDetalhe() {
                             const m2 = String(fim.getMonth() + 1).padStart(2, '0')
                             const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
 
-                            const corDiferenca = item.diferenca >= 0 ? '#4CAF50' : '#F44336'
+                            const corDiferenca = item.diferenca >= 0 ? 'var(--ok)' : 'var(--bad)'
 
                             return (
                               <tr
                                 key={item.id}
                                 onClick={() => handleSelecionarPlanoParaEdicao(item)}
-                                className="hover:bg-[#1E2530]/40 transition-colors cursor-pointer group"
+                                className="hover:bg-surface-3 transition-colors duration-d1 ease-ez cursor-pointer group"
                               >
-                                <td className="py-2.5 px-3 text-white font-medium">
+                                <td className="py-2.5 px-3 text-ink-900 font-medium">
                                   {periodoStr}
                                 </td>
-                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
                                   {item.horas_planejadas.toFixed(2).replace('.', ',')}h
                                 </td>
-                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-white">
+                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
                                   {item.realizado.toFixed(2).replace('.', ',')}h
                                 </td>
                                 <td
@@ -1745,12 +1741,10 @@ export default function ProjetoDetalhe() {
                                       e.stopPropagation()
                                       setPlanoExcluindo(item)
                                     }}
-                                    className="p-1 text-gray-500 hover:text-[#F44336] transition-colors opacity-0 group-hover:opacity-100"
+                                    className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                     title="Excluir plano semanal"
                                   >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    <Trash2 className="h-4 w-4" />
                                   </button>
                                 </td>
                               </tr>
@@ -1758,17 +1752,17 @@ export default function ProjetoDetalhe() {
                           })}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t-2 border-gray-800 font-bold">
-                            <td className="py-3 px-3 text-white">Total</td>
-                            <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                          <tr className="border-t-2 border-hair-strong font-bold">
+                            <td className="py-3 px-3 text-ink-900">Total</td>
+                            <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-900">
                               {totalPlanejado.toFixed(2).replace('.', ',')}h
                             </td>
-                            <td className="py-3 px-3 text-right font-mono tabular-nums text-white">
+                            <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-900">
                               {totalRealizadoPlanos.toFixed(2).replace('.', ',')}h
                             </td>
                             <td
                               className="py-3 px-3 text-right font-mono tabular-nums"
-                              style={{ color: totalDiferencaPlanos >= 0 ? '#4CAF50' : '#F44336' }}
+                              style={{ color: totalDiferencaPlanos >= 0 ? 'var(--ok)' : 'var(--bad)' }}
                             >
                               {totalDiferencaPlanos.toFixed(2).replace('.', ',')}h
                             </td>
@@ -1778,7 +1772,7 @@ export default function ProjetoDetalhe() {
                       </table>
                     </div>
                   )}
-                </>
+                </Surface>
               )}
             </div>
 
