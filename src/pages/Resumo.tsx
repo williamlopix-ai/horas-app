@@ -13,6 +13,8 @@ import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
+import { AlertTriangle, ChartNoAxesColumn, LayoutGrid, List, Table2 } from 'lucide-react'
+import { Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -338,49 +340,50 @@ export default function Resumo() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       
       <Sidebar />
 
       {/* Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Painel de Resumos</h1>
-          <p className="text-sm text-gray-400">Analise suas horas lançadas sob diferentes perspectivas.</p>
+          <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Painel de Resumos</h1>
+          <p className="text-sm text-ink-500">Analise suas horas lançadas sob diferentes perspectivas.</p>
         </div>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{error}</span>
+          <div
+            style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <span className="font-ui">{error}</span>
           </div>
         )}
 
         {/* Sistema de Abas e Toggle de Visualização */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex p-0.5 sm:p-1 bg-[#161B22] border border-gray-800 rounded-xl w-fit">
+          <div className="flex p-0.5 sm:p-1 bg-surface-1 border border-hair rounded-ctl w-fit">
             <button
               onClick={() => setAbaAtiva('semanal')}
-              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-                abaAtiva === 'semanal' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
+                abaAtiva === 'semanal' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
               }`}
             >
               Semanal
             </button>
             <button
               onClick={() => setAbaAtiva('diario')}
-              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-                abaAtiva === 'diario' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
+                abaAtiva === 'diario' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
               }`}
             >
               Diário
             </button>
             <button
               onClick={() => setAbaAtiva('projetos')}
-              className={`px-3 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all focus:outline-none ${
-                abaAtiva === 'projetos' ? 'bg-[#03A9F4] text-white shadow' : 'text-gray-400 hover:text-white'
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
+                abaAtiva === 'projetos' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
               }`}
             >
               Por Projetos
@@ -388,45 +391,41 @@ export default function Resumo() {
           </div>
 
           {(abaAtiva === 'semanal' || abaAtiva === 'diario') && (
-            <div className="flex bg-[#161B22] p-1 rounded-xl border border-gray-800">
+            <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
               <button
                 onClick={() => changeViewMode('cards')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                   viewMode === 'cards'
-                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                 }`}
                 title="Visualização em Cards"
               >
-                <span>⊞</span>
+                <LayoutGrid className="w-4 h-4 shrink-0" />
                 <span>Cards</span>
               </button>
               <button
                 onClick={() => changeViewMode('lista')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                   viewMode === 'lista'
-                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                 }`}
                 title="Visualização em Lista"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <List className="w-4 h-4 shrink-0" />
                 <span>Lista</span>
               </button>
               <button
                 onClick={() => changeViewMode('tabela')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                   viewMode === 'tabela'
-                    ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                 }`}
                 title="Visualização em Tabela"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
+                <Table2 className="w-4 h-4 shrink-0" />
                 <span>Tabela</span>
               </button>
             </div>
@@ -440,23 +439,21 @@ export default function Resumo() {
             ))}
           </div>
         ) : registros.length === 0 ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4">
-            <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          <Surface elevacao={1} comBorda padding="nenhum" className="p-12 text-center max-w-lg mx-auto space-y-4">
+            <div className="inline-flex p-4 rounded-full bg-surface-2 text-accent mb-2">
+              <ChartNoAxesColumn className="h-8 w-8" />
             </div>
-            <h3 className="text-lg font-bold text-white">Nenhum histórico encontrado</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <h3 className="text-lg font-display font-bold text-ink-900">Nenhum histórico encontrado</h3>
+            <p className="text-sm text-ink-500 leading-relaxed">
               Você ainda não registrou nenhuma hora. Seus dados consolidados aparecerão aqui assim que fizer seus primeiros lançamentos.
             </p>
             <Link
               to="/registros"
-              className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
+              className="inline-block py-2.5 px-4 bg-surface-2 hover:bg-surface-3 border border-hair-strong text-ink-900 text-xs font-semibold rounded-ctl transition-colors duration-d1 ease-ez"
             >
               Ir para Lançamentos
             </Link>
-          </div>
+          </Surface>
         ) : (
           <div className="space-y-6">
             
