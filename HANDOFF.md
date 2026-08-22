@@ -1,17 +1,22 @@
 # HANDOFF — Projeto HORAS
 
 > Documento de estado da sessão. Ler no início de cada nova sessão.
-> Última atualização: 20/08/2026 (fim da sessão)
+> Última atualização: 22/08/2026 (fim da sessão)
 
 ---
 
 ## ⚠️ Pendências imediatas (ler primeiro)
 
-### 1. Limpeza no Supabase — o gatilho está prestes a vencer
+### 1. Limpeza no Supabase — prazo vencido, adiado por decisão
 As 5 tabelas temporárias criadas na migração de sábado continuam no banco.
 O gatilho combinado era **duas semanas fechadas** com a semana em sábado e os
 números do Resumo e do Billable batendo com o timesheet corporativo. A migração
-foi em 11/08; a segunda semana fecha em **22/08**.
+foi em 11/08; a segunda semana fechou em **22/08**.
+
+**Em 22/08 o usuário optou por adiar.** Falta a conferência Resumo × Billable ×
+timesheet corporativo. As tabelas não atrapalham nada, só ocupam espaço —
+mas enquanto existirem, existe o risco de alguém consultá-las achando que são
+dados vivos. Retomar quando houver a conferência.
 
 ```sql
 DROP TABLE _bkp_semana_registros;
@@ -44,6 +49,15 @@ Somam 9h e mantêm o bloco "Sem fase" visível. Dois parecem lixo de teste.
 O de 26/07 começa às 4h da manhã — conferir se é deslocamento de campo real ou
 lançamento com hora errada. Atribuir categoria ou excluir; o bloco "Sem fase"
 some sozinho quando os 9h zerarem.
+
+### 5. `src/pages/Dashboard.tsx` — provável código morto
+O agente leu esse arquivo ao varrer as páginas na Fase 3.1. Ele **não está em
+nenhuma rota do `App.tsx` nem na sidebar**. Confirmar e, se for o caso, excluir
+em commit próprio **na `main`** (é limpeza, não redesign):
+
+```powershell
+Select-String -Path src\*.tsx,src\pages\*.tsx,src\components\*.tsx -Pattern "Dashboard"
+```
 
 ---
 
@@ -111,7 +125,22 @@ teste, sem ação.
 
 ---
 
-## O que foi feito nesta sessão
+## O que foi feito nesta sessão (22/08) — Fase 3.1 do redesign
+
+Sessão curta e cirúrgica, inteira na branch `redesign`, num único arquivo:
+`src/components/Sidebar.tsx`. Nenhuma migração de banco, nenhuma tela tocada.
+O detalhamento está em **Redesign visual → Fase 3.1**, mais abaixo.
+
+Dois aprendizados de processo que valem mais que o código entregue:
+
+1. **A Fase 3.0 foi planejada por engano e cancelada.** Ver abaixo.
+2. **O agente encolheu o alvo de toque por conta própria** num app que é PWA de
+   celular. Diff proposto ≠ diff aprovado: a revisão pegou três desvios que não
+   estavam no pedido.
+
+---
+
+## O que foi feito na sessão de 20/08
 
 Sessão dedicada à tela `ProjetoDetalhe.tsx`. Cinco etapas, um componente novo,
 nenhuma migração de banco.
@@ -413,9 +442,7 @@ Supabase, não só o diff.
 - Alerta de planejado × realizado fora da página do projeto
 - Notificações Push via Supabase Edge Functions (VAPID, sem Firebase)
 
-### Redesign visual — FRENTE ATIVA a partir de 21/08/2026
-
-### Redesign visual — EM EXECUÇÃO (branch `redesign`)
+### Redesign visual — FRENTE ATIVA (branch `redesign`)
 
 **Fase 1 — Tokens: CONCLUÍDA** (commit 78393da)
 Variáveis CSS em `src/index.css` (paleta escura + clara, raio, sombra,
@@ -430,16 +457,105 @@ Button, Chip, Surface, Field (+ `classeCampo()`), Stat, DataRow, Sheet.
 Página de validação visual em `/ui-kit` (`src/pages/UIKit.tsx`), rota pública,
 com alternador de tema claro/escuro. É a referência viva das primitivas.
 
-**Próxima: Fase 3 — Casca.** Sidebar nova, paleta de comandos ⌘K (`cmdk`,
-ainda não instalada), atalhos numéricos 1–4, botão fixo "+ Lançar horas".
-Depois: Fase 4 (telas na ordem Registros → ProjetoDetalhe → Resumo →
-Timesheet → Billable → Ajustes, uma por sessão) e Fase 5 (acabamento).
+**Fase 3.0 — Consolidação da sidebar: NÃO EXISTIU.**
+Foi planejada por engano e cancelada antes de gerar diff. O diagnóstico partiu
+dos arquivos montados no projeto do Claude, que são de um **commit antigo**, no
+qual Resumo, Timesheet e Billable ainda tinham a sidebar copiada inline. No
+disco real, as 8 páginas já usavam `<Sidebar />` havia tempo.
+
+> **Lição de processo: conferir o disco antes de planejar refatoração ampla.**
+> Custou um prompt inteiro escrito e descartado. Comando de verificação:
+> ```powershell
+> Select-String -Path src\pages\*.tsx -Pattern "isSidebarOpen|w-\[240px\]|<aside"
+> ```
+> Sem retorno = consolidado.
+
+**Fase 3.1 — Sidebar nova: CONCLUÍDA**
+`src/components/Sidebar.tsx` reescrito inteiro. **Zero hex fixo no arquivo.**
+Saiu de ~230 linhas para ~137.
+
+- **Links dirigidos por array.** `ITENS_NAV` no escopo do módulo, renderizado
+  por `.map()`. Eram 7 blocos `<Link>` de 15 linhas cada, idênticos — qualquer
+  ajuste virava 7 edições. Adicionar tela agora é uma linha.
+- **`prefixos`** — campo opcional do item. "Projetos" tem `['/projeto']`, então
+  acende em `/projeto/:id`. Antes `isActive` era igualdade exata e a sidebar
+  ficava **inteira apagada** dentro de um projeto.
+- **Ícones `lucide-react`** no lugar dos SVGs inline:
+  `Clock`, `ChartNoAxesColumn`, `Table2`, `CircleDollarSign`, `FolderKanban`,
+  `Settings`, `Bell`.
+- **Tokens:** `bg-surface-1`, `border-hair`, `text-ink-500`/`text-ink-900`,
+  `hover:bg-surface-2`, `bg-accent-bg` + `text-accent-fg` no ativo,
+  `rounded-ctl`, `duration-d1 ease-ez`, `font-display` no logo.
+- **Três bugs do drawer mobile corrigidos:**
+  1. **Fecha ao navegar** — `useEffect` em `location.pathname`. Antes o drawer
+     ficava aberto por cima da tela nova depois do clique no link.
+  2. **Fecha no `Esc`** — listener registrado só enquanto aberto.
+  3. **Trava o scroll do body** enquanto aberto, restaurando o valor original
+     na limpeza.
+- **Rodapé:** o botão vermelho "Sair" virou email truncado + `MenuAcoes` com um
+  único item (`label: 'Sair'`, `perigo: true`, `rotulo="Ações da conta"`).
+  Logout é ação rara e não merece botão vermelho permanente na tela.
+- **Acessibilidade:** `<nav aria-label="Navegação principal">` e
+  `aria-current="page"` no item ativo.
+- **Preservado:** largura `w-[240px]`, breakpoint `lg`, e toda a lógica do badge
+  de lembretes (`listarLembretes`, filtro `status === 'pendente'`, flag `ativo`
+  de cleanup, catch silencioso). As páginas dependem de `lg:ml-[240px]` no
+  `<main>` e **não foram tocadas**.
+
+**Testado e aprovado:** `/projeto/:id` acende "Projetos"; drawer navega e fecha
+no celular real; `Esc` fecha na janela estreita do desktop; badge conta certo
+(validado criando um lembrete — com zero pendentes o badge não aparece, então
+não testa nada).
+
+**Três desvios que a revisão do diff pegou** — o agente os introduziu sem que
+fossem pedidos:
+1. `truncate` no email sem `min-w-0` — estouraria o rodapé com email longo
+2. Itens de `py-3`/`h-5` para `py-2.5`/`h-4` — alvo de toque de ~48px para ~40px
+3. Logo do `<aside>` encolhido de `h-6` para `h-5`
+
+**Próxima: Fase 3.2 — paleta de comandos.** `cmdk` (ainda não instalada) +
+**campo falso de busca no topo da sidebar**: lupa + "Buscar..." + badge do
+atalho. O campo é obrigatório — atalho de teclado sozinho é invisível para quem
+não sabe que existe e inútil no PWA do celular, que não tem teclado físico.
+
+Decisões pendentes para a 3.2:
+- **São 7 links, não 4.** O plano original previa atalhos numéricos 1–4.
+  Decidir: vira 1–7, ou só as quatro telas principais ganham atalho?
+- O badge deve dizer **`Ctrl K`**, não `⌘K` — o ambiente é Windows. O `⌘` é
+  notação de Mac.
+
+Depois: **3.3** (botão fixo "+ Lançar horas"), **Fase 4** (telas na ordem
+Registros → ProjetoDetalhe → Resumo → Timesheet → Billable → Ajustes, uma por
+sessão) e **Fase 5** (acabamento).
 
 **Tokens disponíveis:** `bg-surface-0|1|2|3`, `text-ink-900|700|500|300`,
 `border-hair`/`border-hair-strong`, `accent`/`accent-bg`/`accent-fg`,
 `pri`/`pri-fg`/`pri-hover`, `ok`/`ok-bg`, `warn`/`warn-bg`, `bad`/`bad-bg`,
 `proj-1..8`, `rounded-chip|ctl|card|sheet`, `shadow-e1|e2|e3`,
 `font-display|ui|mono`, `duration-d1|d2|d3`, `ease-ez`.
+
+**Armadilhas novas na Fase 3.1:**
+- **`--accent` é `#5C87F7` (índigo), não `#03A9F4` (ciano).** A sidebar nova usa
+  o token; as telas ainda usam hex fixo. **Os dois azuis convivem na mesma tela
+  até a Fase 4 chegar em cada uma. Isso é esperado, não é bug.** A alternativa
+  seria apontar `--accent` para o ciano antigo, o que anularia a Fase 1 e jogaria
+  a decisão de paleta para o fim — descartada conscientemente.
+- **`truncate` não funciona em filho de flex sem `min-w-0`.** O `min-width: auto`
+  padrão impede o encolhimento e o irmão é empurrado para fora do container.
+  Pegou o email no rodapé da sidebar. **Vale para todo o resto do redesign.**
+- **`lucide-react@1.17.0` não tem `BarChart3`.** No Lucide v1 a família de
+  gráficos virou prefixo `Chart*`. O equivalente do SVG antigo é
+  **`ChartNoAxesColumn`** (colunas verticais sem eixos). Sempre mandar o agente
+  **confirmar o nome do ícone na versão instalada** antes de importar.
+- **Alvo de toque: mínimo 44px.** O agente encolheu os itens por conta própria.
+  Este app é um PWA usado no celular — `py-3` + ícone `w-5 h-5` é o piso.
+- **`--accent-bg` e `--accent-fg` já existem prontos** (`rgba(92,135,247,.15)` e
+  `#8FAEFF`). Não usar `color-mix` onde já há token de fundo translúcido.
+- **Badge nunca usa `--accent-fg` sobre `--accent`** — `#8FAEFF` sobre `#5C87F7`
+  fica ilegível. Fundo sólido `var(--accent)` com texto branco.
+- **Testar drawer mobile no desktop**: basta arrastar a borda da janela para
+  baixo de 1024px (breakpoint `lg`). Não precisa de DevTools nem de celular —
+  e só assim dá para testar o `Esc`.
 
 **Armadilhas aprendidas nas fases 1 e 2:**
 - **Mudou `tailwind.config.js`? Reinicie o `npm run dev`.** O Tailwind lê a
@@ -464,7 +580,23 @@ Timesheet → Billable → Ajustes, uma por sessão) e Fase 5 (acabamento).
 
 ## Padrões aprendidos — não reverter
 
-### Novos nesta sessão
+### Novos na sessão de 22/08 (processo)
+
+- **Ler o disco antes de planejar refatoração.** Os arquivos montados no projeto
+  do Claude podem estar vários commits atrasados. Um `Select-String` de 5
+  segundos evita um prompt inteiro escrito à toa.
+- **Diff proposto ≠ diff aprovado.** O agente introduz "melhorias" não pedidas
+  — encolher padding, trocar tamanho de ícone, uniformizar o que era diferente
+  de propósito. **Ler o diff comparando com o pedido, não só procurando bug.**
+- **Reescrita de arquivo inteiro exige checklist do que não pode se perder.**
+  Aqui era a lógica do badge de lembretes. Definir isso *antes* de olhar o diff,
+  senão a leitura vira busca genérica por erro.
+- **Exigir do agente um relatório de leitura antes do diff.** Foi ele que
+  revelou o `--accent` índigo, a ausência de `BarChart3` e a existência de
+  `--accent-bg`. Perguntas que forçam o agente a citar valores reais do disco
+  valem mais que qualquer instrução preventiva.
+
+### Novos na sessão de 20/08
 
 - **A fase do registro é lida por join, nunca copiada.** `registros` guarda só
   `subcategoria_id`; a fase chega via
@@ -662,6 +794,10 @@ SELECT * FROM horas_base_semanal;
 | Grade timesheet | `src/pages/Timesheet.tsx` |
 | Tela billable | `src/pages/Billable.tsx` |
 | Menu de três pontinhos | `src/components/MenuAcoes.tsx` |
+| Navegação / sidebar / drawer mobile | `src/components/Sidebar.tsx` |
+| Primitivas de UI (redesign) | `src/components/ui/` (barrel em `index.ts`) |
+| Galeria viva das primitivas | `src/pages/UIKit.tsx` (rota `/ui-kit`) |
+| Tokens de cor, raio, sombra, fonte | `src/index.css` + `tailwind.config.js` |
 | Modal de registro | `src/components/ModalRegistro.tsx` |
 | Modal de projeto | `src/components/ModalProjeto.tsx` |
 | Cálculo de semana | `src/utils/semana.ts` |
