@@ -54,7 +54,7 @@ function formatarIntervaloSemana(dataStr: string, inicio: InicioSemana): string 
 }
 
 export default function Registros() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
@@ -161,6 +161,15 @@ export default function Registros() {
 
     if (projetoIdParam) {
       setFiltroProjetoId(projetoIdParam)
+    }
+
+    const novoParam = searchParams.get('novo')
+    if (novoParam === '1') {
+      setEditingRegistro(null)
+      setIsModalOpen(true)
+      const proximos = new URLSearchParams(searchParams)
+      proximos.delete('novo')
+      setSearchParams(proximos, { replace: true })
     }
   }, [searchParams])
 

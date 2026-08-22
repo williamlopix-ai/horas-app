@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Clock, Search } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Clock, Plus, Search } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { listarLembretes } from '../services/lembretes'
+import { Button } from './ui'
 import MenuAcoes from './MenuAcoes'
 import PaletaComandos from './PaletaComandos'
 import { ITENS_NAV } from './itensNav'
@@ -10,6 +11,7 @@ import { ITENS_NAV } from './itensNav'
 export default function Sidebar() {
   const { user, signOut } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [pendentesCount, setPendentesCount] = useState(0)
   const [paletaAberta, setPaletaAberta] = useState(false)
@@ -132,6 +134,22 @@ export default function Sidebar() {
               Ctrl K
             </kbd>
           </button>
+        </div>
+
+        {/* Botão de ação rápida: Lançar horas */}
+        <div className="px-4 pb-2">
+          <Button
+            variante="primario"
+            larguraTotal
+            className="min-h-[44px]"
+            iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
+            onClick={() => {
+              setIsSidebarOpen(false)
+              navigate('/registros?novo=1')
+            }}
+          >
+            Lançar horas
+          </Button>
         </div>
 
         <nav aria-label="Navegação principal" className="flex-1 p-4 pt-2 space-y-1.5 overflow-y-auto">
