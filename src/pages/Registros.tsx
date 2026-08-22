@@ -3,6 +3,16 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  FolderKanban,
+  List,
+  Plus,
+  X
+} from 'lucide-react'
+import { Button, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -433,7 +443,7 @@ export default function Registros() {
   }, [registrosFiltrados, horariosExcecoes, horariosSemana, config, viewMode])
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
 
       <Sidebar />
 
@@ -443,39 +453,41 @@ export default function Registros() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Lançamento de Horas</h1>
-            <p className="text-sm text-gray-400">Acompanhe seu progresso e identifique horas ociosas no seu dia.</p>
+            <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Lançamento de Horas</h1>
+            <p className="text-sm text-ink-500 font-ui">Acompanhe seu progresso e identifique horas ociosas no seu dia.</p>
           </div>
-          <button
+          <Button
+            variante="primario"
             onClick={abrirNovoRegistroModal}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none shrink-0"
+            className="min-h-[44px] px-4 shrink-0"
+            iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
             Novo Registro
-          </button>
+          </Button>
         </div>
 
         {/* Mensagem de erro se houver */}
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{error}</span>
+          <div
+            style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <span className="font-ui">{error}</span>
           </div>
         )}
 
         {/* 3. Filtros */}
-        <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 flex flex-col sm:flex-row gap-4">
+        <Surface elevacao={1} comBorda padding="lg" className="flex flex-col sm:flex-row gap-4">
           {/* Projeto */}
           <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Projeto</label>
+            <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
+              Projeto
+            </label>
             <select
               value={filtroProjetoId}
               onChange={(e) => setFiltroProjetoId(e.target.value)}
-              className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
+              className={`${classeCampo()} min-h-[44px] cursor-pointer`}
             >
               <option value="todos">Todos os Projetos</option>
               {projetos.map((p) => (
@@ -486,21 +498,22 @@ export default function Registros() {
 
           {/* Semana */}
           <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Semana</label>
+            <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
+              Semana
+            </label>
             <div className="flex items-center gap-2 w-full">
               <button
                 type="button"
                 onClick={handleSemanaAnterior}
-                className="h-10 w-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                 title="Semana anterior"
+                aria-label="Semana anterior"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <div className="flex-1 bg-[#0B0E14] border border-gray-800 rounded-xl h-10 flex items-center justify-center px-3 min-w-0">
-                <span className="font-mono text-sm text-white font-semibold text-center whitespace-nowrap min-w-[130px] select-none">
+              <div className="flex-1 bg-surface-2 border border-hair-strong rounded-ctl h-11 flex items-center justify-center px-3 min-w-0">
+                <span className="font-mono text-[13px] text-ink-900 font-semibold text-center whitespace-nowrap min-w-[130px] select-none">
                   {formatarIntervaloSemana(filtroSemana, config.inicio_semana)}
                 </span>
               </div>
@@ -508,19 +521,18 @@ export default function Registros() {
               <button
                 type="button"
                 onClick={handleSemanaProxima}
-                className="h-10 w-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] rounded-xl flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                 title="Próxima semana"
+                aria-label="Próxima semana"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight className="w-4 h-4" />
               </button>
 
               <button
                 type="button"
                 onClick={handleSemanaHoje}
                 disabled={isSemanaAtual}
-                className="h-10 bg-[#0B0E14] border border-gray-800 hover:border-[#03A9F4] text-gray-300 hover:text-white text-xs font-semibold px-3 rounded-xl transition-colors shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-800 disabled:hover:text-gray-300"
+                className="h-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 text-xs font-semibold px-3 rounded-ctl transition-colors duration-d1 ease-ez shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-hair-strong disabled:hover:text-ink-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
               >
                 Hoje
               </button>
@@ -529,55 +541,58 @@ export default function Registros() {
 
           {/* Dia Específico */}
           <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Dia Específico</label>
+            <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
+              Dia Específico
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={filtroDiaEspecifico}
                 onChange={(e) => setFiltroDiaEspecifico(e.target.value)}
                 style={{ colorScheme: 'dark' }}
-                className="bg-[#0B0E14] border border-[#374151] rounded-[8px] p-[10px] text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer"
+                className={`${classeCampo()} min-h-[44px] cursor-pointer`}
               />
               {filtroDiaEspecifico && (
                 <button
                   type="button"
                   onClick={() => setFiltroDiaEspecifico('')}
-                  className="text-xs text-[#8B949E] hover:text-white transition-colors cursor-pointer whitespace-nowrap px-1"
+                  className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer whitespace-nowrap px-2 min-h-[44px] inline-flex items-center gap-1 shrink-0 font-medium"
                   title="Limpar data"
                 >
-                  ✕ Limpar
+                  <X className="w-3.5 h-3.5" />
+                  <span>Limpar</span>
                 </button>
               )}
             </div>
           </div>
-        </div>
+        </Surface>
 
         {/* Toggle de Visualização */}
         <div className="flex justify-end items-center gap-2">
-          <span className="text-xs font-semibold text-gray-400 px-2.5 hidden sm:inline">Visualização:</span>
-          <div className="flex bg-[#161B22] p-0.5 sm:p-1 rounded-xl border border-gray-800">
+          <span className="text-xs font-semibold text-ink-500 px-2.5 hidden sm:inline font-ui">Visualização:</span>
+          <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${viewMode === 'lista'
-                ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                : 'text-gray-400 hover:text-white'
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+                viewMode === 'lista'
+                  ? 'bg-accent-bg text-accent-fg'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+              }`}
               title="Lista detalhada com gaps"
             >
-              <span>☰</span>
+              <List className="w-4 h-4 shrink-0" />
               <span>Lista</span>
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${viewMode === 'projeto'
-                ? 'bg-[#03A9F4] text-white shadow-sm shadow-[#03A9F4]/20'
-                : 'text-gray-400 hover:text-white'
-                }`}
+              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+                viewMode === 'projeto'
+                  ? 'bg-accent-bg text-accent-fg'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+              }`}
               title="Agrupado por projeto"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+              <FolderKanban className="w-4 h-4 shrink-0" />
               <span>Por Projeto</span>
             </button>
           </div>
