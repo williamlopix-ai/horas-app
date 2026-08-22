@@ -14,7 +14,7 @@ import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChartNoAxesColumn, ChevronDown, LayoutGrid, List, Table2 } from 'lucide-react'
-import { Chip, Surface } from '../components/ui'
+import { Button, Chip, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -823,7 +823,7 @@ export default function Resumo() {
                       {/* Inativos */}
                       {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
                         <div>
-                          <h2 className="text-lg font-bold text-gray-400 mb-4">Encerrados / Excluídos</h2>
+                          <h2 className="text-lg font-display font-bold text-ink-500 mb-4">Encerrados / Excluídos</h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
@@ -835,31 +835,34 @@ export default function Resumo() {
                               const projCor = isExcluido ? '#4B5563' : '#6B7280';
 
                               return (
-                                <div
+                                <Surface
                                   key={proj.id}
+                                  elevacao={1}
+                                  comBorda
+                                  padding="nenhum"
                                   onClick={() => navigate(`/projeto/${proj.id}`)}
-                                  className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer"
+                                  className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                         <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                       </span>
-                                      <span className={`font-bold text-white uppercase text-base truncate ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                      <span className={`font-bold text-ink-900 uppercase text-base truncate ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
                                     </div>
-                                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">
+                                    <Chip tom="neutro" className="shrink-0">
                                       {isExcluido ? 'Excluído' : 'Encerrado'}
-                                    </span>
+                                    </Chip>
                                   </div>
-                                  <hr className="border-gray-800/80" />
+                                  <hr className="border-hair" />
                                   <div className="flex-1 space-y-3">
                                     {temContrato ? (
-                                      <p className="text-sm font-medium text-[#8B949E]">
-                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de {proj.horas_contratadas.toFixed(2).replace('.', ',')}h contratadas
+                                      <p className="text-sm font-medium text-ink-500">
+                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
                                       </p>
                                     ) : (
-                                      <p className="text-sm font-medium text-[#8B949E]">
-                                        <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                      <p className="text-sm font-medium text-ink-500">
+                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
                                       </p>
                                     )}
                                   </div>
@@ -867,25 +870,28 @@ export default function Resumo() {
                                     <div className="pt-2">
                                       <button
                                         onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
-                                        className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                        className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                       >
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                        <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                       </button>
-                                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                      <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                         <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                       </div>
                                     </div>
                                   )}
-                                  <div className="pt-3 border-t border-gray-800/80 mt-auto">
-                                    <button
+                                  <div className="pt-3 border-t border-hair mt-auto">
+                                    <Button
+                                      variante="secundario"
+                                      tamanho="sm"
+                                      larguraTotal
+                                      className="min-h-[44px]"
                                       onClick={(e) => { e.stopPropagation(); handleArquivar(proj.id) }}
-                                      className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
                                     >
                                       Arquivar Projeto
-                                    </button>
+                                    </Button>
                                   </div>
-                                </div>
+                                </Surface>
                               )
                             })}
                           </div>
@@ -894,13 +900,13 @@ export default function Resumo() {
 
                       {/* Arquivados */}
                       {projetosVisiveis.filter(p => p.arquivado).length > 0 && (
-                        <div className="border-t border-gray-800/80 pt-6">
+                        <div className="border-t border-hair pt-6">
                           <button
                             onClick={() => setMostrarArquivados(!mostrarArquivados)}
-                            className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 focus:outline-none"
+                            className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors py-2 duration-d1 ease-ez mb-4 focus:outline-none"
                           >
-                            <span className="text-xs">{mostrarArquivados ? '▼' : '▶'}</span>
-                            <h2 className="text-lg font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
+                            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-d2 ease-ez ${mostrarArquivados ? 'rotate-180' : '-rotate-90'}`} />
+                            <h2 className="text-lg font-display font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
                           </button>
 
                           {mostrarArquivados && (
@@ -916,28 +922,31 @@ export default function Resumo() {
                                 const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : proj.cor;
 
                                 return (
-                                  <div
+                                  <Surface
                                     key={proj.id}
+                                    elevacao={1}
+                                    comBorda
+                                    padding="nenhum"
                                     onClick={() => navigate(`/projeto/${proj.id}`)}
-                                    className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 shadow-sm hover:border-gray-700/80 transition-all flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer"
+                                    className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                   >
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="flex items-center gap-3 min-w-0">
                                         <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                           <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                         </span>
-                                        <span className={`font-bold text-white uppercase text-base truncate ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                        <span className={`font-bold text-ink-900 uppercase text-base truncate ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
                                       </div>
                                     </div>
-                                    <hr className="border-gray-800/80" />
+                                    <hr className="border-hair" />
                                     <div className="flex-1 space-y-3">
                                       {temContrato ? (
-                                        <p className="text-sm font-medium text-[#8B949E]">
-                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
+                                        <p className="text-sm font-medium text-ink-500">
+                                          <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
                                         </p>
                                       ) : (
-                                        <p className="text-sm font-medium text-[#8B949E]">
-                                          <span className="text-white font-bold">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                        <p className="text-sm font-medium text-ink-500">
+                                          <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
                                         </p>
                                       )}
                                     </div>
@@ -945,33 +954,39 @@ export default function Resumo() {
                                       <div className="pt-2">
                                         <button
                                           onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
-                                          className="w-full flex items-center justify-between text-xs font-semibold text-gray-400 hover:text-white transition-colors py-2 focus:outline-none"
+                                          className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                         >
                                           <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                          <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                          <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                         </button>
-                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                           <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                         </div>
                                       </div>
                                     )}
-                                    <div className="pt-3 border-t border-gray-800/80 mt-auto flex flex-col gap-2">
-                                      <button
+                                    <div className="pt-3 border-t border-hair mt-auto flex flex-col gap-2">
+                                      <Button
+                                        variante="secundario"
+                                        tamanho="sm"
+                                        larguraTotal
+                                        className="min-h-[44px]"
                                         onClick={(e) => { e.stopPropagation(); handleDesarquivar(proj.id) }}
-                                        className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50"
                                       >
                                         Desarquivar Projeto
-                                      </button>
+                                      </Button>
                                       {isExcluido && (
-                                        <button
+                                        <Button
+                                          variante="destrutivo"
+                                          tamanho="sm"
+                                          larguraTotal
+                                          className="min-h-[44px]"
                                           onClick={(e) => { e.stopPropagation(); setProjetoParaExcluir({ id: proj.id, nome: projNome }) }}
-                                          className="w-full py-2 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-lg transition-all border border-red-500/20 hover:border-red-600"
                                         >
                                           Excluir permanentemente
-                                        </button>
+                                        </Button>
                                       )}
                                     </div>
-                                  </div>
+                                  </Surface>
                                 )
                               })}
                             </div>
