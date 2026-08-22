@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
+import { Button, Surface } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -944,24 +946,27 @@ export default function ProjetoDetalhe() {
   const ultimaAtividade = dataMaxima ? formatarDataCurta(dataMaxima) : '—'
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
         <div>
-          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-white transition-colors focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Voltar
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl"
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Voltar</span>
           </button>
         </div>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{error}</span>
+          <div
+            style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <span className="font-ui">{error}</span>
           </div>
         )}
 
@@ -975,72 +980,98 @@ export default function ProjetoDetalhe() {
             </div>
           </div>
         ) : !projeto ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4">
-            <h3 className="text-lg font-bold text-white">Projeto não encontrado</h3>
-            <button onClick={() => navigate(-1)} className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all">
+          <Surface elevacao={1} comBorda padding="nenhum" className="p-12 text-center max-w-lg mx-auto space-y-4">
+            <h3 className="text-lg font-bold text-ink-900 font-display">Projeto não encontrado</h3>
+            <Button
+              variante="secundario"
+              onClick={() => navigate(-1)}
+            >
               Voltar à página anterior
-            </button>
-          </div>
+            </Button>
+          </Surface>
         ) : (
           <div className="space-y-8 animate-in fade-in duration-300">
-            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-3">
+            <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-5 h-5 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projeto.cor }}>
+                  <span className="w-5 h-5 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: projeto.cor }}>
                     <span className="w-2.5 h-2.5 rounded-full bg-white opacity-40"></span>
                   </span>
-                  <h1 className="text-2xl font-bold text-white tracking-tight uppercase truncate">{projeto.nome}</h1>
+                  <h1 className="text-2xl font-display font-bold text-ink-900 tracking-tight uppercase truncate">{projeto.nome}</h1>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${projeto.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : projeto.status === 'encerrado' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' : 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
+                <span
+                  style={
+                    projeto.status === 'ativo'
+                      ? { borderColor: 'color-mix(in srgb, var(--ok) 30%, transparent)' }
+                      : projeto.status === 'encerrado'
+                      ? { borderColor: 'color-mix(in srgb, var(--warn) 30%, transparent)' }
+                      : undefined
+                  }
+                  className={`px-3 py-1 rounded-full text-xs font-bold border shrink-0 font-ui ${
+                    projeto.status === 'ativo'
+                      ? 'bg-ok-bg text-ok'
+                      : projeto.status === 'encerrado'
+                      ? 'bg-warn-bg text-warn'
+                      : 'bg-surface-3 text-ink-500 border-hair'
+                  }`}
+                >
                   {projeto.status === 'ativo' ? 'Ativo' : projeto.status === 'encerrado' ? 'Encerrado' : 'Excluído'}
                 </span>
               </div>
               {projeto.codigo_externo && (
-                <div className="font-mono text-xs text-[#8B949E]">
-                  Código externo: <span className="text-gray-300 font-semibold">{projeto.codigo_externo}</span>
+                <div className="font-mono text-xs text-ink-500">
+                  Código externo: <span className="text-ink-900 font-semibold">{projeto.codigo_externo}</span>
                 </div>
               )}
-            </div>
+            </Surface>
 
-            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-3">
-              <div className="flex justify-between items-center text-sm font-medium">
+            <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
+              <div className="flex justify-between items-center text-sm font-medium font-ui">
                 {temContratado ? (
-                  <p className="text-[#8B949E]">
-                    <span className="text-white font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas de {totalContratado!.toFixed(2).replace('.', ',')}h contratadas
+                  <p className="text-ink-500">
+                    <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas de {totalContratado!.toFixed(2).replace('.', ',')}h contratadas
                   </p>
                 ) : (
-                  <p className="text-[#8B949E]">
-                    <span className="text-white font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas
+                  <p className="text-ink-500">
+                    <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas
                   </p>
                 )}
                 {temContratado && (
-                  <span className="font-bold text-sm" style={{ color: excedeuContratado ? '#F44336' : '#4CAF50' }}>{percentualGeral}%</span>
+                  <span className="font-mono font-bold text-sm" style={{ color: excedeuContratado ? 'var(--bad)' : 'var(--ok)' }}>
+                    {percentualGeral}%
+                  </span>
                 )}
               </div>
               {temContratado && (
-                <div className="w-full bg-[#0B0E14] h-[6px] rounded-full overflow-hidden border border-gray-800/50">
-                  <div className="h-full transition-all duration-500" style={{ width: `${percentualGeral}%`, backgroundColor: excedeuContratado ? '#F44336' : '#4CAF50' }} />
+                <div className="w-full bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
+                  <div
+                    className="h-full transition-all duration-500"
+                    style={{
+                      width: `${percentualGeral}%`,
+                      backgroundColor: excedeuContratado ? 'var(--bad)' : 'var(--ok)'
+                    }}
+                  />
                 </div>
               )}
-            </div>
+            </Surface>
 
             <div className={`grid grid-cols-1 ${temContratado ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-6`}>
               {temContratado && (
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-1">
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Restantes</span>
-                  <p className="text-xl font-mono font-bold" style={{ color: excedeuContratado ? '#F44336' : '#4CAF50' }}>
+                <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-1">
+                  <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-ui">Restantes</span>
+                  <p className="text-xl font-mono font-bold" style={{ color: excedeuContratado ? 'var(--bad)' : 'var(--ok)' }}>
                     {diffContratado.toFixed(2).replace('.', ',')}h {excedeuContratado ? 'acima' : 'restantes'}
                   </p>
-                </div>
+                </Surface>
               )}
-              <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Lançamentos</span>
-                <p className="text-xl font-mono font-bold text-white">{registros.length} {registros.length === 1 ? 'registro' : 'registros'}</p>
-              </div>
-              <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 space-y-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Última atividade</span>
-                <p className="text-xl font-mono font-bold text-white">{ultimaAtividade}</p>
-              </div>
+              <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-1">
+                <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-ui">Lançamentos</span>
+                <p className="text-xl font-mono font-bold text-ink-900">{registros.length} {registros.length === 1 ? 'registro' : 'registros'}</p>
+              </Surface>
+              <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-1">
+                <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-ui">Última atividade</span>
+                <p className="text-xl font-mono font-bold text-ink-900">{ultimaAtividade}</p>
+              </Surface>
             </div>
 
             <div className="space-y-6">

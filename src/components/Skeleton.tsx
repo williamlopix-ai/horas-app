@@ -12,7 +12,7 @@ export function SkeletonLine({ className = '' }: { className?: string }) {
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-[#161B22] border border-gray-800 rounded-2xl p-6 flex flex-col gap-4 ${className}`}>
+    <div className={`bg-surface-2 border border-hair rounded-card p-6 flex flex-col gap-4 shadow-e1 ${className}`}>
       <div className="flex justify-between items-start gap-4">
         <div className="space-y-2 w-full">
           <SkeletonLine className="w-16 h-3" />
@@ -20,7 +20,7 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
         </div>
         <Skeleton className="h-8 w-8 rounded-full shrink-0" />
       </div>
-      <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60 mt-2">
+      <div className="grid grid-cols-3 gap-4 py-2 border-y border-hair mt-2">
         <div>
           <SkeletonLine className="w-12 h-3 mb-2" />
           <SkeletonLine className="w-full h-6" />
