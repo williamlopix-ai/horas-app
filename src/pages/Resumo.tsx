@@ -14,7 +14,7 @@ import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChartNoAxesColumn, LayoutGrid, List, Table2 } from 'lucide-react'
-import { Surface } from '../components/ui'
+import { Chip, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -34,7 +34,7 @@ export default function Resumo() {
   const [horasBasePorSemana, setHorasBasePorSemana] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
@@ -186,14 +186,14 @@ export default function Resumo() {
         const atingiuMeta = totalHoras >= baseVigente
         const percentual = Math.min(100, Math.round((totalHoras / baseVigente) * 100))
         const diferenca = totalHoras - baseVigente
-        return { 
-          semana_inicio: semana, 
-          titulo: formatarTituloSemana(semana), 
-          totalHoras, 
-          atingiuMeta, 
-          percentual, 
-          diferenca, 
-          metaVigente: baseVigente 
+        return {
+          semana_inicio: semana,
+          titulo: formatarTituloSemana(semana),
+          totalHoras,
+          atingiuMeta,
+          percentual,
+          diferenca,
+          metaVigente: baseVigente
         }
       })
   }, [registros, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
@@ -230,7 +230,7 @@ export default function Resumo() {
       grupos[projId].registros.push(reg)
       totalGeral += reg.duracao
     })
-    
+
     const arrayProjetos: any[] = []
     const arrayRotina: any[] = []
 
@@ -317,14 +317,14 @@ export default function Resumo() {
       }))
 
       const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original, billable }
-      
+
       if (tipo === 'rotina') {
         arrayRotina.push(item)
       } else {
         arrayProjetos.push(item)
       }
     })
-    
+
     return {
       totalGeral,
       projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras),
@@ -341,7 +341,7 @@ export default function Resumo() {
 
   return (
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
-      
+
       <Sidebar />
 
       {/* Conteúdo Principal */}
@@ -366,25 +366,22 @@ export default function Resumo() {
           <div className="flex p-0.5 sm:p-1 bg-surface-1 border border-hair rounded-ctl w-fit">
             <button
               onClick={() => setAbaAtiva('semanal')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
-                abaAtiva === 'semanal' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
-              }`}
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'semanal' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+                }`}
             >
               Semanal
             </button>
             <button
               onClick={() => setAbaAtiva('diario')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
-                abaAtiva === 'diario' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
-              }`}
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'diario' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+                }`}
             >
               Diário
             </button>
             <button
               onClick={() => setAbaAtiva('projetos')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${
-                abaAtiva === 'projetos' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
-              }`}
+              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'projetos' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+                }`}
             >
               Por Projetos
             </button>
@@ -394,11 +391,10 @@ export default function Resumo() {
             <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
               <button
                 onClick={() => changeViewMode('cards')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
-                  viewMode === 'cards'
-                    ? 'bg-accent-bg text-accent-fg'
-                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
+                  ? 'bg-accent-bg text-accent-fg'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                  }`}
                 title="Visualização em Cards"
               >
                 <LayoutGrid className="w-4 h-4 shrink-0" />
@@ -406,11 +402,10 @@ export default function Resumo() {
               </button>
               <button
                 onClick={() => changeViewMode('lista')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
-                  viewMode === 'lista'
-                    ? 'bg-accent-bg text-accent-fg'
-                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
+                  ? 'bg-accent-bg text-accent-fg'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                  }`}
                 title="Visualização em Lista"
               >
                 <List className="w-4 h-4 shrink-0" />
@@ -418,11 +413,10 @@ export default function Resumo() {
               </button>
               <button
                 onClick={() => changeViewMode('tabela')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
-                  viewMode === 'tabela'
-                    ? 'bg-accent-bg text-accent-fg'
-                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
+                  ? 'bg-accent-bg text-accent-fg'
+                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                  }`}
                 title="Visualização em Tabela"
               >
                 <Table2 className="w-4 h-4 shrink-0" />
@@ -456,12 +450,12 @@ export default function Resumo() {
           </Surface>
         ) : (
           <div className="space-y-6">
-            
+
             {/* =========================================================================
                 ABA: SEMANAL 
                ========================================================================= */}
             {abaAtiva === 'semanal' && (
-              <div className="animate-in fade-in duration-300">
+              <div>
                 {viewMode === 'cards' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {resumoSemanas.map((semana) => {
@@ -470,60 +464,63 @@ export default function Resumo() {
                       const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
 
                       return (
-                        <div key={semana.semana_inicio} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-sm hover:border-gray-700/80 transition-all flex flex-col justify-between">
+                        <Surface
+                          key={semana.semana_inicio}
+                          elevacao={1}
+                          comBorda
+                          padding="nenhum"
+                          className="p-6 space-y-5 flex flex-col justify-between hover:border-hair-strong transition-colors duration-d1 ease-ez"
+                        >
                           {/* Cabeçalho */}
                           <div className="flex justify-between items-start gap-4">
                             <div>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Período</span>
-                              <h3 className="text-base font-bold text-white leading-snug">{semana.titulo}</h3>
+                              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500 block mb-1">Período</span>
+                              <h3 className="text-base font-display font-bold text-ink-900 leading-snug">{semana.titulo}</h3>
                             </div>
                             <div className="shrink-0">
-                              {semana.atingiuMeta ? (
-                                <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Meta atingida">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20" title="Meta não atingida">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                                </span>
-                              )}
+                              <Chip tom={semana.atingiuMeta ? 'ok' : 'erro'}>
+                                {semana.atingiuMeta ? 'Atingida' : 'Pendente'}
+                              </Chip>
                             </div>
                           </div>
 
                           {/* Dados */}
-                          <div className="grid grid-cols-3 gap-4 py-2 border-y border-gray-800/60">
+                          <div className="grid grid-cols-3 gap-4 py-2 border-y border-hair">
                             <div>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Trabalhado</span>
-                              <span className="text-lg font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-1 font-ui">Trabalhado</span>
+                              <span className="text-lg font-mono font-bold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Meta</span>
-                              <span className="text-lg font-mono font-bold text-gray-400">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span>
+                              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-1 font-ui">Meta</span>
+                              <span className="text-lg font-mono font-bold text-ink-700 tabular-nums">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span>
                             </div>
                             <div>
-                              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-1">Restante</span>
-                              <span className="text-lg font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span>
+                              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-1 font-ui">Restante</span>
+                              <span className="text-lg font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span>
                             </div>
                           </div>
 
                           {/* Progresso */}
                           <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs font-semibold">
-                              <span className="text-gray-400">Progresso</span>
-                              <span style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}% Concluído</span>
+                              <span className="text-ink-500">Progresso</span>
+                              <span style={{ color: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{semana.percentual}% Concluído</span>
                             </div>
-                            <div className="w-full bg-[#0B0E14] h-3 rounded-full overflow-hidden border border-gray-800/50">
-                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? '#4CAF50' : '#F44336' }} />
+                            <div className="w-full bg-surface-0 h-3 rounded-full overflow-hidden border border-hair">
+                              <div
+                                className="h-full rounded-full transition-all duration-d2 ease-ez"
+                                style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}
+                              />
                             </div>
                           </div>
-                        </div>
+                        </Surface>
                       )
                     })}
                   </div>
                 )}
 
                 {viewMode === 'lista' && (
-                  <div className="flex flex-col gap-2 bg-[#161B22] border border-gray-800 rounded-2xl p-4 divide-y divide-gray-800/60">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-2 p-4 divide-y divide-hair">
                     {resumoSemanas.map((semana) => {
                       const valorDiferenca = semana.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
@@ -531,27 +528,27 @@ export default function Resumo() {
                       return (
                         <div key={semana.semana_inicio} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${semana.atingiuMeta ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                            <span className="font-bold text-white truncate">{semana.titulo}</span>
+                            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${semana.atingiuMeta ? 'bg-ok' : 'bg-bad'}`} />
+                            <span className="font-bold text-ink-900 truncate">{semana.titulo}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gray-400">
-                            <div>Trabalhado: <span className="font-mono font-bold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Meta: <span className="font-mono text-gray-300">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span></div>
-                            <div>Diferença: <span className="font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</span></div>
-                            <div>Concluído: <span className="font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</span></div>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-ink-500">
+                            <div>Trabalhado: <span className="font-mono font-bold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Meta: <span className="font-mono text-ink-700 tabular-nums">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span></div>
+                            <div>Diferença: <span className="font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span></div>
+                            <div>Concluído: <span className="font-mono font-bold tabular-nums" style={{ color: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{semana.percentual}%</span></div>
                           </div>
                         </div>
                       )
                     })}
-                  </div>
+                  </Surface>
                 )}
 
                 {viewMode === 'tabela' && (
-                  <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-gray-800 bg-[#1E2530]/40 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          <tr className="border-b border-hair bg-surface-2 text-xs font-bold text-ink-500 uppercase tracking-wider">
                             <th className="py-3.5 px-6">Período</th>
                             <th className="py-3.5 px-6 text-right">Trabalhado</th>
                             <th className="py-3.5 px-6 text-right">Meta</th>
@@ -560,27 +557,22 @@ export default function Resumo() {
                             <th className="py-3.5 px-6 text-center">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-800/60 text-sm">
+                        <tbody className="divide-y divide-hair text-sm">
                           {resumoSemanas.map((semana) => {
                             const valorDiferenca = semana.diferenca
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={semana.semana_inicio} className="hover:bg-[#1E2530]/20 transition-colors">
-                                <td className="py-4 px-6 font-semibold text-white">{semana.titulo}</td>
-                                <td className="py-4 px-6 text-right font-mono font-semibold text-white">{semana.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-gray-400">{semana.metaVigente.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: semana.atingiuMeta ? '#4CAF50' : '#F44336' }}>{semana.percentual}%</td>
+                              <tr key={semana.semana_inicio} className="hover:bg-surface-2 transition-colors">
+                                <td className="py-4 px-6 font-semibold text-ink-900">{semana.titulo}</td>
+                                <td className="py-4 px-6 text-right font-mono font-semibold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono text-ink-500 tabular-nums">{semana.metaVigente.toFixed(2).replace('.', ',')}h</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</td>
+                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{semana.percentual}%</td>
                                 <td className="py-4 px-6 text-center">
-                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${
-                                    semana.atingiuMeta 
-                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                                      : 'bg-red-500/10 border-red-500/20 text-red-400'
-                                  }`}>
-                                    <span className={`h-1.5 w-1.5 rounded-full ${semana.atingiuMeta ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                  <Chip tom={semana.atingiuMeta ? 'ok' : 'erro'}>
                                     {semana.atingiuMeta ? 'Atingida' : 'Pendente'}
-                                  </span>
+                                  </Chip>
                                 </td>
                               </tr>
                             )
@@ -588,7 +580,7 @@ export default function Resumo() {
                         </tbody>
                       </table>
                     </div>
-                  </div>
+                  </Surface>
                 )}
               </div>
             )}
@@ -704,11 +696,10 @@ export default function Resumo() {
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: isPositivoOuZero ? '#4CAF50' : '#F44336' }}>{diferencaTexto}</td>
                                 <td className="py-4 px-6 text-right font-mono font-bold" style={{ color: dia.atingiuMeta ? '#4CAF50' : '#F44336' }}>{dia.percentual}%</td>
                                 <td className="py-4 px-6 text-center">
-                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${
-                                    dia.atingiuMeta 
-                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                                      : 'bg-red-500/10 border-red-500/20 text-red-400'
-                                  }`}>
+                                  <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold border ${dia.atingiuMeta
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                    : 'bg-red-500/10 border-red-500/20 text-red-400'
+                                    }`}>
                                     <span className={`h-1.5 w-1.5 rounded-full ${dia.atingiuMeta ? 'bg-emerald-400' : 'bg-red-400'}`} />
                                     {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
                                   </span>
@@ -736,14 +727,12 @@ export default function Resumo() {
                     className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
                   >
                     <span
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        apenasBillable ? 'bg-[#03A9F4]' : 'bg-gray-600'
-                      }`}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${apenasBillable ? 'bg-[#03A9F4]' : 'bg-gray-600'
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          apenasBillable ? 'translate-x-4' : 'translate-x-1'
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${apenasBillable ? 'translate-x-4' : 'translate-x-1'
+                          }`}
                       />
                     </span>
                     Apenas billable
@@ -839,7 +828,7 @@ export default function Resumo() {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
                               const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
-                              
+
                               const isExcluido = proj.status === 'excluido';
                               const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
                               const projCor = isExcluido ? '#4B5563' : '#6B7280';
@@ -905,21 +894,21 @@ export default function Resumo() {
                       {/* Arquivados */}
                       {projetosVisiveis.filter(p => p.arquivado).length > 0 && (
                         <div className="border-t border-gray-800/80 pt-6">
-                          <button 
+                          <button
                             onClick={() => setMostrarArquivados(!mostrarArquivados)}
                             className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 focus:outline-none"
                           >
                             <span className="text-xs">{mostrarArquivados ? '▼' : '▶'}</span>
                             <h2 className="text-lg font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
                           </button>
-                          
+
                           {mostrarArquivados && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                               {projetosVisiveis.filter(p => p.arquivado).map(proj => {
                                 const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                 const isExpanded = projetosExpandidos[proj.id] || false;
                                 const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
-                                
+
                                 const isExcluido = proj.status === 'excluido';
                                 const isEncerrado = proj.status === 'encerrado';
                                 const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
@@ -1002,7 +991,7 @@ export default function Resumo() {
                           const isExpanded = rotinasExpandidas[rotina.id] || false;
                           return (
                             <div key={rotina.id} className="flex flex-col border-b border-gray-800/60 last:border-0">
-                              <div 
+                              <div
                                 className="flex items-center justify-between p-4 hover:bg-[#1E2530] transition-colors cursor-pointer"
                                 onClick={() => toggleRotina(rotina.id)}
                               >
@@ -1018,7 +1007,7 @@ export default function Resumo() {
                                   </svg>
                                 </div>
                               </div>
-                              
+
                               <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
                                 <div className="flex flex-col gap-1 px-4 ml-[22px] border-l-2 border-gray-800/50 pl-3">
                                   {rotina.registros.map((reg: any) => (
@@ -1047,7 +1036,7 @@ export default function Resumo() {
                 )}
               </div>
             )}
-            
+
           </div>
         )}
       </main>
@@ -1061,7 +1050,7 @@ export default function Resumo() {
             </h3>
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
               Todos os lançamentos vinculados a <strong className="text-white">{projetoParaExcluir.nome}</strong> serão excluídos permanentemente.
-              <br/><br/>
+              <br /><br />
               Esta ação não pode ser desfeita.
             </p>
             <div className="flex justify-end gap-3">
