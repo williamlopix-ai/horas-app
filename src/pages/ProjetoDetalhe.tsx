@@ -1928,39 +1928,41 @@ export default function ProjetoDetalhe() {
 
               return (
                 <div
-                  className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                  className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4"
                   onClick={() => { if (!salvandoFase) setFaseComSubsExcluindo(null) }}
                 >
-                  <div
-                    className="bg-[#161B22] border border-gray-800 rounded-2xl w-[95%] sm:w-full max-w-sm p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col"
+                  <Surface
+                    elevacao={2}
+                    comBorda
+                    comSombra={false}
+                    padding="nenhum"
+                    className="w-[95%] sm:w-full max-w-sm p-6 relative shadow-e3 flex flex-col"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={() => setFaseComSubsExcluindo(null)}
                       disabled={salvandoFase}
                       type="button"
-                      className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10 disabled:opacity-50"
+                      className="absolute top-4 right-4 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors z-10 disabled:opacity-50"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="h-6 w-6" />
                     </button>
 
-                    <h3 className="text-xl font-bold text-white mb-2 shrink-0">
+                    <h3 className="text-xl font-display font-bold text-ink-900 mb-2 shrink-0">
                       Excluir fase
                     </h3>
 
-                    <p className="text-sm text-gray-400 mb-4">
+                    <p className="text-sm text-ink-700 mb-4">
                       Esta fase tem {subsDaFase.length} subcategoria(s). Escolha o que fazer com elas — nenhum lançamento será perdido.
                     </p>
 
                     <div className="mb-6 space-y-1.5">
-                      <label className="text-xs text-gray-400 font-medium">Destino das subcategorias</label>
+                      <label className="text-xs text-ink-500 font-medium">Destino das subcategorias</label>
                       <select
                         value={faseComSubsExcluindo.destinoFaseId}
                         onChange={(e) => setFaseComSubsExcluindo(prev => prev ? { ...prev, destinoFaseId: e.target.value } : null)}
                         disabled={salvandoFase}
-                        className="w-full bg-[#0B0E14] border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#03A9F4] disabled:opacity-50"
+                        className={`${classeCampo()} disabled:opacity-50 min-h-[44px]`}
                       >
                         {faseComSubsExcluindo.destinoFaseId === DESTINO_PENDENTE && (
                           <option value={DESTINO_PENDENTE} disabled>Escolha o destino</option>
@@ -1975,24 +1977,28 @@ export default function ProjetoDetalhe() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-                      <button
+                      <Button
+                        variante="secundario"
+                        tamanho="md"
                         type="button"
                         onClick={() => setFaseComSubsExcluindo(null)}
                         disabled={salvandoFase}
-                        className="w-full sm:flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none disabled:opacity-50"
+                        className="w-full sm:flex-1 sm:w-auto min-h-[44px]"
                       >
                         Cancelar
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variante="destrutivo"
+                        tamanho="md"
                         type="button"
                         onClick={() => handleConfirmarExclusaoFaseComSubs(faseAlvo.id, faseComSubsExcluindo.destinoFaseId)}
                         disabled={salvandoFase || faseComSubsExcluindo.destinoFaseId === DESTINO_PENDENTE}
-                        className="w-full sm:flex-1 py-3 px-4 bg-[#F44336] hover:bg-red-600 active:bg-red-700 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 focus:outline-none disabled:opacity-50"
+                        className="w-full sm:flex-1 sm:w-auto min-h-[44px]"
                       >
                         {salvandoFase ? 'Excluindo...' : 'Excluir fase'}
-                      </button>
+                      </Button>
                     </div>
-                  </div>
+                  </Surface>
                 </div>
               )
             })()}
