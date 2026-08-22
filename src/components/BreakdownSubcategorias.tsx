@@ -1,3 +1,5 @@
+import { Chip, Surface } from './ui'
+
 export interface SubcategoriaBreakdownItem {
   id: string | null
   nome: string
@@ -28,8 +30,8 @@ export default function BreakdownSubcategorias({ subcategorias }: BreakdownSubca
   const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
 
   return (
-    <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60">
-      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-3">Subcategorias</span>
+    <Surface elevacao={2} comBorda comSombra={false} padding="nenhum" className="p-4">
+      <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-3 font-ui">Subcategorias</span>
       <div className="space-y-2.5">
         {subcategorias.map((sub) => {
           const horasAlocadas = sub.horas_alocadas
@@ -49,41 +51,34 @@ export default function BreakdownSubcategorias({ subcategorias }: BreakdownSubca
             <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
               <div className="flex justify-between items-center text-xs gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                  <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
+                  <span className="text-ink-700 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                   {temAlgumaAlocacao && !temAlocacao && sub.id !== null && (
-                    <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
-                      sem alocação
-                    </span>
+                    <Chip tom="neutro" className="shrink-0">sem alocação</Chip>
                   )}
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                  <span className="font-mono font-semibold text-white text-right">
+                  <span className="font-mono tabular-nums font-semibold text-ink-900 text-right">
                     {temAlocacao ? `${duracaoFormatada} / ${alocadoFormatado}` : duracaoFormatada}
                   </span>
-                  {!temAlocacao && (
-                    <span className="font-mono w-10 text-right font-medium text-[#6B7280]">
-                      {sub.percentual ?? 0}%
-                    </span>
-                  )}
+                  <span className="font-mono tabular-nums w-10 text-right font-medium text-ink-500">
+                    {!temAlocacao ? `${sub.percentual ?? 0}%` : ''}
+                  </span>
                 </div>
               </div>
 
               {temAlocacao && (
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 bg-[#0B0E14] h-1 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-surface-0 h-1 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-300"
+                      className="h-full rounded-full transition-all duration-d2 ease-ez"
                       style={{
                         width: `${larguraBarra}%`,
-                        backgroundColor: excedeu ? '#F44336' : '#03A9F4'
+                        backgroundColor: excedeu ? 'var(--bad)' : 'var(--accent)'
                       }}
                     />
                   </div>
-                  <span
-                    className="font-mono text-[10px] w-10 text-right font-medium shrink-0"
-                    style={{ color: excedeu ? '#F44336' : '#6B7280' }}
-                  >
+                  <span className={`font-mono tabular-nums text-[10px] w-10 text-right font-medium shrink-0 ${excedeu ? 'text-bad' : 'text-ink-500'}`}>
                     {percentualAlocado}%
                   </span>
                 </div>
@@ -94,10 +89,10 @@ export default function BreakdownSubcategorias({ subcategorias }: BreakdownSubca
       </div>
 
       {exibirRodape && (
-        <div className="mt-3 pt-2 border-t border-gray-800/60 text-[10px] text-[#8B949E] text-right font-mono">
+        <div className="mt-3 pt-2 border-t border-hair text-[10px] text-ink-500 text-right font-mono tabular-nums">
           {somaSemAlocacao.toFixed(2).replace('.', ',')}h sem alocação
         </div>
       )}
-    </div>
+    </Surface>
   )
 }
