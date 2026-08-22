@@ -5,8 +5,10 @@ import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
 import {
   AlertTriangle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clock,
   FolderKanban,
   List,
   Plus,
@@ -603,26 +605,34 @@ export default function Registros() {
           <div className="flex flex-col gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex flex-col gap-4">
-                <Skeleton className="h-[68px] w-full rounded-lg" />
+                <Skeleton className="h-[68px] w-full rounded-card" />
                 <div className="flex flex-col gap-2">
-                  <Skeleton className="h-[52px] w-full rounded-lg" />
-                  <Skeleton className="h-[52px] w-full rounded-lg" />
+                  <Skeleton className="h-[52px] w-full rounded-card" />
+                  <Skeleton className="h-[52px] w-full rounded-card" />
                 </div>
               </div>
             ))}
           </div>
         ) : registrosAgrupadosPorData.length === 0 ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 shadow-sm">
-            <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <Surface elevacao={1} comBorda padding="lg" className="text-center max-w-lg mx-auto space-y-4">
+            <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
+              <Clock className="w-8 h-8 shrink-0" />
             </div>
-            <h3 className="text-lg font-bold text-white">Nenhum lançamento encontrado</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum lançamento encontrado</h3>
+            <p className="text-sm text-ink-500 leading-relaxed font-ui">
               Não encontramos nenhum registro de horas para os filtros selecionados.
             </p>
-          </div>
+            <div className="pt-2">
+              <Button
+                variante="primario"
+                onClick={abrirNovoRegistroModal}
+                className="min-h-[44px] px-4"
+                iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
+              >
+                Lançar horas
+              </Button>
+            </div>
+          </Surface>
         ) : (
           <div className="flex flex-col gap-6">
             {registrosAgrupadosPorData.map((grupo) => {
@@ -632,42 +642,39 @@ export default function Registros() {
                 <div key={grupo.data} className="relative">
                   {/* Cabeçalho do Grupo de Dia */}
                   <div
-                    className="bg-[#1E2530] border-l-[3px] border-l-[#03A9F4] rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-[#252d3a] transition-colors relative z-10"
+                    className="bg-surface-2 border-l-[3px] border-l-accent rounded-card px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-surface-3 transition-colors duration-d1 ease-ez relative z-10 shadow-e1"
                     onClick={() => toggleDia(grupo.data)}
                   >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <svg className={`h-4 w-4 sm:h-5 sm:w-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-ink-500 transition-transform duration-d2 ease-ez shrink-0 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
                       <div>
-                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+                        <h3 className="text-xs sm:text-sm font-bold text-ink-900 tracking-wide uppercase flex items-center gap-2 font-display">
                           <span className="capitalize normal-case">{grupo.titulo}</span>
                         </h3>
-                        <p className="text-[10px] sm:text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-                          Jornada: <span className="font-mono text-gray-300">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
+                        <p className="text-[10px] sm:text-xs text-ink-500 mt-1 flex items-center gap-1.5 font-ui">
+                          Jornada: <span className="font-mono text-ink-700">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] sm:text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Lançado</span>
-                        <span className="text-sm sm:text-lg font-mono font-bold text-emerald-400">
+                        <span className="text-[10px] sm:text-xs text-ink-500 font-semibold uppercase tracking-wider font-ui">Total Lançado</span>
+                        <span className="text-sm sm:text-lg font-mono font-bold text-ok">
                           {grupo.totalHoras.toFixed(2).replace('.', ',')}h
                         </span>
                       </div>
-                      <span className="h-8 w-px bg-gray-800 hidden sm:inline" />
+                      <span className="h-8 w-px bg-hair-strong hidden sm:inline" />
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           abrirModalHorario(grupo.data)
                         }}
-                        className="p-2 text-gray-400 hover:text-white bg-gray-800/40 hover:bg-gray-800 border border-gray-700/50 rounded-xl transition-all focus:outline-none"
+                        className="min-h-[44px] min-w-[44px] p-2.5 text-ink-500 hover:text-ink-900 bg-surface-1 hover:bg-surface-3 border border-hair-strong rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                         title="Editar Horário do Dia"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
+                        <Clock className="w-4 h-4 shrink-0" />
                         <span className="sr-only">Editar Horário do Dia</span>
                       </button>
                     </div>
