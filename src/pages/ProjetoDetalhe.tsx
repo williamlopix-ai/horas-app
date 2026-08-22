@@ -638,7 +638,7 @@ export default function ProjetoDetalhe() {
                         handleCancelEditSub()
                       }
                     }}
-                    className={`flex-1 ${classeCampo()} text-xs py-1 px-2.5`}
+                    className={`${classeCampo()} !flex-1 !w-auto min-w-0 text-xs py-1 px-2.5`}
                     autoFocus
                   />
                   <div className="flex items-center gap-1 shrink-0">
@@ -742,7 +742,7 @@ export default function ProjetoDetalhe() {
                               handleCancelEditReserva()
                             }
                           }}
-                          className={`w-24 ${classeCampo()} text-xs py-1 px-2.5 font-mono`}
+                          className={`${classeCampo()} !w-24 text-xs py-1 px-2.5 font-mono`}
                         />
                         <button
                           type="button"
@@ -1068,19 +1068,12 @@ export default function ProjetoDetalhe() {
                   onClick={() => toggleSecao('fases')}
                   className="flex items-center gap-2 group focus:outline-none"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <h2 className="text-xl font-bold text-white">Fases & Subcategorias</h2>
+                  <ChevronDown
+                    className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
+                  />
+                  <h2 className="text-xl font-display font-bold text-ink-900">Fases & Subcategorias</h2>
                   {!secoesExpandidas['fases'] && (
-                    <span className="text-xs text-[#8B949E] font-normal">
+                    <span className="text-xs text-ink-500 font-ui font-normal">
                       {fases.length === 0
                         ? `${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`
                         : `${fases.length} ${fases.length === 1 ? 'fase' : 'fases'} · ${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`}
@@ -1088,14 +1081,15 @@ export default function ProjetoDetalhe() {
                   )}
                 </button>
                 <div className="flex items-center gap-3">
-                  <button
-                    type="button"
+                  <Button
+                    variante="primario"
+                    tamanho="sm"
                     onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
                     disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
-                    className="bg-[#03A9F4] hover:bg-[#0288D1] text-white font-bold rounded-lg px-3 py-1.5 text-xs transition-colors disabled:opacity-50"
+                    className="min-h-[44px] sm:min-h-0"
                   >
                     {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
-                  </button>
+                  </Button>
                   {fases.length > 0 && (
                     <MenuAcoes
                       itens={[
@@ -1135,9 +1129,9 @@ export default function ProjetoDetalhe() {
                           : `${fase.horas_contratadas!.toString().replace('.', ',')}h`)
                       : ''
                     return (
-                      <div key={fase.id} className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+                      <Surface key={fase.id} elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                         {isEditingThisFase ? (
-                          <div className="p-5 flex items-center justify-between gap-3 bg-[#161B22] border-b border-gray-800/60">
+                          <div className="p-5 flex items-center justify-between gap-3 bg-surface-1 border-b border-hair">
                             <div className="flex items-center gap-2 flex-1 min-w-0">
                               <input
                                 type="text"
@@ -1154,7 +1148,7 @@ export default function ProjetoDetalhe() {
                                     handleCancelEditFase()
                                   }
                                 }}
-                                className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                                className={`${classeCampo()} !flex-1 !w-auto min-w-0 text-sm py-1.5 px-3`}
                                 autoFocus
                               />
                               <input
@@ -1172,7 +1166,7 @@ export default function ProjetoDetalhe() {
                                     handleCancelEditFase()
                                   }
                                 }}
-                                className="w-24 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-[#03A9F4]"
+                                className={`${classeCampo()} !w-24 text-sm py-1.5 px-3 font-mono`}
                               />
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
@@ -1180,26 +1174,24 @@ export default function ProjetoDetalhe() {
                                 type="button"
                                 onClick={() => handleSaveEditFase(fase.id)}
                                 disabled={!nomeFaseEditando.trim() || salvandoFase}
-                                className="p-1.5 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors flex items-center justify-center"
                                 title="Confirmar"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
+                                <Check className="h-5 w-5" />
                               </button>
                               <button
                                 type="button"
                                 onClick={handleCancelEditFase}
                                 disabled={salvandoFase}
-                                className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ink-500 hover:text-ink-900 transition-colors flex items-center justify-center"
                                 title="Cancelar"
                               >
-                                ✕
+                                <X className="h-5 w-5" />
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full flex items-center justify-between p-5 hover:bg-[#1E2530]/40 transition-colors">
+                          <div className="w-full flex items-center justify-between p-5 hover:bg-surface-2 transition-colors duration-d1 ease-ez">
                             <button
                               type="button"
                               onClick={() => toggleFase(fase.id)}
@@ -1207,19 +1199,19 @@ export default function ProjetoDetalhe() {
                               className="flex-1 flex items-center justify-between min-w-0 pr-4 text-left focus:outline-none disabled:cursor-default"
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 text-gray-400 shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                                <span className="font-bold text-white text-base truncate">{fase.nome}</span>
+                                <ChevronDown
+                                  className={`h-4 w-4 text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
+                                />
+                                <span className="font-display font-bold text-ink-900 text-base truncate">{fase.nome}</span>
                               </div>
-                              <div className="font-mono text-sm font-semibold text-[#8B949E] shrink-0 ml-2">
+                              <div className="font-mono text-sm font-semibold text-ink-500 shrink-0 ml-2">
                                 {temPrevisto ? (
                                   <>
-                                    <span className="text-white font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> de {previstoFormatado} previstas
+                                    <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> de {previstoFormatado} previstas
                                   </>
                                 ) : (
                                   <>
-                                    <span className="text-white font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> lançadas
+                                    <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> lançadas
                                   </>
                                 )}
                               </div>
@@ -1262,32 +1254,32 @@ export default function ProjetoDetalhe() {
 
                             return (
                               <div className="mb-4 pt-1">
-                                <div className="w-full bg-[#0B0E14] h-[8px] rounded-full overflow-hidden border border-gray-800/50 flex">
+                                <div className="w-full bg-surface-0 h-[8px] rounded-full overflow-hidden border border-hair flex">
                                   {estourou ? (
                                     <div
-                                      className="h-full bg-[#F44336] transition-all duration-500"
-                                      style={{ width: '100%' }}
+                                      className="h-full transition-all duration-500"
+                                      style={{ width: '100%', backgroundColor: 'var(--bad)' }}
                                     />
                                   ) : (
                                     <>
                                       <div
-                                        className="h-full bg-[#4CAF50] transition-all duration-500"
-                                        style={{ width: `${pctUsado}%` }}
+                                        className="h-full transition-all duration-500"
+                                        style={{ width: `${pctUsado}%`, backgroundColor: 'var(--ok)' }}
                                       />
                                       <div
-                                        className="h-full bg-[#03A9F4] transition-all duration-500"
-                                        style={{ width: `${pctReservadoSemUso}%` }}
+                                        className="h-full transition-all duration-500"
+                                        style={{ width: `${pctReservadoSemUso}%`, backgroundColor: 'var(--accent)' }}
                                       />
                                     </>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-[#8B949E] mt-2">
+                                <div className="flex items-center gap-4 text-xs text-ink-500 mt-2 font-ui">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded bg-[#4CAF50] shrink-0" />
+                                    <span className="w-2 h-2 rounded shrink-0" style={{ backgroundColor: 'var(--ok)' }} />
                                     <span>lançadas</span>
                                   </div>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded bg-[#03A9F4] shrink-0" />
+                                    <span className="w-2 h-2 rounded shrink-0" style={{ backgroundColor: 'var(--accent)' }} />
                                     <span>reservadas sem uso</span>
                                   </div>
                                 </div>
@@ -1316,16 +1308,17 @@ export default function ProjetoDetalhe() {
                                     setNovaSubNome('')
                                   }
                                 }}
-                                className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                                className={`${classeCampo()} !flex-1 !w-auto min-w-0 text-xs py-1.5 px-3`}
                               />
-                              <button
-                                type="button"
+                              <Button
+                                variante="primario"
+                                tamanho="sm"
                                 onClick={() => handleConfirmAddSubcategoria(fase.id)}
                                 disabled={!novaSubNome.trim() || salvandoSub}
-                                className="bg-[#03A9F4] hover:bg-[#0288D1] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                                className="min-h-[44px] sm:min-h-0"
                               >
                                 Adicionar
-                              </button>
+                              </Button>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1333,27 +1326,28 @@ export default function ProjetoDetalhe() {
                                   setNovaSubNome('')
                                 }}
                                 disabled={salvandoSub}
-                                className="text-gray-500 hover:text-gray-300 p-1 text-xs transition-colors"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
                                 title="Cancelar"
                               >
-                                ✕
+                                <X className="h-4 w-4" />
                               </button>
                             </div>
                           )}
 
                           <div className="flex items-center justify-between gap-3 mt-3">
                             {adicionandoEmFaseId !== fase.id ? (
-                              <button
-                                type="button"
+                              <Button
+                                variante="secundario"
+                                tamanho="sm"
                                 onClick={() => {
                                   setAdicionandoEmFaseId(fase.id)
                                   setNovaSubNome('')
                                 }}
                                 disabled={salvandoSub}
-                                className="border border-gray-700 bg-transparent text-[#8B949E] hover:text-white hover:border-gray-600 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
+                                className="min-h-[44px] sm:min-h-0"
                               >
                                 + adicionar subcategoria
-                              </button>
+                              </Button>
                             ) : (
                               <div />
                             )}
@@ -1362,25 +1356,21 @@ export default function ProjetoDetalhe() {
                               const diffFase = Math.round((fase.horas_contratadas! - reservadoFase) * 100) / 100
                               if (diffFase > 0) {
                                 return (
-                                  <p className="text-xs text-[#8B949E] shrink-0">
+                                  <p className="text-xs text-ink-500 shrink-0 font-ui">
                                     Restam {formatarHoras(diffFase)}h para reservar
                                   </p>
                                 )
                               } else if (diffFase < 0) {
                                 return (
-                                  <div className="rounded-lg px-3 py-1.5 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
+                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
+                                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
                                     <span>{formatarHoras(Math.abs(diffFase))}h além das {formatarHoras(fase.horas_contratadas!)}h previstas</span>
                                   </div>
                                 )
                               } else {
                                 return (
-                                  <div className="rounded-lg px-3 py-1.5 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
+                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
+                                    <Check className="h-3.5 w-3.5 shrink-0 text-ok" />
                                     <span>Totalmente reservado</span>
                                   </div>
                                 )
@@ -1388,7 +1378,7 @@ export default function ProjetoDetalhe() {
                             })()}
                           </div>
                         </div>
-                      </div>
+                      </Surface>
                     )
                   })}
 
@@ -1428,16 +1418,16 @@ export default function ProjetoDetalhe() {
                     }
 
                     return (
-                      <div className="border border-dashed border-gray-800 rounded-2xl p-5 space-y-3">
+                      <div className="border border-dashed border-hair-strong rounded-card p-5 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <span className="text-sm font-semibold text-[#8B949E] block">Sem fase</span>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <span className="text-sm font-semibold text-ink-500 block font-ui">Sem fase</span>
+                            <p className="text-xs text-ink-500 mt-0.5 font-ui">
                               Lançamentos que não pertencem a nenhuma fase. Some quando todos tiverem subcategoria.
                             </p>
                           </div>
-                          <div className="font-mono text-sm font-semibold text-[#8B949E] shrink-0">
-                            <span className="text-white font-bold">{duracaoSemFase.toFixed(2).replace('.', ',')}h</span> / —
+                          <div className="font-mono text-sm font-semibold text-ink-500 shrink-0">
+                            <span className="text-ink-900 font-bold">{duracaoSemFase.toFixed(2).replace('.', ',')}h</span> / —
                           </div>
                         </div>
                         {renderListaSubcategorias(subcategoriasComPercentual)}
@@ -1450,7 +1440,7 @@ export default function ProjetoDetalhe() {
 
               {secoesExpandidas['fases'] && fases.length === 0 && (
                 /* PROJETO SEM FASES */
-                <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 space-y-3">
+                <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
                   {(() => {
                     const subIdsCadastradas = new Set(subcategorias.map(s => s.id))
                     const duracaoSemSub = registros
@@ -1516,16 +1506,17 @@ export default function ProjetoDetalhe() {
                             setNovaSubNome('')
                           }
                         }}
-                        className="flex-1 bg-[#0B0E14] border border-gray-700 rounded-lg px-3 py-1.5 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-[#03A9F4]"
+                        className={`${classeCampo()} !flex-1 !w-auto min-w-0 text-xs py-1.5 px-3`}
                       />
-                      <button
-                        type="button"
+                      <Button
+                        variante="primario"
+                        tamanho="sm"
                         onClick={() => handleConfirmAddSubcategoria(null)}
                         disabled={!novaSubNome.trim() || salvandoSub}
-                        className="bg-[#03A9F4] hover:bg-[#0288D1] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                        className="min-h-[44px] sm:min-h-0"
                       >
                         Adicionar
-                      </button>
+                      </Button>
                       <button
                         type="button"
                         onClick={() => {
@@ -1533,27 +1524,28 @@ export default function ProjetoDetalhe() {
                           setNovaSubNome('')
                         }}
                         disabled={salvandoSub}
-                        className="text-gray-500 hover:text-gray-300 p-1 text-xs transition-colors"
+                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
                         title="Cancelar"
                       >
-                        ✕
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between gap-3 mt-3">
                     {!adicionandoSemFase ? (
-                      <button
-                        type="button"
+                      <Button
+                        variante="secundario"
+                        tamanho="sm"
                         onClick={() => {
                           setAdicionandoSemFase(true)
                           setNovaSubNome('')
                         }}
                         disabled={salvandoSub}
-                        className="border border-gray-700 bg-transparent text-[#8B949E] hover:text-white hover:border-gray-600 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
+                        className="min-h-[44px] sm:min-h-0"
                       >
                         + adicionar subcategoria
-                      </button>
+                      </Button>
                     ) : (
                       <div />
                     )}
@@ -1565,32 +1557,28 @@ export default function ProjetoDetalhe() {
                       const diff = Math.round((projeto.horas_contratadas - somaAlocada) * 100) / 100
                       if (diff > 0) {
                         return (
-                          <p className="text-xs text-[#8B949E] shrink-0">
+                          <p className="text-xs text-ink-500 shrink-0 font-ui">
                             Restam {formatarHoras(diff)}h para reservar
                           </p>
                         )
                       } else if (diff < 0) {
                         return (
-                          <div className="rounded-lg px-3 py-1.5 text-xs border-l-[3px] border-l-[#F44336] bg-[rgba(244,67,54,0.1)] text-[#F44336] flex items-center gap-2 shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
+                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
                             <span>{formatarHoras(Math.abs(diff))}h além das {formatarHoras(projeto.horas_contratadas)}h contratadas</span>
                           </div>
                         )
                       } else {
                         return (
-                          <div className="rounded-lg px-3 py-1.5 text-xs border-l-[3px] border-l-[#4CAF50] bg-[rgba(76,175,80,0.1)] text-[#4CAF50] flex items-center gap-2 shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
+                            <Check className="h-3.5 w-3.5 shrink-0 text-ok" />
                             <span>Totalmente reservado</span>
                           </div>
                         )
                       }
                     })()}
                   </div>
-                </div>
+                </Surface>
               )}
             </div>
 
