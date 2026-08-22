@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
-import { AlertTriangle, ArrowLeft } from 'lucide-react'
-import { Button, Surface } from '../components/ui'
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, X } from 'lucide-react'
+import { Button, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -517,7 +517,7 @@ export default function ProjetoDetalhe() {
   const renderListaSubcategorias = (items: SubcategoriaBreakdownItem[]) => {
     if (!items || items.length === 0) {
       return (
-        <div className="text-xs text-gray-500 italic py-2">
+        <div className="text-xs text-ink-500 italic py-2">
           Nenhuma subcategoria cadastrada.
         </div>
       )
@@ -542,8 +542,8 @@ export default function ProjetoDetalhe() {
     const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
 
     return (
-      <div className="bg-[#1E2530]/50 rounded-xl p-4 border border-gray-800/60 space-y-3">
-        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Subcategorias</span>
+      <div className="bg-surface-1 rounded-xl p-4 border border-hair space-y-3">
+        <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-mono">Subcategorias</span>
         <div className="space-y-2.5">
           {items.map((sub) => {
             const isBaldeSemSub = sub.id === null
@@ -575,48 +575,41 @@ export default function ProjetoDetalhe() {
                     className="w-full flex justify-between items-center text-xs gap-2 text-left focus:outline-none group"
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 text-gray-500 shrink-0 transition-transform duration-200 ${baldeExpandido ? 'rotate-180' : ''}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                      <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${baldeExpandido ? 'rotate-180' : ''}`}
+                      />
+                      <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div className="font-mono text-right shrink-0">
-                        <span className="font-bold text-white">{duracaoFormatada}</span>
+                        <span className="font-bold text-ink-900">{duracaoFormatada}</span>
                       </div>
-                      <span className="font-mono w-10 text-right font-medium text-[#6B7280] shrink-0">
+                      <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
                         {sub.percentual ?? 0}%
                       </span>
                     </div>
                   </button>
 
                   {baldeExpandido && orfaos.length > 0 && (
-                    <div className="mt-2 ml-4 pl-3 border-l border-gray-800 space-y-1">
-                      <p className="text-xs text-gray-500 mb-1">Clique em um lançamento para atribuir uma categoria.</p>
+                    <div className="mt-2 ml-4 pl-3 border-l border-hair space-y-1">
+                      <p className="text-xs text-ink-500 mb-1">Clique em um lançamento para atribuir uma categoria.</p>
                       {orfaos.map((r) => (
                         <button
                           key={r.id}
                           type="button"
                           onClick={() => abrirEditarRegistro(r)}
-                          className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-[#1E2530]/40 transition-colors text-left focus:outline-none"
+                          className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <span className="font-mono text-[#8B949E] shrink-0">{formatarDataCurta(r.data)}</span>
-                            <span className="text-gray-400 font-mono shrink-0">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</span>
+                            <span className="font-mono text-ink-500 shrink-0">{formatarDataCurta(r.data)}</span>
+                            <span className="text-ink-700 font-mono shrink-0">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</span>
                             {r.observacao ? (
-                              <span className="text-gray-300 truncate" title={r.observacao}>{r.observacao}</span>
+                              <span className="text-ink-900 truncate" title={r.observacao}>{r.observacao}</span>
                             ) : (
-                              <span className="text-gray-600 italic">sem observação</span>
+                              <span className="text-ink-300 italic">sem observação</span>
                             )}
                           </div>
-                          <span className="font-mono font-semibold text-white shrink-0">
+                          <span className="font-mono font-semibold text-ink-900 shrink-0">
                             {r.duracao.toFixed(2).replace('.', ',')}h
                           </span>
                         </button>
@@ -645,7 +638,7 @@ export default function ProjetoDetalhe() {
                         handleCancelEditSub()
                       }
                     }}
-                    className="flex-1 bg-[#0B0E14] border border-gray-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
+                    className={`flex-1 ${classeCampo()} text-xs py-1 px-2.5`}
                     autoFocus
                   />
                   <div className="flex items-center gap-1 shrink-0">
@@ -653,21 +646,19 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={() => handleSaveEditSub(sub.id!)}
                       disabled={!nomeSubEditando.trim() || salvandoSub}
-                      className="p-1 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
                       title="Confirmar"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                      <Check className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
                       onClick={handleCancelEditSub}
                       disabled={salvandoSub}
-                      className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
                       title="Cancelar"
                     >
-                      ✕
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -724,10 +715,10 @@ export default function ProjetoDetalhe() {
               <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
                 <div className="flex justify-between items-center text-xs gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-gray-500 bg-transparent' : 'bg-[#03A9F4]'}`} />
-                    <span className="text-gray-300 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
+                    <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                     {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
-                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-[#0B0E14] border border-gray-700 text-[#8B949E] shrink-0 font-medium">
+                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-surface-2 border border-hair-strong text-ink-500 shrink-0 font-medium font-mono">
                         sem reserva
                       </span>
                     )}
@@ -751,38 +742,36 @@ export default function ProjetoDetalhe() {
                               handleCancelEditReserva()
                             }
                           }}
-                          className="w-24 bg-[#0B0E14] border border-gray-700 rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#03A9F4]"
+                          className={`w-24 ${classeCampo()} text-xs py-1 px-2.5 font-mono`}
                         />
                         <button
                           type="button"
                           onClick={() => handleSaveEditReserva(sub.id!, sub.nome)}
                           disabled={salvandoSub}
-                          className="p-1 text-emerald-400 hover:text-emerald-300 disabled:opacity-50 transition-colors"
+                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
                           title="Confirmar"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
+                          <Check className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
                           onClick={handleCancelEditReserva}
                           disabled={salvandoSub}
-                          className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
                           title="Cancelar"
                         >
-                          ✕
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     ) : (
                       <>
                         <div className="font-mono text-right shrink-0">
-                          <span className="font-bold text-white">{duracaoFormatada}</span>
+                          <span className="font-bold text-ink-900">{duracaoFormatada}</span>
                           {temAlocacao && (
-                            <span className="text-xs text-[#8B949E]"> de {alocadoFormatado} reservadas</span>
+                            <span className="text-xs text-ink-500"> de {alocadoFormatado} reservadas</span>
                           )}
                         </div>
-                        <span className="font-mono w-10 text-right font-medium text-[#6B7280] shrink-0">
+                        <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
                           {!temAlocacao ? `${sub.percentual ?? 0}%` : ''}
                         </span>
                         {!isBaldeSemSub && (
@@ -801,18 +790,16 @@ export default function ProjetoDetalhe() {
 
                 {temAlocacao && !isEditingReserva && (
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 bg-[#0B0E14] h-1 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-surface-2 h-1 rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-300"
+                        className={`h-full rounded-full transition-all duration-d3 ease-ez ${excedeu ? 'bg-bad' : 'bg-accent'}`}
                         style={{
-                          width: `${larguraBarra}%`,
-                          backgroundColor: excedeu ? '#F44336' : '#03A9F4'
+                          width: `${larguraBarra}%`
                         }}
                       />
                     </div>
                     <span
-                      className="font-mono text-[10px] w-10 text-right font-medium shrink-0"
-                      style={{ color: excedeu ? '#F44336' : '#6B7280' }}
+                      className={`font-mono text-[10px] w-10 text-right font-medium shrink-0 ${excedeu ? 'text-bad' : 'text-ink-500'}`}
                     >
                       {percentualAlocado}%
                     </span>
@@ -824,7 +811,7 @@ export default function ProjetoDetalhe() {
         </div>
 
         {exibirRodape && (
-          <div className="mt-3 pt-2 border-t border-gray-800/60 text-[10px] text-[#8B949E] text-right font-mono">
+          <div className="mt-3 pt-2 border-t border-hair text-[10px] text-ink-500 text-right font-mono">
             {somaSemAlocacao.toFixed(2).replace('.', ',')}h lançadas fora de reserva
           </div>
         )}
