@@ -11,8 +11,8 @@ import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
-import { Copy, AlertTriangle } from 'lucide-react'
-import { Button } from '../components/ui'
+import { Copy, AlertTriangle, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Button, Surface, classeCampo } from '../components/ui'
 
 // Funções auxiliares de data
 function getInicioSemana(d: Date, inicio: InicioSemana) {
@@ -269,7 +269,7 @@ export default function Timesheet() {
         )}
 
         {/* Navegação Semanal e Filtro por Código */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#161B22] border border-gray-800 rounded-2xl p-4">
+        <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4">
           {/* Filtro por Código */}
           <div className="relative w-full md:w-72">
             <input
@@ -277,16 +277,16 @@ export default function Timesheet() {
               placeholder="Filtrar por código..."
               value={filtroCodigo}
               onChange={(e) => setFiltroCodigo(e.target.value)}
-              className="bg-[#0B0E14] border border-gray-800 rounded-xl pl-4 pr-10 py-2.5 text-sm text-[#FFFFFF] placeholder-[#8B949E] focus:outline-none focus:border-[#03A9F4] w-full"
+              className={`${classeCampo()} !pr-10 min-h-[44px]`}
             />
             {filtroCodigo && (
               <button
                 type="button"
                 onClick={() => setFiltroCodigo('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors text-lg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                 title="Limpar filtro"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -294,27 +294,39 @@ export default function Timesheet() {
           {/* Navegação Semanal */}
           <div className="flex flex-col items-center justify-center gap-1 w-full md:w-auto md:flex-1">
             <div className="flex items-center justify-center gap-4">
-              <button onClick={prevWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              <button
+                type="button"
+                onClick={prevWeek}
+                className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                title="Semana anterior"
+                aria-label="Semana anterior"
+              >
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-base font-bold text-white min-w-[200px] text-center select-none">
+              <span className="text-base font-bold text-ink-900 min-w-[200px] text-center select-none">
                 {formatWeekInterval(currentDate)}
               </span>
-              <button onClick={nextWeek} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              <button
+                type="button"
+                onClick={nextWeek}
+                className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                title="Próxima semana"
+                aria-label="Próxima semana"
+              >
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
             {/* Indicador no Mobile */}
-            <div className="md:hidden text-center text-xs text-[#8B949E]">
+            <div className="md:hidden text-center text-xs text-ink-500">
               Meta: {formatMeta(metaSemanaExibida)}h/sem · {formatMeta(metaDiaria)}h/dia
             </div>
           </div>
 
           {/* Indicador no Desktop */}
-          <div className="hidden md:block w-72 text-right text-xs text-[#8B949E]">
+          <div className="hidden md:block w-72 text-right text-xs text-ink-500">
             Meta: {formatMeta(metaSemanaExibida)}h/sem · {formatMeta(metaDiaria)}h/dia
           </div>
-        </div>
+        </Surface>
 
         {/* Tabela ou Estado Vazio */}
         <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
