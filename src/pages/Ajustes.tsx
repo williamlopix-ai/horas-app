@@ -592,17 +592,17 @@ export default function Ajustes() {
               {/* 2. Início da Semana */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Início da Semana</h3>
-                  <p className="text-xs text-gray-400">Escolha o dia em que o ciclo da semana se inicia para os resumos.</p>
+                  <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Início da Semana</h3>
+                  <p className="text-xs text-ink-500">Escolha o dia em que o ciclo da semana se inicia para os resumos.</p>
                 </div>
                 <div className="flex justify-center sm:justify-start w-full">
-                  <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                  <div className="flex bg-surface-1 p-0.5 sm:p-1 rounded-ctl border border-hair w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => setInicioSemana('sabado')}
-                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'sabado'
-                        ? 'bg-[#03A9F4] text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'sabado'
+                        ? 'bg-accent-bg text-accent-fg'
+                        : 'text-ink-500 hover:text-ink-900'
                         }`}
                     >
                       Sábado
@@ -610,9 +610,9 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setInicioSemana('segunda')}
-                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'segunda'
-                        ? 'bg-[#03A9F4] text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'segunda'
+                        ? 'bg-accent-bg text-accent-fg'
+                        : 'text-ink-500 hover:text-ink-900'
                         }`}
                     >
                       Segunda-feira
@@ -620,9 +620,9 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setInicioSemana('domingo')}
-                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${inicioSemana === 'domingo'
-                        ? 'bg-[#03A9F4] text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'domingo'
+                        ? 'bg-accent-bg text-accent-fg'
+                        : 'text-ink-500 hover:text-ink-900'
                         }`}
                     >
                       Domingo
@@ -828,17 +828,17 @@ export default function Ajustes() {
               {/* 3. Formato de Exibição das Horas */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Formato de Horas</h3>
-                  <p className="text-xs text-gray-400">Selecione como deseja visualizar as horas no aplicativo.</p>
+                  <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Formato de Horas</h3>
+                  <p className="text-xs text-ink-500">Selecione como deseja visualizar as horas no aplicativo.</p>
                 </div>
                 <div className="flex justify-center sm:justify-start w-full">
-                  <div className="inline-flex bg-[#0B0E14] p-1 rounded-xl border border-gray-800 w-full sm:w-auto">
+                  <div className="flex bg-surface-1 p-0.5 sm:p-1 rounded-ctl border border-hair w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => setFormatoHoras('decimal')}
-                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${formatoHoras === 'decimal'
-                        ? 'bg-[#03A9F4] text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'decimal'
+                        ? 'bg-accent-bg text-accent-fg'
+                        : 'text-ink-500 hover:text-ink-900'
                         }`}
                     >
                       Decimal (ex: 1,50h)
@@ -846,9 +846,9 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setFormatoHoras('hhmm')}
-                      className={`flex-1 sm:flex-initial py-2 px-5 text-xs font-semibold rounded-lg transition-all focus:outline-none ${formatoHoras === 'hhmm'
-                        ? 'bg-[#03A9F4] text-white shadow'
-                        : 'text-gray-400 hover:text-white'
+                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'hhmm'
+                        ? 'bg-accent-bg text-accent-fg'
+                        : 'text-ink-500 hover:text-ink-900'
                         }`}
                     >
                       HH:MM (ex: 01:30)
