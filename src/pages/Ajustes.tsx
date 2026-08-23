@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { ChevronDown, AlertTriangle, Trash2, Plus } from 'lucide-react'
+import { ChevronDown, AlertTriangle, Trash2, Plus, Download } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from '../components/Sidebar'
 import { useConfig } from '../contexts/ConfigContext'
@@ -1121,24 +1121,24 @@ export default function Ajustes() {
               </div>
 
               {/* % da Meta Semanal */}
-              <div className="pt-4 border-t border-gray-800/80">
+              <div className="pt-4 border-t border-hair">
                 <button
                   type="button"
                   onClick={() => setOpenBillableSection(openBillableSection === 'metaSemanal' ? null : 'metaSemanal')}
-                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                  className="w-full flex items-center justify-between text-left min-h-[44px] focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta percentual semanal</h3>
-                    <p className="text-xs text-gray-400">Percentual de meta billable semanal a ser atingido.</p>
+                    <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Meta percentual semanal</h3>
+                    <p className="text-xs text-ink-500">Percentual de meta billable semanal a ser atingido.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'metaSemanal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
                     <div className="flex flex-wrap gap-4 items-end">
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Margem (%)
                         </label>
                         <div className="flex items-center gap-2">
@@ -1149,24 +1149,24 @@ export default function Ajustes() {
                             max="100"
                             value={margemMinima}
                             onChange={(e) => setMargemMinima(parseFloat(e.target.value) || 0)}
-                            className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                            className={`${classeCampo()} !w-32 text-center font-mono font-bold text-base min-h-[44px]`}
                           />
-                          <span className="text-white font-bold">%</span>
+                          <span className="text-ink-900 font-bold">%</span>
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
                         <input
                           type="date"
                           value={semanaInicioMargem}
                           onChange={(e) => setSemanaInicioMargem(e.target.value)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                          className={`${classeCampo()} !w-44 font-mono text-sm min-h-[44px]`}
                         />
                         {semanaInicioMargem && (
-                          <span className="text-xs text-[#8B949E]">
+                          <span className="text-xs text-ink-500">
                             {formatarIntervaloSemana(semanaInicioMargem)}
                           </span>
                         )}
@@ -1175,30 +1175,32 @@ export default function Ajustes() {
 
                     {/* Linha 2: Salvar */}
                     <div>
-                      <button
+                      <Button
+                        variante="primario"
+                        tamanho="md"
                         type="button"
                         onClick={handleSalvarMargem}
                         disabled={savingMargem}
-                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                        className="min-h-[44px]"
                       >
                         {savingMargem ? 'Salvando...' : 'Salvar'}
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Histórico */}
                     {historicoMargem.length > 0 && (
                       <div className="space-y-2 mt-2">
-                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Histórico
                         </p>
-                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                        <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasMargem ? historicoMargem : historicoMargem.slice(0, 3)).map((h, idx) => (
                             <div key={h.id} className="flex items-start gap-2">
-                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
-                                <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
-                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.semana_inicio)}</span>
-                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                                <span className="text-sm text-ink-900 font-semibold">{h.margem_minima}%</span>
+                                <span className="text-xs text-ink-500"> — a partir de {formatarData(h.semana_inicio)}</span>
+                                <div className="text-xs text-ink-500">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
                               </div>
                             </div>
                           ))}
@@ -1207,7 +1209,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasMargem(v => !v)}
-                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
                           >
                             {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
                           </button>
@@ -1219,24 +1221,24 @@ export default function Ajustes() {
               </div>
 
               {/* % da Meta Mensal */}
-              <div className="pt-4 border-t border-gray-800/80">
+              <div className="pt-4 border-t border-hair">
                 <button
                   type="button"
                   onClick={() => setOpenBillableSection(openBillableSection === 'metaMensal' ? null : 'metaMensal')}
-                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                  className="w-full flex items-center justify-between text-left min-h-[44px] focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta percentual mensal</h3>
-                    <p className="text-xs text-gray-400">Percentual de meta billable mensal a ser atingido.</p>
+                    <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Meta percentual mensal</h3>
+                    <p className="text-xs text-ink-500">Percentual de meta billable mensal a ser atingido.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'metaMensal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
                     <div className="flex flex-wrap gap-4 items-end">
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Margem (%)
                         </label>
                         <div className="flex items-center gap-2">
@@ -1247,51 +1249,53 @@ export default function Ajustes() {
                             max="100"
                             value={margemMinimaMensal}
                             onChange={(e) => setMargemMinimaMensal(parseFloat(e.target.value) || 0)}
-                            className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                            className={`${classeCampo()} !w-32 text-center font-mono font-bold text-base min-h-[44px]`}
                           />
-                          <span className="text-white font-bold">%</span>
+                          <span className="text-ink-900 font-bold">%</span>
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
                         <input
                           type="month"
                           value={mesInicioMargemMensal}
                           onChange={(e) => setMesInicioMargemMensal(e.target.value)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                          className={`${classeCampo()} !w-44 font-mono text-sm min-h-[44px]`}
                         />
                       </div>
                     </div>
 
                     {/* Linha 2: Salvar */}
                     <div>
-                      <button
+                      <Button
+                        variante="primario"
+                        tamanho="md"
                         type="button"
                         onClick={handleSalvarMargemMensal}
                         disabled={savingMargemMensal}
-                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                        className="min-h-[44px]"
                       >
                         {savingMargemMensal ? 'Salvando...' : 'Salvar'}
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Histórico */}
                     {historicoMargemMensal.length > 0 && (
                       <div className="space-y-2 mt-2">
-                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Histórico
                         </p>
-                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                        <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasMargemMensal ? historicoMargemMensal : historicoMargemMensal.slice(0, 3)).map((h, idx) => (
                             <div key={h.id} className="flex items-start gap-2">
-                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
-                                <span className="text-sm text-white font-semibold">{h.margem_minima}%</span>
-                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
-                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                                <span className="text-sm text-ink-900 font-semibold">{h.margem_minima}%</span>
+                                <span className="text-xs text-ink-500"> — a partir de {formatarData(h.mes_inicio)}</span>
+                                <div className="text-xs text-ink-500">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
                               </div>
                             </div>
                           ))}
@@ -1300,7 +1304,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasMargemMensal(v => !v)}
-                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
                           >
                             {verTodasMargemMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMargemMensal.length})`}
                           </button>
@@ -1312,22 +1316,22 @@ export default function Ajustes() {
               </div>
 
               {/* Saldo Acumulado - Data de Início */}
-              <div className="pt-4 border-t border-gray-800/80">
+              <div className="pt-4 border-t border-hair">
                 <button
                   type="button"
                   onClick={() => setOpenBillableSection(openBillableSection === 'saldoAcumulado' ? null : 'saldoAcumulado')}
-                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                  className="w-full flex items-center justify-between text-left min-h-[44px] focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
-                    <p className="text-xs text-gray-400">O saldo acumulado será calculado a partir da semana selecionada.</p>
+                    <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
+                    <p className="text-xs text-ink-500">O saldo acumulado será calculado a partir da semana selecionada.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'saldoAcumulado' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'saldoAcumulado' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'saldoAcumulado' && (
                   <div className="space-y-3 mt-4">
                     <div className="flex flex-col gap-1.5 max-w-[200px]">
-                      <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         A partir de
                       </label>
                       <input
@@ -1335,10 +1339,10 @@ export default function Ajustes() {
                         type="date"
                         value={saldoInicioSemana}
                         onChange={(e) => setSaldoInicioSemana(e.target.value)}
-                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-full"
+                        className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                       />
                       {saldoInicioSemana && (
-                        <span className="text-xs text-[#8B949E]">
+                        <span className="text-xs text-ink-500">
                           {formatarIntervaloSemana(saldoInicioSemana)}
                         </span>
                       )}
@@ -1349,37 +1353,26 @@ export default function Ajustes() {
             </div>
 
             {/* Backup de Dados */}
-            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm mt-6">
+            <div className="bg-surface-1 border border-hair rounded-card p-6 md:p-8 space-y-6 shadow-e1 mt-6">
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Backup de Dados</h3>
-                <p className="text-xs text-gray-400">
+                <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Backup de Dados</h3>
+                <p className="text-xs text-ink-500">
                   Exporte todos os seus registros, projetos e configurações para um arquivo Excel (.xlsx).
                 </p>
               </div>
               <div>
-                <button
+                <Button
+                  variante="primario"
+                  tamanho="md"
                   type="button"
                   onClick={handleExport}
                   disabled={exporting}
-                  className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
+                  carregando={exporting}
+                  iconeEsquerda={<Download className="h-4 w-4" />}
+                  className="w-full sm:w-auto min-h-[44px]"
                 >
-                  {exporting ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Exportando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      <span>Exportar para Excel</span>
-                    </>
-                  )}
-                </button>
+                  {exporting ? 'Exportando...' : 'Exportar para Excel'}
+                </Button>
               </div>
             </div>
           </>
