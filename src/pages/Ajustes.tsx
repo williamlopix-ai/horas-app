@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from '../components/Sidebar'
 import { useConfig } from '../contexts/ConfigContext'
@@ -19,6 +19,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
+import { Surface } from '../components/ui'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
 import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
@@ -546,28 +547,29 @@ export default function Ajustes() {
 
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
 
       <Sidebar />
 
       {/* Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-3xl mx-auto space-y-6 lg:ml-[240px] w-full">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Configurações</h1>
-          <p className="text-sm text-gray-400">Personalize o comportamento e as metas do seu aplicativo.</p>
+          <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Configurações</h1>
+          <p className="text-sm text-ink-500">Personalize o comportamento e as metas do seu aplicativo.</p>
         </div>
 
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{error}</span>
+          <div
+            style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <span className="font-ui">{error}</span>
           </div>
         )}
 
         {loading ? (
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
+          <Surface elevacao={1} comBorda padding="nenhum" className="p-6 md:p-8 space-y-8">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="space-y-3">
                 <div className="space-y-1">
@@ -577,13 +579,13 @@ export default function Ajustes() {
                 <Skeleton className="w-48 h-10 rounded-xl" />
               </div>
             ))}
-            <div className="pt-4 border-t border-gray-800/80">
+            <div className="pt-4 border-t border-hair">
               <Skeleton className="w-48 h-12 rounded-xl" />
             </div>
-          </div>
+          </Surface>
         ) : (
           <>
-            <form onSubmit={handleSave} className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm">
+            <form onSubmit={handleSave} className="bg-surface-1 border border-hair rounded-card p-6 md:p-8 space-y-8 shadow-e1">
 
 
 
