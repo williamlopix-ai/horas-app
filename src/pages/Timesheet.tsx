@@ -189,10 +189,10 @@ export default function Timesheet() {
   }
 
   const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
-    let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-gray-800/30 transition-colors "
+    let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-hair tabular-nums transition-colors duration-d1 ease-ez "
 
     if (duracao === 0) {
-      className += "text-gray-500"
+      className += "text-ink-500"
       return (
         <td className={className}>
           {formatDuracao(duracao)}
@@ -200,13 +200,13 @@ export default function Timesheet() {
       )
     }
 
-    className += "text-white"
+    className += "text-ink-900"
 
     return (
       <td className={className}>
         <Link
           to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
-          className="hover:text-[#03A9F4] transition-colors block w-full"
+          className="hover:text-accent transition-colors duration-d1 ease-ez block w-full"
         >
           {formatDuracao(duracao)}
         </Link>
@@ -215,13 +215,13 @@ export default function Timesheet() {
   }
 
   const getFooterClass = (duracao: number) => {
-    let className = "py-4 px-4 text-center font-mono text-sm font-bold border-x border-gray-800/30 "
+    let className = "py-4 px-4 text-center font-mono text-sm font-bold border-x border-hair tabular-nums "
     if (duracao === 0) {
-      className += "text-gray-500"
+      className += "text-ink-500"
     } else if (duracao > 0 && duracao < metaDiaria) {
-      className += "text-red-400"
+      className += "text-bad"
     } else {
-      className += "text-emerald-400"
+      className += "text-ok"
     }
     return className
   }
@@ -379,37 +379,38 @@ export default function Timesheet() {
             <div className="overflow-auto max-h-[62vh]">
               <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                 <thead>
-                  <tr className="border-b-2 border-[#03A9F4]/30 bg-[#0B0E14]">
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[100px]">Código</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-full">Nome</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Sáb</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center w-20">Dom</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Seg</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Ter</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qua</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Qui</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-white uppercase tracking-wider text-center w-20">Sex</th>
-                    <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 text-xs font-bold text-[#03A9F4] uppercase tracking-wider text-right w-24">Total</th>
+                  <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[100px]">Código</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Sáb</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Dom</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Seg</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Ter</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qua</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qui</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Sex</th>
+                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-accent uppercase tracking-wider text-right w-24">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/50">
+                <tbody className="divide-y divide-hair">
                   {tableData.map((row) => (
-                    <tr 
-                      key={row.projetoId} 
+                    <tr
+                      key={row.projetoId}
                       className={`transition-colors group ${
                         selectedRow === row.projetoId
-                          ? 'bg-[#03A9F4]/20'
-                          : 'hover:bg-[#1E2530]/40'
+                          ? ''
+                          : 'hover:bg-surface-2'
                       }`}
+                      style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                     >
-                      <td 
-                        className="py-3 px-4 font-mono text-sm text-gray-300 cursor-pointer select-none"
+                      <td
+                        className="py-3 px-4 font-mono text-sm text-ink-900 tabular-nums cursor-pointer select-none"
                         onClick={() => toggleRow(row.projetoId)}
                       >
                         {row.codigo}
                       </td>
-                      <td 
-                        className="py-3 px-4 font-semibold text-white truncate max-w-[200px] cursor-pointer select-none" 
+                      <td
+                        className="py-3 px-4 font-semibold text-ink-900 truncate max-w-[200px] cursor-pointer select-none"
                         title={row.nome}
                         onClick={() => toggleRow(row.projetoId)}
                       >
@@ -422,25 +423,25 @@ export default function Timesheet() {
                       {renderCell(row.qua, getFormatDate(3), row.projetoId)}
                       {renderCell(row.qui, getFormatDate(4), row.projetoId)}
                       {renderCell(row.sex, getFormatDate(5), row.projetoId)}
-                      <td className="py-3 px-4 text-right font-mono font-bold text-white">
+                      <td className="py-3 px-4 text-right font-mono font-bold text-ink-900 tabular-nums">
                         {formatDuracao(row.total)}
                       </td>
                     </tr>
                   ))}
 
                   {/* Linha de Totais */}
-                  <tr className="bg-gray-900/40 border-t-2 border-gray-800">
-                    <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <tr className="bg-surface-0 border-t-2 border-hair-strong">
+                    <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
                       Total da Semana
                     </td>
-                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-gray-300 border-x border-gray-800/30">{formatDuracao(totals.sab)}</td>
-                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-gray-300 border-x border-gray-800/30">{formatDuracao(totals.dom)}</td>
+                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.sab)}</td>
+                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.dom)}</td>
                     <td className={getFooterClass(totals.seg)}>{formatDuracao(totals.seg)}</td>
                     <td className={getFooterClass(totals.ter)}>{formatDuracao(totals.ter)}</td>
                     <td className={getFooterClass(totals.qua)}>{formatDuracao(totals.qua)}</td>
                     <td className={getFooterClass(totals.qui)}>{formatDuracao(totals.qui)}</td>
                     <td className={getFooterClass(totals.sex)}>{formatDuracao(totals.sex)}</td>
-                    <td className="py-4 px-4 text-right font-mono text-base font-black text-[#03A9F4]">
+                    <td className="py-4 px-4 text-right font-mono text-base font-black text-accent tabular-nums">
                       {formatDuracao(totals.total)}
                     </td>
                   </tr>
