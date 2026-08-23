@@ -1,21 +1,27 @@
 # HANDOFF — Projeto HORAS
 
 > Documento de estado da sessão. Ler no início de cada nova sessão.
-> Última atualização: 22/08/2026 — **segunda sessão do dia, 14 etapas**
+> Última atualização: 22/08/2026 — **terceira sessão do dia, 6 levas**
+>
+> ⚠️ **O executor mudou: acabou a cota do Antigravity. A partir da próxima
+> sessão o trabalho é feito no CLAUDE CODE.** Ver a seção
+> "MUDANÇA DE EXECUTOR — Trabalhando no Claude Code".
 
 ---
 
 ## ⚠️ Pendências imediatas (ler primeiro)
 
-### 1. Limpeza no Supabase — adiada por decisão, ainda aberta
+### 1. Limpeza no Supabase — 🔔 GATILHO VENCIDO em 22/08
+
 As 5 tabelas temporárias da migração de sábado continuam no banco. O gatilho
 combinado era **duas semanas fechadas** com a semana em sábado e os números do
 Resumo e do Billable batendo com o timesheet corporativo. A migração foi em
-11/08; a segunda semana fechou em 22/08.
+11/08; **a segunda semana fechou em 22/08 — o prazo chegou.**
 
-**Falta a conferência Resumo × Billable × timesheet corporativo.** As tabelas
-não atrapalham nada, só ocupam espaço — mas enquanto existirem, existe o risco
-de alguém consultá-las achando que são dados vivos.
+**Falta a conferência Resumo × Billable × timesheet corporativo.** É a única
+coisa que separa essas tabelas do `DROP`. As tabelas não atrapalham nada, só
+ocupam espaço — mas enquanto existirem, existe o risco de alguém consultá-las
+achando que são dados vivos.
 
 ```sql
 DROP TABLE _bkp_semana_registros;
@@ -121,16 +127,57 @@ das primitivas.
 
 | Fase | Sobe junto |
 |---|---|
-| **4.3 Resumo (atual)** | `pages/Resumo.tsx`, `components/BreakdownSubcategorias.tsx`, `services/horas_base.ts` |
-| 4.4 Timesheet | `pages/Timesheet.tsx` |
+| **4.4 Timesheet (próxima)** | `pages/Timesheet.tsx` |
 | 4.5 Billable | `pages/Billable.tsx`, `services/billable.ts` |
 | 4.6 Ajustes | `pages/Ajustes.tsx`, `services/configuracoes.ts`, `services/horarios.ts` |
+
+> ⚠️ **No Claude Code este protocolo perde a razão de ser.** O Claude Code lê
+> os arquivos direto do disco, sempre atualizados. O pacote para o projeto do
+> chat só faz sentido se o usuário voltar a usar o chat como arquiteto separado.
+> Enquanto o executor for o Claude Code, **pular o ritual de sincronização**.
 
 **Sempre conferir a branch antes de rodar:** `git branch --show-current`.
 
 ---
 
-## O que foi feito nesta sessão (22/08, segunda sessão)
+## O que foi feito na TERCEIRA sessão de 22/08
+
+**6 levas, 6 commits, nenhuma migração de banco.**
+
+| Etapa | Executor | Entrega |
+|---|---|---|
+| 4.3b | Gemini 3.7 Flash | Aba **Semanal** do Resumo migrada |
+| 4.3c | Gemini 3.7 Flash | Aba **Diário** do Resumo migrada |
+| 4.3e | Claude Sonnet 4.6 | `BreakdownSubcategorias.tsx` migrado |
+| 4.3d-1 | Claude Sonnet 4.6 | Aba Projetos — **ativos** |
+| 4.3d-2 | Claude Sonnet 4.6 | Aba Projetos — **inativos e arquivados** |
+| 4.3d-3 | Claude Sonnet 4.6 | **Seção Rotina + modal** de exclusão permanente |
+
+Commits:
+```
+redesign 4.3b Resumo aba Semanal migrada para tokens
+redesign 4.3c Resumo aba Diario migrada para tokens
+redesign 4.3e BreakdownSubcategorias migrado para tokens
+redesign 4.3d-1 Resumo aba Projetos ativos migrada para tokens
+redesign 4.3d-2 Resumo blocos inativos e arquivados migrados
+redesign 4.3d-3 Resumo secao rotina e modal migrados
+```
+
+## ✅ `src/pages/Resumo.tsx` ESTÁ MIGRADO POR INTEIRO
+
+Seis levas, seis commits. `Select-String -Pattern "gray-"` sai **vazio**.
+Junto com `ProjetoDetalhe.tsx`, são as duas maiores telas do app — ambas
+fechadas.
+
+**RETOMAR EM: Fase 4.4 — `src/pages/Timesheet.tsx`.**
+
+> ⚠️ **A partir da próxima sessão o executor muda: acabou a cota de TODOS os
+> agentes do Antigravity.** O trabalho passa para o **Claude Code**. Ler a
+> seção "Trabalhando no Claude Code" antes de começar.
+
+---
+
+## O que foi feito na segunda sessão de 22/08
 
 **14 etapas, 5 commits, nenhuma migração de banco.**
 
@@ -145,8 +192,6 @@ das primitivas.
 
 **`src/pages/ProjetoDetalhe.tsx` está MIGRADO POR INTEIRO** — 2053 linhas, cinco
 levas, cinco commits, zero regressão.
-
-**RETOMAR EM: leva 4.3b — aba Semanal do Resumo.**
 
 ---
 
@@ -286,7 +331,7 @@ que não muda quando já se está em `/registros`.
 
 ### Fase 4 — migração das telas
 
-Ordem: Registros → ProjetoDetalhe → **Resumo** → Timesheet → Billable → Ajustes.
+Ordem: Registros ✅ → ProjetoDetalhe ✅ → Resumo ✅ → **Timesheet** → Billable → Ajustes.
 
 **Método: quebrar a tela em LEVAS pequenas, uma por commit.** Cada leva tem
 escopo declarado por delimitador de comentário, e o prompt proíbe tocar no
@@ -332,31 +377,119 @@ Regras do padrão:
 - **a moldura pertence ao conteúdo**, e só existe quando ele existe
 - o `ml-6` alinha a descrição sob o título (16px do ícone + 8px do gap)
 
-#### `src/pages/Resumo.tsx` — EM ANDAMENTO (1089 linhas)
+#### `src/pages/Resumo.tsx` — ✅ MIGRADO POR INTEIRO (1092 linhas)
 
-> A cópia antiga tinha 1197 linhas. Alguma refatoração encolheu o arquivo
-> (provavelmente a extração do `BreakdownSubcategorias`).
+Seis levas: 4.3a (casca), 4.3b (Semanal), 4.3c (Diário), 4.3e
+(`BreakdownSubcategorias`), 4.3d-1 (Projetos ativos), 4.3d-2 (inativos e
+arquivados), 4.3d-3 (Rotina e modal).
 
-- **4.3a — casca: CONCLUÍDA.** Container, header, bloco de erro, abas, toggle
-  de visualização, estado vazio.
+> O arquivo oscilou: 1089 → 1087 → 1076 → 1075 → 1077 → 1092. Encolhe quando
+> SVGs inline e pills viram `<Chip>`/`<ChevronDown>`; cresce quando `<div>`
+> vira `<Surface>` multilinha e `<button>` vira `<Button>`. Ambos são normais.
 
-**FALTAM, nesta ordem:**
+**Validação final:** `Select-String -Path src\pages\Resumo.tsx -Pattern "gray-"`
+sai vazio.
 
-| Leva | Escopo | Linhas (numeração pré-4.3a) |
-|---|---|---|
-| **4.3b** | Aba **Semanal** — cards, lista, tabela | 463–598 |
-| **4.3c** | Aba **Diário** — cards, lista, tabela | 599–729 |
-| **4.3e** | `BreakdownSubcategorias.tsx` (fazer ANTES da aba Projetos) | arquivo próprio |
-| **4.3d-1** | Aba Projetos — ativos | 730–835 |
-| **4.3d-2** | Aba Projetos — inativos, arquivados, rotina + modal | 836–1089 |
+### Decisões travadas nas levas do Resumo — replicar nas próximas telas
 
-> **As abas Semanal e Diário são praticamente espelhadas** — mesma anatomia de
-> cards, lista e tabela, mudando só o que agrupam. A 4.3c herda as decisões da
-> 4.3b e tende a ser rápida.
+- **Card = `<Surface elevacao={1} comBorda padding="nenhum">`** com padding pelo
+  className, mais `hover:border-hair-strong duration-d1 ease-ez`.
+  `Surface` estende `HTMLAttributes<HTMLDivElement>` e espalha `...rest`, então
+  **`onClick` passa direto**.
+- **Container de tabela/lista = `<Surface elevacao={1} comBorda padding="nenhum"
+  className="overflow-hidden">`.**
+- **Status vira `<Chip tom={ok|erro}>`.** SVGs inline e pills com borda foram
+  eliminados. O `title=` do badge antigo se perde e não faz falta: o Chip traz
+  texto visível, e tooltip não existe em touch.
+- **Chevron = `<ChevronDown>` do lucide**, com
+  `transition-transform duration-d2 ease-ez` e `rotate-180` condicional
+  (`-rotate-90` quando o estado fechado aponta para o lado).
+- **Botões com fundo/borda usam a primitiva `Button`** com
+  `className="min-h-[44px]"` para o alvo de toque. Botões sem fundo (links
+  disfarçados, tipo "Ver detalhes") são tokenizados à mão.
+- **Regra de cor:** cor por CLASSE vira classe-token; cor condicional em STYLE
+  INLINE **permanece style inline** com `var(--ok)`/`var(--bad)`.
+- **`tabular-nums` junto de `font-mono`** — mas ver a ressalva na Fase 5.
+- **Trilho de barra = `bg-surface-0`** (poço escuro), preenchimento por style
+  inline, transição `duration-d2 ease-ez`.
+- **`transition-all` NÃO vira `transition-colors`** em elemento que tenha
+  `hover:opacity-*` — `transition-colors` não anima opacidade e o hover vira
+  pulo seco. Cards de inativos e arquivados dependem disso.
+- **`animate-in fade-in duration-300`** é inerte — `tailwindcss-animate` nunca
+  esteve instalado. Remover onde aparecer.
 
-> O Resumo guarda a visualização escolhida em `localStorage`
-> (`horas_view_resumo`, L43). Comportamento estranho no teste pode ser estado
-> antigo guardado.
+### 🎯 Padrão do modal destrutivo — replicar em todos
+
+Estabelecido em `ProjetoDetalhe.tsx` (4.2e) e replicado no Resumo (4.3d-3):
+
+```jsx
+<div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <Surface elevacao={2} comBorda comSombra={false} padding="nenhum"
+           className="w-[95%] sm:w-full max-w-md p-6 shadow-e3 flex flex-col">
+    ...
+    <div className="flex flex-col sm:flex-row gap-3">
+      <Button variante="secundario" tamanho="md" type="button"
+              className="w-full sm:flex-1 sm:w-auto min-h-[44px]">Cancelar</Button>
+      <Button variante="destrutivo" tamanho="md" type="button"
+              className="w-full sm:flex-1 sm:w-auto min-h-[44px]">...</Button>
+    </div>
+  </Surface>
+</div>
+```
+
+- **`--scrim` é o token do fundo escurecido.** Nunca `bg-black/60`.
+- **`comSombra={false}` + `shadow-e3` no className.** `Surface` aplica
+  `shadow-e1` por padrão e as duas classes conflitariam. **Esquecer o
+  `shadow-e3` deixa o modal sem sombra nenhuma** — aconteceu na 4.3d-3 e o
+  agente pegou.
+- **Cancelar é `secundario`, não `fantasma`.**
+- O modal do Resumo **não tem** botão X de fechar, nem fecha por clique fora ou
+  Esc. O do ProjetoDetalhe tem. **Não uniformizar isso numa leva de migração** —
+  é comportamento, não visual. Fila da Fase 5.
+- **Ícone de alerta é decisão semântica, não de simetria.** O modal do Resumo
+  apaga lançamentos e mantém `<AlertTriangle className="h-5 w-5 text-bad
+  shrink-0" />`. O do ProjetoDetalhe não perde nada e não tem ícone. Os dois
+  estão certos.
+
+### ⚠️ Mapeamento de cinzas: `gray-400` → `ink-700`, não `ink-500`
+
+Valores reais no tema escuro:
+
+| Tailwind antigo | Valor | Token equivalente | Valor |
+|---|---|---|---|
+| `gray-300` | `#D1D5DB` | `ink-900` | `#E9ECF1` |
+| `gray-400` | `#9CA3AF` | **`ink-700`** | `#A7B0BC` |
+| `gray-500` | `#6B7280` | `ink-500` | `#76808E` |
+| `gray-600` | `#4B5563` | `ink-300` | `#525C6A` |
+
+**`--fg-500` é um cinza FRIO, puxado para o azul.** Em texto pequeno não
+aparece; em `text-lg font-bold` sobre fundo quase preto, o olho lê como azul.
+Aconteceu com o `<h2>` "Encerrados / Excluídos" na 4.3d-2 — corrigido à mão
+para `ink-700`.
+
+Regra: **título ou texto grande que era `gray-400` vai para `ink-700`.**
+Controles secundários pequenos podem ficar em `ink-500` — ali a consistência
+entre eles pesa mais que a fidelidade ao valor antigo.
+
+### Armadilha: rótulo e valor colapsando na mesma cor
+
+Na 4.3b, `text-gray-500` (rótulo) e `text-gray-400` (valor) viraram os dois
+`text-ink-500` — o valor perdeu contraste contra o próprio rótulo. Mesma
+família do problema de opacidade da 4.2d. **Ao migrar qualquer par
+rótulo/valor, conferir se os dois não caíram no mesmo token.**
+
+### Outros aditivos aprovados nas levas do Resumo
+
+- **`capitalize` removido da aba Diário.** `formatarTituloData` já devolve
+  `"Sex, 22 de ago (2026)"` formatado, e o CSS exibia "Sex, 22 **De Ago**
+  (2026)".
+- **Coluna de percentual sempre renderizada** no `BreakdownSubcategorias`. Era
+  condicional e a borda direita ficava serrilhada.
+- **Alvos de toque para 44px** — "Ver detalhes" de `py-2` para `py-3.5`, botões
+  de ação com `min-h-[44px]`.
+- **`comSombra={false}` no `BreakdownSubcategorias`** — ele vive dentro de um
+  wrapper com `overflow-hidden`, que corta sombra na borda.
+- **`▼`/`▶` viraram `<ChevronDown>`** no toggle de arquivados.
 
 **Depois do Resumo:** Timesheet → Billable → Ajustes.
 
@@ -376,6 +509,28 @@ Regras do padrão:
   convenção de "conteúdo aninhado clareia". Preserva o design original;
   reavaliar de conjunto
 - **Altura dos botões de aba** em telas ainda não migradas
+- **`tabular-nums` em frase corrida atrapalha.** Em "42,00h lançadas de 46,00h
+  contratadas", o `tabular-nums` força todo caractere à mesma largura e a letra
+  "h" ocupa espaço de dígito, criando um respiro estranho. Ele existe para
+  alinhar números em COLUNA — em prosa, só atrapalha. Revisar caso a caso:
+  manter em tabelas e listas, remover de frases
+- **Unificar as duas convenções de cor condicional.** `Resumo.tsx` e
+  `ProjetoDetalhe.tsx` usam `style={{ color: 'var(--ok)' }}`;
+  `BreakdownSubcategorias.tsx` usa className (`text-ok`/`text-bad`). A
+  divergência nasceu na 4.3e, quando `--ink-500` se revelou inexistente e o
+  className era a saída limpa. Manteve-se porque mexer em leva commitada e
+  testada é churn. **Dívida consciente, não esquecimento**
+- **`Stat` é primitiva órfã.** Nenhuma tela usa. A 4.3b tentou e recuou: o
+  `text-2xl` é fixo, sem override, e estoura a coluna num grid de 3 métricas no
+  mobile. Ou vira o padrão dos cards de métrica em todas as telas, ou sai do
+  barrel
+- **Comportamento dos modais destrutivos.** O do `ProjetoDetalhe` fecha por
+  clique fora e tem botão X; o do `Resumo` não tem nem um nem outro. Nenhum
+  fecha com Esc. Uniformizar — mas como tarefa de COMPORTAMENTO, fora de leva
+  de migração
+- **Cabeçalho e hover de linha iguais nas tabelas.** Ambos `bg-surface-2`, então
+  passar o mouse deixa a linha igual ao cabeçalho. Com poucas linhas ninguém
+  nota
 
 ---
 
@@ -651,6 +806,46 @@ SELECT * FROM horas_base_semanal;
 7. **NÃO** instalar pacote
 8. Lembrar de `verbatimModuleSyntax` e `noUnusedLocals`
 
+### ⚠️ Correção manual no VS Code: DESLIGAR o Regex antes de buscar
+
+Em 22/08 uma correção de uma classe destruiu o entorno de um `<p>` e quebrou o
+build (`TS1005: ')' expected`). **Causa: o botão `.*` (Regex) estava ligado no
+Find/Replace.** Com regex ativo, os `( )`, `{ }` e `.` da string de busca
+deixam de ser texto literal e viram sintaxe de expressão regular.
+
+**Protocolo de correção manual, sempre nesta forma:**
+1. Conferir que o botão `.*` está DESLIGADO
+2. `Ctrl G` e ir para a linha exata, em vez de buscar
+3. Selecionar as linhas inteiras e substituir o bloco todo
+4. `npx tsc -b` imediatamente
+
+Buscar por string é aceitável só para LOCALIZAR (conferindo a contagem de
+resultados esperada), nunca para substituir automaticamente.
+
+**Não rodar `git checkout --` num arquivo com leva aplicada e não commitada.**
+Descartaria o trabalho inteiro do agente junto com o erro. Corrigir
+cirurgicamente é sempre possível: o erro do TypeScript aponta a linha.
+
+### ⚠️ Regra: conferir o bloco de imports
+
+Na leva 4.3b o Antigravity **apagou a linha de import do `lucide-react`** — a
+mesma que o diff mostrava como contexto preservado, sem `+` nem `-`. O
+`npx tsc -b` pegou (`TS2304: Cannot find name 'AlertTriangle'` e mais quatro),
+mas só porque eram nomes usados em JSX. Se a linha comida fosse de um `type`,
+ou de algo usado apenas em ramo condicional, poderia ter passado.
+
+**Toda vez que um diff tocar no bloco de imports, conferir antes de commitar:**
+
+```powershell
+Select-String -Path src\pages\Resumo.tsx -Pattern "^import"
+```
+
+Conferir a CONTAGEM e o conteúdo. `Resumo.tsx` tem **17 linhas de import**,
+terminando em `import { Chip, Surface } from '../components/ui'`.
+
+Também vale incluir no prompt, como restrição explícita: *"NAO reescrever,
+NAO reordenar, NAO remover nenhuma linha de import"*. Funcionou na 4.3c.
+
 ### Regras do orientador ao validar
 - **Nunca aprovar em cima do resumo do agente** — exigir o diff completo
 - **Diff proposto ≠ diff aprovado.** A revisão pegou bugs reais em 5 das 9
@@ -662,28 +857,118 @@ SELECT * FROM horas_base_semanal;
   íntegra. Validar pela lógica, aplicar, e rodar `npx tsc -b` na hora. JSX
   desbalanceado não passa no TypeScript
 
-### Seleção de modelo no Antigravity
+### 🔴 MUDANÇA DE EXECUTOR — Trabalhando no Claude Code
 
-Disponíveis: Gemini **3.7 / 3.6 / 3.5 Flash** (Low/Medium/High) e Gemini
-**3.1 Pro** (Low/High). **Preferir sempre o Flash mais novo.**
+**Em 22/08 a cota de TODOS os agentes do Antigravity acabou** (Gemini e Claude,
+os dois pools). O trabalho passa para o **Claude Code**.
+
+**O que muda de verdade no fluxo:**
+
+Antes eram três partes — o usuário, o Claude do chat (arquiteto) e o agente do
+Antigravity (executor). No Claude Code, **arquiteto e executor viram a mesma
+pessoa**. Isso tem um ganho e uma perda:
+
+- **Ganho:** acaba o copia-e-cola de prompts, acaba o problema de arquivo em
+  cache desatualizado, e o Passo 1 (ler o disco) é automático.
+- **Perda:** some a conferência cruzada. Hoje o agente pegou DOIS erros de
+  prompt que o Claude do chat tinha escrito (a variável `--ink-500`
+  inexistente e o `shadow-e3` esquecido). Sem uma segunda cabeça, esses erros
+  passariam.
+
+**Como compensar a perda: o protocolo de três passos continua valendo, com o
+Claude Code fazendo os três.** Ele deve ler, relatar, PARAR, mostrar o diff,
+PARAR de novo. O usuário continua sendo o portão em cada parada. E o Claude
+Code deve ser explicitamente instruído a **desconfiar das próprias instruções**
+— se algo no plano não bater com o disco, parar e perguntar em vez de executar.
+
+**Regras que NÃO mudam:**
+- O usuário roda `npx tsc -b`, `npm run dev` e todo comando git. **O agente
+  nunca roda terminal.** No Claude Code isso significa NEGAR os pedidos de
+  permissão de Bash.
+- Diff completo antes de gravar, sem elisões.
+- Uma leva por vez, escopo delimitado por conteúdo.
+- Commit etapa por etapa.
+
+**Coisas práticas do Claude Code (o usuário não domina a ferramenta):**
+- **Plan mode** (`Shift+Tab` até aparecer "plan mode") faz o Claude ler e
+  planejar SEM editar nada. É o Passo 1 + Passo 2 do protocolo, embutido na
+  ferramenta. Usar sempre no começo de uma leva.
+- **`/clear`** limpa o contexto — equivale à "conversa nova" do Antigravity.
+  Usar ao trocar de arquivo ou virar de contexto arquitetural.
+- Quando ele pedir permissão para rodar comando: **"No, and tell Claude what to
+  do differently"**, e escrever que o usuário roda os comandos.
+- Quando pedir para editar arquivo: pode permitir, DEPOIS de ver o diff.
+- Escrever em português normal — ele entende.
+
+**O usuário não é desenvolvedor.** Instruções de teste sempre em linguagem
+simples: onde clicar, o que olhar na tela, o que é sinal de problema. Nada de
+"hover", "chevron", "viewport", "breakpoint". Isso já era regra do projeto e
+foi cobrado explicitamente em 22/08.
+
+### Seleção de modelo no Antigravity (referência, se a cota voltar)
+
+Gemini renova ~26/08; pool Claude/GPT ~29/08.
 
 | Complexidade | Modelo |
 |---|---|
-| Baixa — CSS pontual, renomeação, correção TS single-file | 3.7 Flash (Low) |
+| Baixa — CSS pontual, renomeação, TS single-file | 3.7 Flash (Low) |
 | Média — multi-arquivo, ou single-file com lógica de estado | 3.7 Flash (Medium) |
 | Alta — telas novas, UI complexa, remover conceito inteiro | 3.7 Flash (High) |
 | Arquitetura leve | 3.1 Pro (Low) |
-| Arquitetura — banco, migrations, triggers, tabelas novas | 3.1 Pro (High) |
+| Arquitetura — banco, migrations, triggers | 3.1 Pro (High) |
+| Alternativa sem cota Gemini | Claude Sonnet 4.6 (Thinking) |
 
-**Conversa nova** sempre que criar arquivo novo, trocar de branch ou virar de
-contexto arquitetural. Contexto velho é a principal fonte de o agente "lembrar"
-de coisas que não foram pedidas.
+**Não usar GPT-OSS 120B.** O protocolo depende de aderência fina a instrução.
+
+**Sonnet 4.6 (Thinking) na prática, medido em 4 levas:** mais lento por
+resposta, **menos idas e voltas no total**. Parou nos dois passos sem ser
+lembrado, justificou escolhas citando o próprio relatório, não inventou nada
+fora do escopo, e achou dois erros de prompt. Consome cota rápido.
+
+### 🔥 Incidente de 22/08 — "Agent execution terminated due to error"
+
+Quatro falhas seguidas no Antigravity, todas em **~1 segundo**, antes de ler
+qualquer arquivo, com Error ID sequencial (`...f6f-5`, `...f6f-9`, `...f6f-12`).
+Meia hora perdida testando hipóteses erradas: tamanho do prompt, modelo,
+instabilidade do serviço.
+
+**Causa real: cota esgotada, mais uma conta secundária suspensa.**
+A mensagem de erro é genérica e não menciona cota em nenhum momento.
+
+**Reconhecer o sintoma:** falha em ~1s, antes de qualquer leitura, com Error ID
+sequencial = **problema de conta ou cota**, nunca de código ou de prompt.
+Checar `Antigravity Settings → Models & Usage` ANTES de investigar outra coisa.
+
+**Criar conta secundária para contornar cota levou a suspensão.** Não repetir.
+
+**Trocar de conta no meio de uma execução é risco** — o agente pode gravar
+parcialmente ou perder contexto. Se acontecer, rodar `git status` e
+`git diff --stat` antes de continuar.
 
 ---
 
 ## Correções pendentes (auditoria de 22/08)
 
 - ✅ ~~`Billable.tsx:519` — cor semântica contra literal `8.5`~~ **RESOLVIDO**
+- 🔴 **Semana em curso pintada de vermelho no Resumo (aba Semanal).**
+  `atingiuMeta = totalHoras >= baseVigente`. Toda semana ainda aberta cai no
+  ramo negativo: chip "Pendente", barra vermelha, diferença negativa. É a
+  MESMA classe do bug do Billable — alarme falso permanente, que treina o
+  usuário a ignorar alarme. A aba Diário tem o mesmo problema para o dia de
+  hoje, ainda em andamento.
+  **É correção de semântica, não de redesign: vai na `main` e chega na
+  `redesign` via merge.** Proposta: semana/dia corrente → tom neutro;
+  períodos fechados mantêm ok/erro. Não foi feita junto da migração de
+  propósito — misturaria correção com redesign e cairia na branch errada.
+- ⚪ **`Stat` é uma primitiva órfã.** Nenhuma tela migrada usa. O
+  `ProjetoDetalhe.tsx` renderiza métricas com markup manual, e a 4.3b tentou
+  usar `Stat` e recuou: o `text-2xl` é fixo, sem override, e estoura a coluna
+  num grid de 3 métricas no mobile. **Decidir na Fase 5:** ou vira o padrão
+  dos cards de métrica em todas as telas, ou sai do barrel. Decidir com uma
+  tela só na mão seria chute.
+- ⚪ Na tabela do Resumo, cabeçalho e hover de linha são ambos `bg-surface-2`
+  — passar o mouse deixa a linha igual ao cabeçalho. Com poucas linhas na
+  tela ninguém nota. Fila da Fase 5.
 - 🟡 `src/pages/Ajustes.tsx:58-63` — `getSemanaAtual()` calcula segunda-feira
   com lógica própria, ignorando `config.inicio_semana` e `utils/semana.ts`
 - 🟡 Fallbacks `'08:00'`/`'18:00'` em `Registros.tsx:280`, `ModalRegistro.tsx` e
@@ -727,7 +1012,12 @@ de coisas que não foram pedidas.
   o SQL revisado antes de rodar
 - Notificações Push via Supabase Edge Functions (VAPID, sem Firebase)
 - Renomear "subcategoria" para "categoria" **só na interface** — cerca de 200
-  ocorrências em 5 arquivos. Tabela, coluna, tipo e variáveis permanecem
+  ocorrências em 5 arquivos. Tabela, coluna, tipo e variáveis permanecem.
+  **Alvo já mapeado:** `BreakdownSubcategorias.tsx` exibe "Subcategorias",
+  "sem alocação" e "Xh sem alocação". Pelo glossário deveriam ser
+  "Categorias" e o verbo "reservar". Deliberadamente NÃO corrigido na leva
+  4.3e: mudar 3 strings ali deixaria o bloco falando "categoria" dentro de uma
+  aba Projetos que fala "subcategoria". Entra junto na renomeação geral
 
 ---
 
