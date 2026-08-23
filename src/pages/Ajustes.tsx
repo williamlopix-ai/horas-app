@@ -649,7 +649,7 @@ export default function Ajustes() {
                       </label>
                       <input
                         type="number"
-                        step="0.5"
+                        step="any"
                         min="0"
                         value={horasBaseSemanal}
                         onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
@@ -1052,7 +1052,7 @@ export default function Ajustes() {
                         </label>
                         <input
                           type="number"
-                          step="0.5"
+                          step="any"
                           min="0"
                           value={horasBaseMensal}
                           onChange={(e) => setHorasBaseMensal(parseFloat(e.target.value) || 0)}
@@ -1142,7 +1142,7 @@ export default function Ajustes() {
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            step="0.1"
+                            step="any"
                             min="0"
                             max="100"
                             value={margemMinima}
@@ -1240,7 +1240,7 @@ export default function Ajustes() {
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            step="1"
+                            step="any"
                             min="1"
                             max="100"
                             value={margemMinimaMensal}
