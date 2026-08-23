@@ -1023,10 +1023,10 @@ export default function Ajustes() {
             </form>
 
             {/* Configurações Billable */}
-            <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 md:p-8 space-y-8 shadow-sm mt-6">
+            <div className="bg-surface-1 border border-hair rounded-card p-6 md:p-8 space-y-8 shadow-e1 mt-6">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Configurações Billable</h2>
-                <p className="text-sm text-gray-400">Gerencie suas metas e margens de horas billable.</p>
+                <h2 className="text-lg font-bold font-display text-ink-900 tracking-tight">Configurações Billable</h2>
+                <p className="text-sm text-ink-500">Gerencie suas metas e margens de horas billable.</p>
               </div>
 
               {/* Horas Base Mensal */}
@@ -1034,20 +1034,20 @@ export default function Ajustes() {
                 <button
                   type="button"
                   onClick={() => setOpenBillableSection(openBillableSection === 'horasBaseMensal' ? null : 'horasBaseMensal')}
-                  className="w-full flex items-center justify-between text-left focus:outline-none"
+                  className="w-full flex items-center justify-between text-left min-h-[44px] focus:outline-none"
                 >
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horas Base Mensal</h3>
-                    <p className="text-xs text-gray-400">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
+                    <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Horas Base Mensal</h3>
+                    <p className="text-xs text-ink-500">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-[#8B949E] shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseMensal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'horasBaseMensal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
                     <div className="flex flex-wrap gap-4 items-end">
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Horas
                         </label>
                         <input
@@ -1056,49 +1056,51 @@ export default function Ajustes() {
                           min="0"
                           value={horasBaseMensal}
                           onChange={(e) => setHorasBaseMensal(parseFloat(e.target.value) || 0)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                          className={`${classeCampo()} !w-32 text-center font-mono font-bold text-base min-h-[44px]`}
                         />
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
                         <input
                           type="month"
                           value={mesInicioHorasBase}
                           onChange={(e) => setMesInicioHorasBase(e.target.value)}
-                          className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                          className={`${classeCampo()} !w-44 font-mono text-sm min-h-[44px]`}
                         />
                       </div>
                     </div>
 
                     {/* Linha 2: Salvar */}
                     <div>
-                      <button
+                      <Button
+                        variante="primario"
+                        tamanho="md"
                         type="button"
                         onClick={handleSalvarHorasBaseMensal}
                         disabled={savingHorasBaseMensal}
-                        className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                        className="min-h-[44px]"
                       >
                         {savingHorasBaseMensal ? 'Salvando...' : 'Salvar'}
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Histórico */}
                     {historicoHorasBaseMensal.length > 0 && (
                       <div className="space-y-2 mt-2">
-                        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Histórico
                         </p>
-                        <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-2">
+                        <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasHorasBaseMensal ? historicoHorasBaseMensal : historicoHorasBaseMensal.slice(0, 3)).map((h, idx) => (
                             <div key={h.id} className="flex items-start gap-2">
-                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
+                              <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
-                                <span className="text-sm text-white font-semibold">{h.horas_base}h</span>
-                                <span className="text-xs text-[#8B949E]"> — a partir de {formatarData(h.mes_inicio)}</span>
-                                <div className="text-xs text-gray-600">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
+                                <span className="text-sm text-ink-900 font-semibold tabular-nums">{h.horas_base}h</span>
+                                <span className="text-xs text-ink-500 tabular-nums"> — a partir de {formatarData(h.mes_inicio)}</span>
+                                <div className="text-xs text-ink-500 tabular-nums">{new Date(h.criado_em).toLocaleDateString('pt-BR')}</div>
                               </div>
                             </div>
                           ))}
@@ -1107,7 +1109,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasHorasBaseMensal(v => !v)}
-                            className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
                           >
                             {verTodasHorasBaseMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseMensal.length})`}
                           </button>
