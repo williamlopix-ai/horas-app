@@ -926,63 +926,72 @@ export default function Billable() {
               {loadingMensal ? (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="animate-pulse bg-[#161B22] rounded-xl p-6 h-32 border border-gray-800/50 flex flex-col justify-between">
-                      <div className="h-3 bg-gray-800 rounded w-2/3" />
-                      <div className="h-8 bg-gray-800 rounded w-1/2 mt-4" />
-                      <div className="h-3 bg-gray-800 rounded w-1/3 mt-2" />
-                    </div>
+                    <Surface key={i} elevacao={1} comBorda padding="nenhum" className="animate-pulse p-6 h-32 flex flex-col justify-between">
+                      <div className="h-3 bg-surface-3 rounded w-2/3" />
+                      <div className="h-8 bg-surface-3 rounded w-1/2 mt-4" />
+                      <div className="h-3 bg-surface-3 rounded w-1/3 mt-2" />
+                    </Surface>
                   ))}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentMonth.getTime()}>
                   {/* Card 1 — META DO MÊS */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '0ms' }}
                   >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
                       META DO MÊS
                     </span>
-                    <span className="text-3xl font-bold text-white mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2 flex items-baseline gap-2">
                       <AnimatedNumber
                         value={metaRealMensal}
                         formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
                       />
-                      <span className="text-xs text-[#8B949E] font-normal">
+                      <span className="text-xs text-ink-500 font-normal">
                         ({margemMinimaMensalVal}%)
                       </span>
                     </span>
-                    <span className="text-xs text-[#8B949E]">
+                    <span className="text-xs text-ink-500">
                       {horasBaseMensalVal.toFixed(2).replace('.', ',')}h base
                     </span>
-                  </div>
+                  </Surface>
 
                   {/* Card 2 — HORAS FEITAS */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '60ms' }}
                   >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
                       HORAS FEITAS
                     </span>
-                    <span className="text-3xl font-bold text-white mt-2">
+                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2">
                       <AnimatedNumber
                         value={totalBillableMensal}
                         formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
                       />
                     </span>
                     <div className="h-5" />
-                  </div>
+                  </Surface>
 
                   {/* Card 3 — % DA META */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '120ms' }}
                   >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
                       % DA META
                     </span>
-                    <span className="text-3xl font-bold text-[#03A9F4] mt-2">
+                    <span className="text-3xl font-bold text-accent tabular-nums mt-2">
                       {metaRealMensal > 0 ? (
                         <AnimatedNumber
                           value={pctMetaMensal}
@@ -993,17 +1002,20 @@ export default function Billable() {
                       )}
                     </span>
                     <div className="h-5" />
-                  </div>
+                  </Surface>
 
                   {/* Card 4 — SALDO DO MÊS */}
-                  <div
-                    className="bg-[#161B22] border border-[#1E2A38] rounded-xl p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
                     style={{ animationDelay: '180ms' }}
                   >
-                    <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
                       SALDO DO MÊS
                     </span>
-                    <span className={`text-3xl font-bold mt-2 ${saldoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                    <span className={`text-3xl font-bold tabular-nums mt-2 ${saldoMensal >= 0 ? 'text-ok' : 'text-bad'}`}>
                       <AnimatedNumber
                         value={saldoMensal}
                         formatter={(v) => `${v > 0 ? '+' : ''}${v.toFixed(2).replace('.', ',')}h`}
@@ -1011,40 +1023,36 @@ export default function Billable() {
                     </span>
                     <div className="mt-2">
                       {saldoMensal >= 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#4CAF50]/10 text-[#4CAF50]">
-                          ▲ Crédito
-                        </span>
+                        <Chip tom="ok">▲ Crédito</Chip>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F44336]/10 text-[#F44336]">
-                          ▼ Débito
-                        </span>
+                        <Chip tom="erro">▼ Débito</Chip>
                       )}
                     </div>
-                  </div>
+                  </Surface>
                 </div>
               )}
 
               {/* Saldo Acumulado — linha discreta */}
               <div className="flex items-center gap-2 px-1">
-                <span className="text-xs text-[#8B949E]">Saldo acumulado:</span>
+                <span className="text-xs text-ink-500">Saldo acumulado:</span>
                 {saldoInicioSemana ? (
-                  <span className={`text-xs font-semibold ${saldoAcumuladoMensal >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                  <span className={`text-xs font-semibold tabular-nums ${saldoAcumuladoMensal >= 0 ? 'text-ok' : 'text-bad'}`}>
                     {saldoAcumuladoMensal > 0 ? '+' : ''}{saldoAcumuladoMensal.toFixed(2).replace('.', ',')}h
                   </span>
                 ) : (
-                  <span className="text-xs text-[#8B949E]">Configure em Ajustes</span>
+                  <span className="text-xs text-ink-500">Configure em Ajustes</span>
                 )}
               </div>
 
               {/* Barra de progresso mensal */}
-              <div className="w-full bg-[#161B22] border border-[#1E2A38] rounded-xl p-4">
-                
+              <Surface elevacao={1} comBorda padding="nenhum" className="w-full p-4">
+
                 {/* Cabeçalho */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs uppercase tracking-widest text-[#8B949E]">
+                  <span className="text-xs uppercase tracking-widest text-ink-500">
                     PROGRESSO DA META
                   </span>
-                  <span className="text-xs text-[#8B949E]">
+                  <span className="text-xs text-ink-500">
                     Meta: {metaRealMensal.toFixed(2).replace('.', ',')}h ({margemMinimaMensalVal}% de {horasBaseMensalVal.toFixed(2).replace('.', ',')}h)
                   </span>
                 </div>
@@ -1055,19 +1063,19 @@ export default function Billable() {
                     style={{
                       left: `${Math.min(pctMetaMensal, 100)}%`,
                       transform: 'translateX(-50%)',
-                      color: pctMetaMensal < 100 ? '#FF9800' : '#4CAF50'
+                      color: pctMetaMensal < 100 ? 'var(--warn)' : 'var(--ok)'
                     }}
                   >
                     {pctMetaMensal}%
                   </div>
 
                   {/* Barra */}
-                  <div className="relative w-full h-3 bg-[#0B0E14] rounded-full overflow-visible">
+                  <div className="relative w-full h-3 bg-surface-0 rounded-full overflow-visible">
                     <div
                       className="absolute left-0 top-0 h-3 rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.min(pctMetaMensal, 100)}%`,
-                        backgroundColor: pctMetaMensal < 100 ? '#FF9800' : '#4CAF50'
+                        backgroundColor: pctMetaMensal < 100 ? 'var(--warn)' : 'var(--ok)'
                       }}
                     />
                   </div>
@@ -1076,16 +1084,16 @@ export default function Billable() {
                 {/* Texto de status */}
                 <div className="mt-3">
                   {pctMetaMensal < 100 ? (
-                    <span className="text-xs text-[#FF9800]">
+                    <span className="text-xs text-warn">
                       ⚠ Faltam {(metaRealMensal - totalBillableMensal).toFixed(2).replace('.', ',')}h para atingir a meta
                     </span>
                   ) : (
-                    <span className="text-xs text-[#4CAF50]">
+                    <span className="text-xs text-ok">
                       ✓ Meta atingida — +{(totalBillableMensal - metaRealMensal).toFixed(2).replace('.', ',')}h excedido
                     </span>
                   )}
                 </div>
-              </div>
+              </Surface>
 
               {/* Navegador de mês */}
               <div className="flex items-center justify-center gap-4 py-2">
