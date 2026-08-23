@@ -21,7 +21,7 @@ import {
 import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, FileChartColumn } from 'lucide-react'
 import { Surface, Chip } from '../components/ui'
 
 const LABELS_DIA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -477,16 +477,16 @@ export default function Billable() {
   const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
     if (duracao === 0) {
       return (
-        <td key={dateStr} className="py-3 px-4 text-sm text-right text-[#8B949E] font-mono border-x border-gray-800/30">
+        <td key={dateStr} className="py-3 px-4 text-sm text-right text-ink-500 font-mono tabular-nums border-x border-hair transition-colors duration-d1 ease-ez">
           —
         </td>
       )
     }
     return (
-      <td key={dateStr} className="py-3 px-4 text-sm text-right text-white font-mono border-x border-gray-800/30 font-semibold">
+      <td key={dateStr} className="py-3 px-4 text-sm text-right text-ink-900 font-mono tabular-nums border-x border-hair font-semibold transition-colors duration-d1 ease-ez">
         <Link
           to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
-          className="hover:text-[#03A9F4] transition-colors"
+          className="hover:text-accent transition-colors duration-d1 ease-ez"
         >
           {duracao.toFixed(2).replace('.', ',')}
         </Link>
@@ -515,8 +515,8 @@ export default function Billable() {
   }
 
   const getFooterClass = (duracao: number) => {
-    let className = "py-4 px-4 text-right font-mono text-sm font-bold border-x border-gray-800/30 "
-    className += duracao === 0 ? "text-[#8B949E]" : "text-white"
+    let className = "py-4 px-4 text-right font-mono text-sm font-bold border-x border-hair tabular-nums "
+    className += duracao === 0 ? "text-ink-500" : "text-ink-900"
     return className
   }
 
@@ -791,33 +791,35 @@ export default function Billable() {
               {/* Navegador de semana */}
               <div className="flex items-center justify-center gap-4 py-2">
                 <button
+                  type="button"
                   onClick={prevWeek}
-                  className="p-1.5 hover:bg-[#161B22] rounded-lg text-gray-400 hover:text-white transition-colors focus:outline-none"
+                  className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                  title="Semana anterior"
+                  aria-label="Semana anterior"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
                 <div className="overflow-hidden h-6 flex items-center justify-center min-w-[260px]">
                   <span
                     key={animKey}
-                    className={`text-base font-bold text-white select-none ${animationClass}`}
+                    className={`text-base font-bold text-ink-900 select-none ${animationClass}`}
                   >
                     {formatWeekInterval(currentDate)}
                   </span>
                 </div>
                 <button
+                  type="button"
                   onClick={nextWeek}
-                  className="p-1.5 hover:bg-[#161B22] rounded-lg text-gray-400 hover:text-white transition-colors focus:outline-none"
+                  className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                  title="Próxima semana"
+                  aria-label="Próxima semana"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Seção B: Grade de projetos */}
-              <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+              <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                 {loading ? (
                   <div className="flex flex-col">
                     {[1, 2, 3].map((i) => (
@@ -825,71 +827,70 @@ export default function Billable() {
                     ))}
                   </div>
                 ) : billableProjetos.length === 0 ? (
-                  <div className="p-12 text-center max-w-lg mx-auto space-y-4">
-                    <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                  <div className="p-6 text-center max-w-lg mx-auto space-y-4">
+                    <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
+                      <FileChartColumn className="h-8 w-8" />
                     </div>
-                    <h3 className="text-lg font-bold text-white">Nenhum projeto billable ativo</h3>
-                    <p className="text-sm text-gray-400">
+                    <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto billable ativo</h3>
+                    <p className="text-sm text-ink-500 leading-relaxed font-ui">
                       Configure projetos com WO e marque como Billable.
                     </p>
-                    <Link
-                      to="/projetos"
-                      className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
-                    >
-                      Gerenciar Projetos
-                    </Link>
+                    <div className="pt-2">
+                      <Link
+                        to="/projetos"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                      >
+                        Gerenciar Projetos
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   <div className="overflow-auto max-h-[55vh] custom-scrollbar">
                     <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                       <thead>
-                        <tr className="border-b-2 border-[#03A9F4]/30 bg-[#0B0E14] text-xs uppercase text-[#8B949E] tracking-wider">
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold min-w-[100px]">WO</th>
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold w-full">Nome</th>
+                        <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[100px]">WO</th>
+                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
                           {days.map((d) => (
-                            <th key={d.toISOString()} className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-20">
+                            <th key={d.toISOString()} className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-right w-20">
                               {LABELS_DIA[d.getDay()]}
                             </th>
                           ))}
-                          <th className="sticky top-0 z-20 bg-[#0B0E14] py-4 px-4 font-bold text-right w-24">Total</th>
+                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-accent uppercase tracking-wider text-right w-24">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-800/50">
+                      <tbody className="divide-y divide-hair">
                         {tableData.map((row, index) => {
-                          const rowBg = index % 2 === 0 ? 'bg-[#161B22]' : 'bg-[#0F1419]'
+                          const rowBg = index % 2 === 0 ? 'bg-surface-1' : 'bg-surface-0'
                           return (
-                            <tr 
-                              key={row.projetoId} 
+                            <tr
+                              key={row.projetoId}
                               className={`transition-colors group ${
                                 selectedRow === row.projetoId
-                                  ? 'bg-[#03A9F4]/20'
-                                  : `${rowBg} hover:bg-[#1A2332]`
+                                  ? ''
+                                  : `${rowBg} hover:bg-surface-2`
                               }`}
+                              style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                             >
-                              <td 
-                                className="py-3 px-4 font-mono text-sm text-[#8B949E] cursor-pointer select-none"
+                              <td
+                                className="py-3 px-4 font-mono text-sm text-ink-500 tabular-nums cursor-pointer select-none"
                                 onClick={() => toggleRow(row.projetoId)}
                               >
                                 {row.codigo}
                               </td>
-                              <td 
-                                className="py-3 px-4 text-white font-medium text-sm truncate max-w-[200px] cursor-pointer select-none" 
+                              <td
+                                className="py-3 px-4 text-ink-900 font-medium text-sm truncate max-w-[200px] cursor-pointer select-none"
                                 title={row.nome}
                                 onClick={() => toggleRow(row.projetoId)}
                               >
                                 {row.nome}
-                                <span className="bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] font-bold rounded-full px-2 py-0.5 ml-2 tracking-wider">
-                                  BILLABLE
-                                </span>
+                                <Chip tom="acento" className="ml-2">BILLABLE</Chip>
                               </td>
                               {row.diasValores.map((dv) =>
                                 renderCell(dv.duracao, dv.dataStr, row.projetoId)
                               )}
-                              <td className={`py-3 px-4 text-right font-mono text-sm font-semibold ${
-                                row.total === 0 ? 'text-[#8B949E]' : 'text-white'
+                              <td className={`py-3 px-4 text-right font-mono text-sm font-semibold tabular-nums ${
+                                row.total === 0 ? 'text-ink-500' : 'text-ink-900'
                               }`}>
                                 {row.total === 0 ? '—' : row.total.toFixed(2).replace('.', ',')}
                               </td>
@@ -898,8 +899,8 @@ export default function Billable() {
                         })}
 
                         {/* Linha de Totais */}
-                        <tr className="bg-[#1E2A38] border-t-2 border-gray-800 font-semibold">
-                          <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        <tr className="bg-surface-2 border-t-2 border-hair-strong font-semibold">
+                          <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
                             Total da Semana
                           </td>
                           {totals.dias.map((tot, idx) => (
@@ -907,8 +908,8 @@ export default function Billable() {
                               {tot === 0 ? '—' : tot.toFixed(2).replace('.', ',')}
                             </td>
                           ))}
-                          <td className={`py-4 px-4 text-right font-mono text-base font-black ${
-                            totals.total >= metaReal ? 'text-[#4CAF50]' : 'text-[#F44336]'
+                          <td className={`py-4 px-4 text-right font-mono text-base font-black tabular-nums ${
+                            totals.total >= metaReal ? 'text-ok' : 'text-bad'
                           }`}>
                             {totals.total === 0 ? '—' : totals.total.toFixed(2).replace('.', ',')}
                           </td>
@@ -917,7 +918,7 @@ export default function Billable() {
                     </table>
                   </div>
                 )}
-              </div>
+              </Surface>
             </div>
           ) : (
             <div className="space-y-6 animate-fade-in">
