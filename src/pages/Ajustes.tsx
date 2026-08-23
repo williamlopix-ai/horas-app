@@ -19,7 +19,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
-import { Surface } from '../components/ui'
+import { Surface, classeCampo, Button, Chip } from '../components/ui'
 import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
 import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
@@ -632,10 +632,10 @@ export default function Ajustes() {
               </div>
 
               {/* Meta Semanal */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+              <div className="space-y-4 pt-4 border-t border-hair">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Meta Semanal</h3>
-                  <p className="text-xs text-gray-400">
+                  <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Meta Semanal</h3>
+                  <p className="text-xs text-ink-500">
                     Total de horas que você se compromete a lançar por semana. Vale a partir da semana escolhida, sem alterar semanas anteriores.
                   </p>
                 </div>
@@ -644,7 +644,7 @@ export default function Ajustes() {
                   {/* Linha 1: Valores e Data */}
                   <div className="flex flex-wrap gap-4 items-end">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Horas
                       </label>
                       <input
@@ -653,28 +653,28 @@ export default function Ajustes() {
                         min="0"
                         value={horasBaseSemanal}
                         onChange={(e) => setHorasBaseSemanal(parseFloat(e.target.value) || 0)}
-                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-center font-mono font-bold text-white text-base focus:outline-none focus:border-[#03A9F4] w-32"
+                        className={`${classeCampo()} !w-32 text-center font-mono font-bold text-base min-h-[44px]`}
                       />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         A partir de
                       </label>
                       <input
                         type="date"
                         value={semanaInicioHorasBase}
                         onChange={(e) => setSemanaInicioHorasBase(e.target.value)}
-                        className="bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors w-44"
+                        className={`${classeCampo()} !w-44 font-mono text-sm min-h-[44px]`}
                       />
                     </div>
                   </div>
 
                   {/* Bloco de Confirmação de Vigência */}
                   {semanaInicioHorasBase && (
-                    <div className="bg-[#0B0E14] border border-gray-800/80 rounded-xl p-3 text-xs text-[#8B949E] space-y-1">
+                    <div className="bg-surface-0 border border-hair rounded-xl p-3 text-xs text-ink-500 space-y-1">
                       <p>
-                        Nova meta: <span className="text-white font-bold">{horasBaseSemanal.toString().replace('.', ',')}h</span>
+                        Nova meta: <span className="text-ink-900 font-bold">{horasBaseSemanal.toString().replace('.', ',')}h</span>
                       </p>
                       <p>
                         Vale a partir da {formatarIntervaloSemana(semanaInicioHorasBase, 'semana de ')}
@@ -686,12 +686,12 @@ export default function Ajustes() {
                           <>
                             {dados.entradaAnterior && (
                               <p>
-                                A semana anterior ({dados.datasSemanaAnteriorStr}) continua com <span className="text-white font-bold">{dados.entradaAnterior.horas_base.toString().replace('.', ',')}h</span>
+                                A semana anterior ({dados.datasSemanaAnteriorStr}) continua com <span className="text-ink-900 font-bold">{dados.entradaAnterior.horas_base.toString().replace('.', ',')}h</span>
                               </p>
                             )}
                             {dados.faixaPosterior && (
-                              <div className="mt-3 pt-3 border-t border-gray-800/80 space-y-3">
-                                <p className="text-white font-medium text-xs">
+                              <div className="mt-3 pt-3 border-t border-hair space-y-3">
+                                <p className="text-ink-900 font-medium text-xs">
                                   Já existe meta cadastrada depois desta data. O que fazer?
                                 </p>
                                 <div className="space-y-2">
@@ -702,11 +702,12 @@ export default function Ajustes() {
                                       value="manter"
                                       checked={modoMetaPosterior === 'manter'}
                                       onChange={() => setModoMetaPosterior('manter')}
-                                      className="mt-0.5 accent-[#03A9F4]"
+                                      className="mt-0.5"
+                                      style={{ accentColor: 'var(--accent)' }}
                                     />
                                     <div>
-                                      <p className="text-white text-xs font-semibold">Manter as metas seguintes</p>
-                                      <p className="text-xs text-[#8B949E]">
+                                      <p className="text-ink-900 text-xs font-semibold">Manter as metas seguintes</p>
+                                      <p className="text-xs text-ink-500">
                                         {horasBaseSemanal.toString().replace('.', ',')}h vale de {formatarDataCurta(dados.semanaEscolhida)} a {formatarDataCurta(dados.diaAnteriorFaixaPosteriorStr)}, e a partir de {formatarDataCurta(dados.faixaPosterior.semana_inicio)} volta a valer {dados.faixaPosterior.vencedora.horas_base.toString().replace('.', ',')}h
                                       </p>
                                     </div>
@@ -719,11 +720,12 @@ export default function Ajustes() {
                                       value="substituir"
                                       checked={modoMetaPosterior === 'substituir'}
                                       onChange={() => setModoMetaPosterior('substituir')}
-                                      className="mt-0.5 accent-[#03A9F4]"
+                                      className="mt-0.5"
+                                      style={{ accentColor: 'var(--accent)' }}
                                     />
                                     <div>
-                                      <p className="text-white text-xs font-semibold">Substituir as metas seguintes</p>
-                                      <p className="text-xs text-[#8B949E]">
+                                      <p className="text-ink-900 text-xs font-semibold">Substituir as metas seguintes</p>
+                                      <p className="text-xs text-ink-500">
                                         {horasBaseSemanal.toString().replace('.', ',')}h vale de {formatarDataCurta(dados.semanaEscolhida)} em diante. {dados.qtdFaixasPosteriores === 1 ? '1 meta posterior será removida.' : `${dados.qtdFaixasPosteriores} metas posteriores serão removidas.`}
                                       </p>
                                     </div>
@@ -739,23 +741,25 @@ export default function Ajustes() {
 
                   {/* Linha: Salvar */}
                   <div>
-                    <button
+                    <Button
+                      variante="primario"
+                      tamanho="md"
                       type="button"
                       onClick={handleSalvarHorasBaseSemanal}
                       disabled={savingHorasBaseSemanal}
-                      className="py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50"
+                      className="min-h-[44px]"
                     >
                       {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Histórico */}
                   {faixasHorasBaseSemanal.length > 0 && (
                     <div className="space-y-2 mt-2">
-                      <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wide">
+                      <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Histórico
                       </p>
-                      <div className="border-l-2 border-dashed border-gray-800 ml-1 pl-3 space-y-3">
+                      <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-3">
                         {(verTodasHorasBaseSemanal ? faixasHorasBaseSemanal : faixasHorasBaseSemanal.slice(0, 3)).map((faixa, idx) => {
                           const isVigente = idx === 0
                           const temSubstituidas = faixa.substituidas.length > 0
@@ -764,20 +768,18 @@ export default function Ajustes() {
                           return (
                             <div key={faixa.semana_inicio} className="space-y-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`w-2 h-2 rounded-full shrink-0 ${isVigente ? 'bg-[#4CAF50]' : 'bg-[#8B949E]'}`} />
-                                <span className="text-sm text-white font-semibold">
+                                <span className={`w-2 h-2 rounded-full shrink-0 ${isVigente ? 'bg-ok' : 'bg-ink-500'}`} />
+                                <span className="text-sm text-ink-900 font-semibold tabular-nums">
                                   {faixa.vencedora.horas_base.toString().replace('.', ',')}h
                                 </span>
-                                <span className="text-xs text-[#8B949E]">
+                                <span className="text-xs text-ink-500 tabular-nums">
                                   {isVigente
                                     ? `de ${formatarDataCurta(faixa.semana_inicio)} até hoje`
                                     : `de ${formatarDataCurta(faixa.semana_inicio)} a ${formatarDataCurta(faixa.fim)}`
                                   }
                                 </span>
                                 {isVigente && (
-                                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">
-                                    vigente
-                                  </span>
+                                  <Chip tom="ok">vigente</Chip>
                                 )}
                               </div>
 
@@ -786,7 +788,7 @@ export default function Ajustes() {
                                   <button
                                     type="button"
                                     onClick={() => toggleSubstituidas(faixa.semana_inicio)}
-                                    className="text-xs text-gray-500 hover:text-gray-400 transition-colors focus:outline-none flex items-center gap-1"
+                                    className="text-xs text-ink-500 hover:text-ink-700 transition-colors duration-d1 ease-ez focus:outline-none flex items-center gap-1"
                                   >
                                     <span>{aberta ? '▲' : '▾'}</span>
                                     <span>
@@ -795,9 +797,9 @@ export default function Ajustes() {
                                   </button>
 
                                   {aberta && (
-                                    <div className="mt-1.5 space-y-1 border-l border-gray-800/80 pl-2.5">
+                                    <div className="mt-1.5 space-y-1 border-l border-hair pl-2.5">
                                       {faixa.substituidas.map(sub => (
-                                        <div key={sub.id} className="text-xs text-gray-600 flex items-center gap-2">
+                                        <div key={sub.id} className="text-xs text-ink-500 tabular-nums flex items-center gap-2">
                                           <span className="font-medium">{sub.horas_base.toString().replace('.', ',')}h</span>
                                           <span>•</span>
                                           <span>{new Date(sub.criado_em).toLocaleDateString('pt-BR')}</span>
@@ -815,7 +817,7 @@ export default function Ajustes() {
                         <button
                           type="button"
                           onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
-                          className="text-xs text-[#8B949E] hover:text-white transition-colors focus:outline-none"
+                          className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
                         >
                           {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${faixasHorasBaseSemanal.length})`}
                         </button>
