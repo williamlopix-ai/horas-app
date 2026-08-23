@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { ChevronDown, AlertTriangle } from 'lucide-react'
+import { ChevronDown, AlertTriangle, Trash2, Plus } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Sidebar from '../components/Sidebar'
 import { useConfig } from '../contexts/ConfigContext'
@@ -862,12 +862,12 @@ export default function Ajustes() {
               {/* 4. Horário Padrão do Dia */}
               <div className="space-y-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Horário Padrão do Dia</h3>
-                  <p className="text-xs text-gray-400">Defina os horários de início e fim da sua jornada de trabalho.</p>
+                  <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Horário Padrão do Dia</h3>
+                  <p className="text-xs text-ink-500">Defina os horários de início e fim da sua jornada de trabalho.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex flex-col gap-1.5 flex-1 w-full">
-                    <label htmlFor="inicioDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <label htmlFor="inicioDia" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                       Início
                     </label>
                     <input
@@ -875,11 +875,11 @@ export default function Ajustes() {
                       type="time"
                       value={inicioDia}
                       onChange={(e) => setInicioDia(e.target.value)}
-                      className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                      className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5 flex-1 w-full">
-                    <label htmlFor="fimDia" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    <label htmlFor="fimDia" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                       Fim
                     </label>
                     <input
@@ -887,37 +887,35 @@ export default function Ajustes() {
                       type="time"
                       value={fimDia}
                       onChange={(e) => setFimDia(e.target.value)}
-                      className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                      className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* 5. Exceções por Dia da Semana */}
-              <div className="space-y-4 pt-4 border-t border-gray-800/80">
+              <div className="space-y-4 pt-4 border-t border-hair">
                 <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Exceções por Dia da Semana</h3>
-                  <p className="text-xs text-[#8B949E] mt-1">Defina horários fixos para dias específicos da semana. Valem para novos lançamentos.</p>
+                  <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Exceções por Dia da Semana</h3>
+                  <p className="text-xs text-ink-500 mt-1">Defina horários fixos para dias específicos da semana. Valem para novos lançamentos.</p>
                 </div>
 
                 {/* Lista de dias configurados */}
                 {horariosSemana.length > 0 && (
                   <div className="space-y-2">
                     {horariosSemana.map(h => (
-                      <div key={h.id} className="flex items-center justify-between bg-[#0B0E14] border border-gray-800 rounded-xl p-3">
+                      <div key={h.id} className="flex items-center justify-between bg-surface-0 border border-hair rounded-xl p-3">
                         <div>
-                          <div className="text-sm font-semibold text-white">{DIAS_SEMANA[h.dia_semana]}</div>
-                          <div className="text-xs text-[#8B949E]">{h.inicio_dia} às {h.fim_dia}</div>
+                          <div className="text-sm font-semibold text-ink-900">{DIAS_SEMANA[h.dia_semana]}</div>
+                          <div className="text-xs text-ink-500 tabular-nums">{h.inicio_dia} às {h.fim_dia}</div>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRemoverDia(h.id)}
-                          className="p-2 text-gray-500 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-colors focus:outline-none"
+                          className="p-2 text-ink-500 hover:text-bad hover:bg-bad-bg rounded-lg transition-colors duration-d1 ease-ez min-h-[44px] min-w-[44px] focus:outline-none"
                           title="Remover"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     ))}
@@ -926,15 +924,15 @@ export default function Ajustes() {
 
                 {/* Form de Adicionar Novo Dia */}
                 {showNovoDia ? (
-                  <div className="bg-[#0B0E14] border border-gray-800 rounded-xl p-4 space-y-4">
+                  <div className="bg-surface-0 border border-hair rounded-xl p-4 space-y-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Dia da Semana
                       </label>
                       <select
                         value={novoDiaSemana}
                         onChange={(e) => setNovoDiaSemana(Number(e.target.value))}
-                        className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                        className={`${classeCampo()} min-h-[44px] cursor-pointer`}
                       >
                         {diasDisponiveis.map(d => (
                           <option key={d.index} value={d.index}>{d.nome}</option>
@@ -944,45 +942,49 @@ export default function Ajustes() {
 
                     <div className="flex flex-col sm:flex-row gap-4">
                       <div className="flex flex-col gap-1.5 flex-1">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Início
                         </label>
                         <input
                           type="time"
                           value={novoInicioDia}
                           onChange={(e) => setNovoInicioDia(e.target.value)}
-                          className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                          className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                         />
                       </div>
                       <div className="flex flex-col gap-1.5 flex-1">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Fim
                         </label>
                         <input
                           type="time"
                           value={novoFimDia}
                           onChange={(e) => setNovoFimDia(e.target.value)}
-                          className="w-full bg-[#161B22] border border-gray-800 rounded-xl py-2 px-3 h-10 text-white font-mono text-sm focus:outline-none focus:border-[#03A9F4] transition-colors"
+                          className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                         />
                       </div>
                     </div>
 
                     <div className="flex gap-3 pt-2">
-                      <button
+                      <Button
+                        variante="secundario"
+                        tamanho="md"
                         type="button"
                         onClick={() => setShowNovoDia(false)}
-                        className="flex-1 py-2 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
+                        className="flex-1 min-h-[44px]"
                       >
                         Cancelar
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variante="primario"
+                        tamanho="md"
                         type="button"
                         onClick={handleAddDiaSemana}
                         disabled={savingDia || diasDisponiveis.length === 0}
-                        className="flex-1 py-2 px-4 bg-[#03A9F4] hover:bg-[#0288D1] text-white text-sm font-bold rounded-xl transition-all focus:outline-none disabled:opacity-50"
+                        className="flex-1 min-h-[44px]"
                       >
                         {savingDia ? 'Salvando...' : 'Salvar'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -995,11 +997,9 @@ export default function Ajustes() {
                           setShowNovoDia(true)
                         }
                       }}
-                      className="flex items-center gap-2 text-[#03A9F4] hover:text-[#0288D1] text-sm font-bold transition-colors focus:outline-none"
+                      className="flex items-center gap-2 text-accent hover:text-accent-fg text-sm font-bold transition-colors duration-d1 ease-ez min-h-[44px] focus:outline-none"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
+                      <Plus className="h-5 w-5" />
                       Adicionar dia
                     </button>
                   )
@@ -1007,24 +1007,17 @@ export default function Ajustes() {
               </div>
 
               {/* Ação de Salvar */}
-              <div className="pt-4 border-t border-gray-800/80">
-                <button
+              <div className="pt-4 border-t border-hair">
+                <Button
+                  variante="primario"
+                  tamanho="md"
                   type="submit"
                   disabled={saving}
-                  className="w-full sm:w-auto py-3 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none shadow-lg shadow-[#03A9F4]/20"
+                  carregando={saving}
+                  className="w-full sm:w-auto min-h-[44px]"
                 >
-                  {saving ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Salvando preferências...
-                    </>
-                  ) : (
-                    'Salvar Configurações'
-                  )}
-                </button>
+                  {saving ? 'Salvando preferências...' : 'Salvar Configurações'}
+                </Button>
               </div>
 
             </form>
