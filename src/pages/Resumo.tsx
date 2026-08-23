@@ -823,7 +823,7 @@ export default function Resumo() {
                       {/* Inativos */}
                       {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
                         <div>
-                          <h2 className="text-lg font-display font-bold text-ink-500 mb-4">Encerrados / Excluídos</h2>
+                          <h2 className="text-lg font-display font-bold text-ink-700 mb-4">Encerrados / Excluídos</h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
@@ -1000,43 +1000,41 @@ export default function Resumo() {
                 {/* Seção Rotina */}
                 {resumoProjetos.rotinas.length > 0 && (
                   <div>
-                    <h2 className="text-xl font-bold text-white mb-4">Rotina</h2>
-                    <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
-                      <div className="divide-y divide-gray-800/60">
+                    <h2 className="text-xl font-display font-bold text-ink-900 mb-4">Rotina</h2>
+                    <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
+                      <div className="divide-y divide-hair">
                         {resumoProjetos.rotinas.map((rotina) => {
                           const isExpanded = rotinasExpandidas[rotina.id] || false;
                           return (
-                            <div key={rotina.id} className="flex flex-col border-b border-gray-800/60 last:border-0">
+                            <div key={rotina.id} className="flex flex-col border-b border-hair last:border-0">
                               <div
-                                className="flex items-center justify-between p-4 hover:bg-[#1E2530] transition-colors cursor-pointer"
+                                className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors duration-d1 ease-ez cursor-pointer"
                                 onClick={() => toggleRotina(rotina.id)}
                               >
                                 <div className="flex items-center gap-4">
                                   <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
-                                  <p className="font-bold text-white text-sm uppercase tracking-wide truncate" title={rotina.nome}>{rotina.nome}</p>
+                                  <p className="font-bold text-ink-900 text-sm uppercase tracking-wide truncate" title={rotina.nome}>{rotina.nome}</p>
                                 </div>
                                 <div className="flex items-center gap-4 text-right">
-                                  <span className="font-mono font-bold text-[#03A9F4] text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
-                                  <span className="text-xs font-semibold text-gray-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
-                                  <svg className={`h-4 w-4 text-gray-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                  </svg>
+                                  <span className="font-mono font-bold text-accent tabular-nums text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                                  <span className="text-xs font-semibold text-ink-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
+                                  <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
                                 </div>
                               </div>
 
-                              <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex flex-col gap-1 px-4 ml-[22px] border-l-2 border-gray-800/50 pl-3">
+                              <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
+                                <div className="flex flex-col gap-1 px-4 ml-[22px] border-l-2 border-hair pl-3">
                                   {rotina.registros.map((reg: any) => (
                                     <div key={reg.id} className="flex items-center gap-3 py-1">
-                                      <span className="text-xs text-gray-400 font-mono w-[50px] shrink-0">{formatarDataCurta(reg.data)}</span>
-                                      <span className="text-gray-600">·</span>
-                                      <span className="text-xs text-gray-400 font-mono w-[85px] shrink-0">{reg.hora_inicio.slice(0, 5)}-{reg.hora_fim.slice(0, 5)}</span>
-                                      <span className="text-gray-600">·</span>
-                                      <span className="text-xs text-gray-400 font-mono font-bold shrink-0">{reg.duracao.toFixed(2).replace('.', ',')}h</span>
+                                      <span className="text-xs text-ink-500 font-mono tabular-nums w-[50px] shrink-0">{formatarDataCurta(reg.data)}</span>
+                                      <span className="text-ink-300">·</span>
+                                      <span className="text-xs text-ink-500 font-mono tabular-nums w-[85px] shrink-0">{reg.hora_inicio.slice(0, 5)}-{reg.hora_fim.slice(0, 5)}</span>
+                                      <span className="text-ink-300">·</span>
+                                      <span className="text-xs text-ink-500 font-mono tabular-nums font-bold shrink-0">{reg.duracao.toFixed(2).replace('.', ',')}h</span>
                                       {reg.observacao && (
                                         <>
-                                          <span className="text-gray-600">·</span>
-                                          <span className="text-[11px] text-gray-500 italic truncate" title={reg.observacao}>{reg.observacao}</span>
+                                          <span className="text-ink-300">·</span>
+                                          <span className="text-[11px] text-ink-500 italic truncate" title={reg.observacao}>{reg.observacao}</span>
                                         </>
                                       )}
                                     </div>
@@ -1047,7 +1045,7 @@ export default function Resumo() {
                           )
                         })}
                       </div>
-                    </div>
+                    </Surface>
                   </div>
                 )}
               </div>
@@ -1059,31 +1057,43 @@ export default function Resumo() {
 
       {/* Modal de Confirmação de Exclusão Permanente */}
       {projetoParaExcluir && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-              <span className="text-red-500">⚠</span> Atenção — Ação irreversível
+        <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Surface
+            elevacao={2}
+            comBorda
+            comSombra={false}
+            padding="nenhum"
+            className="w-[95%] sm:w-full max-w-md p-6 shadow-e3 flex flex-col"
+          >
+            <h3 className="text-xl font-display font-bold text-ink-900 mb-2 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-bad shrink-0" /> Atenção — Ação irreversível
             </h3>
-            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Todos os lançamentos vinculados a <strong className="text-white">{projetoParaExcluir.nome}</strong> serão excluídos permanentemente.
+            <p className="text-sm text-ink-500 mb-6 leading-relaxed">
+              Todos os lançamentos vinculados a <strong className="text-ink-900">{projetoParaExcluir.nome}</strong> serão excluídos permanentemente.
               <br /><br />
               Esta ação não pode ser desfeita.
             </p>
-            <div className="flex justify-end gap-3">
-              <button
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variante="secundario"
+                tamanho="md"
+                type="button"
                 onClick={() => setProjetoParaExcluir(null)}
-                className="px-4 py-2 bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all"
+                className="w-full sm:flex-1 sm:w-auto min-h-[44px]"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
+                variante="destrutivo"
+                tamanho="md"
+                type="button"
                 onClick={handleConfirmarExclusaoPermanente}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 transition-all"
+                className="w-full sm:flex-1 sm:w-auto min-h-[44px]"
               >
                 Excluir tudo permanentemente
-              </button>
+              </Button>
             </div>
-          </div>
+          </Surface>
         </div>
       )}
     </div>
