@@ -11,7 +11,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
-import { Copy, AlertTriangle, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Copy, AlertTriangle, ChevronLeft, ChevronRight, X, FileChartColumn, Search } from 'lucide-react'
 import { Button, Surface, classeCampo } from '../components/ui'
 
 // Funções auxiliares de data
@@ -329,7 +329,7 @@ export default function Timesheet() {
         </Surface>
 
         {/* Tabela ou Estado Vazio */}
-        <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+        <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
           {loading ? (
             <div className="flex flex-col">
               {[1, 2, 3].map((i) => (
@@ -337,40 +337,43 @@ export default function Timesheet() {
               ))}
             </div>
           ) : projetos.length === 0 ? (
-            <div className="p-12 text-center max-w-lg mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-gray-400 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+            <div className="p-6 text-center max-w-lg mx-auto space-y-4">
+              <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
+                <FileChartColumn className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-bold text-white">Nenhum projeto apto para timesheet</h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto apto para timesheet</h3>
+              <p className="text-sm text-ink-500 leading-relaxed font-ui">
                 Para um projeto aparecer aqui, ele deve estar <strong>ativo</strong> e possuir o <strong>código externo</strong> preenchido.
               </p>
-              <Link
-                to="/projetos"
-                className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
-              >
-                Gerenciar Projetos
-              </Link>
+              <div className="pt-2">
+                <Link
+                  to="/projetos"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                >
+                  Gerenciar Projetos
+                </Link>
+              </div>
             </div>
           ) : tableData.length === 0 ? (
-            <div className="p-12 text-center max-w-lg mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-[#03A9F4] mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+            <div className="p-6 text-center max-w-lg mx-auto space-y-4">
+              <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
+                <Search className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-bold text-white">Nenhum resultado encontrado</h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum resultado encontrado</h3>
+              <p className="text-sm text-ink-500 leading-relaxed font-ui">
                 Não encontramos nenhum projeto com o código "{filtroCodigo}".
               </p>
-              <button
-                onClick={() => setFiltroCodigo('')}
-                className="inline-block py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
-              >
-                Limpar Filtro
-              </button>
+              <div className="pt-2">
+                <Button
+                  variante="secundario"
+                  tamanho="md"
+                  type="button"
+                  className="min-h-[44px]"
+                  onClick={() => setFiltroCodigo('')}
+                >
+                  Limpar Filtro
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="overflow-auto max-h-[62vh]">
@@ -445,7 +448,7 @@ export default function Timesheet() {
               </table>
             </div>
           )}
-        </div>
+        </Surface>
 
       </main>
     </div>
