@@ -11,6 +11,8 @@ import { getErrorMessage } from '../utils/errors'
 import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
+import { Copy, AlertTriangle } from 'lucide-react'
+import { Button } from '../components/ui'
 
 // Funções auxiliares de data
 function getInicioSemana(d: Date, inicio: InicioSemana) {
@@ -230,7 +232,7 @@ export default function Timesheet() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
 
       {/* Conteúdo Principal */}
@@ -239,28 +241,30 @@ export default function Timesheet() {
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Timesheet</h2>
-            <p className="text-sm text-gray-400">Grade semanal para preenchimento de horas no sistema externo.</p>
+            <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Timesheet</h1>
+            <p className="text-sm text-ink-500">Grade semanal para preenchimento de horas no sistema externo.</p>
           </div>
-          <button
+          <Button
+            variante="secundario"
+            tamanho="md"
+            type="button"
+            iconeEsquerda={<Copy className="h-4 w-4" />}
+            className="min-h-[44px]"
             onClick={handleCopy}
             disabled={loading || tableData.length === 0}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-            </svg>
             Copiar Grade
-          </button>
+          </Button>
         </div>
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>{error}</span>
+          <div
+            style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <span className="font-ui">{error}</span>
           </div>
         )}
 
