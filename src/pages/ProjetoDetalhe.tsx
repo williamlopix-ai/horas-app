@@ -84,6 +84,10 @@ export default function ProjetoDetalhe() {
   const [adicionandoSemFase, setAdicionandoSemFase] = useState(false)
   const [salvandoSub, setSalvandoSub] = useState(false)
   const [baldeExpandido, setBaldeExpandido] = useState(false)
+  const [subsExpandidas, setSubsExpandidas] = useState<Record<string, boolean>>({})
+  const toggleSub = (subId: string) => {
+    setSubsExpandidas(prev => ({ ...prev, [subId]: !prev[subId] }))
+  }
 
   // Estados da seção Lançamentos / Modal de Registro
   const [isModalRegistroOpen, setIsModalRegistroOpen] = useState(false)
@@ -636,6 +640,20 @@ export default function ProjetoDetalhe() {
               )
             }
 
+            const temLancamento = registros.some(r => r.subcategoria_id === sub.id)
+            const diasAgrupados = registros
+              .filter(r => r.subcategoria_id === sub.id)
+              .reduce<{ data: string; total: number }[]>((acc, r) => {
+                const existente = acc.find(d => d.data === r.data)
+                if (existente) {
+                  existente.total += r.duracao
+                } else {
+                  acc.push({ data: r.data, total: r.duracao })
+                }
+                return acc
+              }, [])
+              .sort((a, b) => b.data.localeCompare(a.data))
+
             if (isEditingThisSub) {
               return (
                 <div key={sub.id} className="flex items-center gap-2 w-full py-1">
@@ -731,6 +749,19 @@ export default function ProjetoDetalhe() {
               <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
                 <div className="flex justify-between items-center text-xs gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                    {temLancamento && !isEditingReserva ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleSub(sub.id!)}
+                        className="shrink-0 focus:outline-none"
+                      >
+                        <ChevronDown
+                          className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                    ) : (
+                      <span className="h-4 w-4 shrink-0" />
+                    )}
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
                     <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                     {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
@@ -819,6 +850,22 @@ export default function ProjetoDetalhe() {
                     >
                       {percentualAlocado}%
                     </span>
+                  </div>
+                )}
+
+                {subsExpandidas[sub.id!] && temLancamento && (
+                  <div className="mt-2 ml-4 pl-3 border-l border-hair space-y-1">
+                    {diasAgrupados.map(dia => (
+                      <button
+                        key={dia.data}
+                        type="button"
+                        onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
+                        className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                      >
+                        <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
+                        <span className="font-mono font-semibold text-ink-900">{dia.total.toFixed(2).replace('.', ',')}h</span>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
