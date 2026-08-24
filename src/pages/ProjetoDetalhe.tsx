@@ -11,7 +11,7 @@ import ModalRegistro from '../components/ModalRegistro'
 import MenuAcoes, { type ItemMenu } from '../components/MenuAcoes'
 import ModalConfirmacao from '../components/ModalConfirmacao'
 import { SkeletonCard } from '../components/Skeleton'
-import { listarProjetos } from '../services/projetos'
+import { listarProjetos, atualizarProjeto } from '../services/projetos'
 import { listarRegistros, atualizarRegistro, calcularSemanaInicio } from '../services/registros'
 import { subcategoriasService } from '../services/subcategorias'
 import { fasesService } from '../services/fases'
@@ -71,6 +71,7 @@ export default function ProjetoDetalhe() {
   const [faseComSubsExcluindo, setFaseComSubsExcluindo] = useState<{ faseId: string; destinoFaseId: string } | null>(null)
   const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
   const [salvandoFase, setSalvandoFase] = useState(false)
+  const [salvandoContratadas, setSalvandoContratadas] = useState(false)
 
   // Estados de gestão de Subcategorias na página
   const [editandoSubId, setEditandoSubId] = useState<string | null>(null)
@@ -367,6 +368,21 @@ export default function ProjetoDetalhe() {
       showToast(getErrorMessage(err), 'error')
     } finally {
       setSalvandoFase(false)
+    }
+  }
+
+  const handleAtualizarContratadasParaFases = async () => {
+    if (!projeto) return
+    try {
+      setSalvandoContratadas(true)
+      await atualizarProjeto(projeto.id, { horas_contratadas: somaPrevistasFases })
+      await carregarDados(true)
+      showToast('Horas contratadas atualizadas!', 'success')
+    } catch (err: unknown) {
+      console.error('Erro ao atualizar horas contratadas:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoContratadas(false)
     }
   }
 
@@ -921,6 +937,11 @@ export default function ProjetoDetalhe() {
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const totalContratado = projeto?.horas_contratadas ?? null
 
+  const somaPrevistasFases = fases.reduce((acc, f) => acc + (f.horas_contratadas || 0), 0)
+  const fasesExcedemContratado = totalContratado !== null && totalContratado > 0
+    ? somaPrevistasFases > totalContratado
+    : somaPrevistasFases > 0
+
   const temContratado = totalContratado !== null && totalContratado > 0
   const percentualGeral = temContratado ? Math.min(100, Math.round((totalLancado / totalContratado!) * 100)) : 0
   const excedeuContratado = temContratado && totalLancado > totalContratado!
@@ -1034,6 +1055,27 @@ export default function ProjetoDetalhe() {
                       backgroundColor: excedeuContratado ? 'var(--bad)' : 'var(--ok)'
                     }}
                   />
+                </div>
+              )}
+              {fasesExcedemContratado && (
+                <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center justify-between gap-2 font-ui">
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
+                    {temContratado ? (
+                      <span>as fases somam {somaPrevistasFases.toFixed(2).replace('.', ',')}h previstas, acima das {totalContratado!.toFixed(2).replace('.', ',')}h contratadas</span>
+                    ) : (
+                      <span>as fases somam {somaPrevistasFases.toFixed(2).replace('.', ',')}h previstas e o projeto não tem horas contratadas</span>
+                    )}
+                  </span>
+                  <Button
+                    variante="secundario"
+                    tamanho="sm"
+                    onClick={handleAtualizarContratadasParaFases}
+                    disabled={salvandoContratadas}
+                    className="shrink-0"
+                  >
+                    Atualizar para {somaPrevistasFases.toFixed(2).replace('.', ',')}h
+                  </Button>
                 </div>
               )}
             </Surface>
