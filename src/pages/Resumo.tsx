@@ -40,6 +40,7 @@ export default function Resumo() {
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
   const [apenasBillable, setApenasBillable] = useState(true)
+  const [apenasComCodigo, setApenasComCodigo] = useState(false)
   const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ id: string, nome: string } | null>(null)
   const [viewMode, setViewMode] = useState<'cards' | 'lista' | 'tabela'>(() => {
     return (localStorage.getItem('horas_view_resumo') as 'cards' | 'lista' | 'tabela') || 'cards'
@@ -171,10 +172,23 @@ export default function Resumo() {
   // Agrupamentos
   // ============================
 
+  const idsProjetosComCodigo = useMemo(() => {
+    return new Set(
+      projetos
+        .filter(p => p.codigo_externo && p.codigo_externo.trim() !== '')
+        .map(p => p.id)
+    )
+  }, [projetos])
+
+  const registrosParaResumo = useMemo(() => {
+    if (!apenasComCodigo) return registros
+    return registros.filter(r => r.projeto_id && idsProjetosComCodigo.has(r.projeto_id))
+  }, [registros, apenasComCodigo, idsProjetosComCodigo])
+
   // 1. Semanal
   const resumoSemanas = useMemo(() => {
     const grupos: { [key: string]: number } = {}
-    registros.forEach((reg) => {
+    registrosParaResumo.forEach((reg) => {
       if (!reg.semana_inicio) return
       grupos[reg.semana_inicio] = (grupos[reg.semana_inicio] || 0) + reg.duracao
     })
@@ -196,12 +210,12 @@ export default function Resumo() {
           metaVigente: baseVigente
         }
       })
-  }, [registros, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
+  }, [registrosParaResumo, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
 
   // 2. Diário
   const resumoDias = useMemo(() => {
     const grupos: { [key: string]: number } = {}
-    registros.forEach((reg) => {
+    registrosParaResumo.forEach((reg) => {
       grupos[reg.data] = (grupos[reg.data] || 0) + reg.duracao
     })
     return Object.keys(grupos)
@@ -216,7 +230,7 @@ export default function Resumo() {
         const diferenca = totalHoras - metaDiariaVigente
         return { data, titulo: formatarTituloData(data), totalHoras, atingiuMeta, percentual, diferenca, metaDiariaVigente }
       })
-  }, [registros, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
+  }, [registrosParaResumo, config.meta_semanal, horasBasePorSemana, config.inicio_semana])
 
   // 3. Projetos
   const resumoProjetos = useMemo(() => {
@@ -388,40 +402,58 @@ export default function Resumo() {
           </div>
 
           {(abaAtiva === 'semanal' || abaAtiva === 'diario') && (
-            <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <button
-                onClick={() => changeViewMode('cards')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
-                  ? 'bg-accent-bg text-accent-fg'
-                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                  }`}
-                title="Visualização em Cards"
+                type="button"
+                onClick={() => setApenasComCodigo(v => !v)}
+                className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez"
               >
-                <LayoutGrid className="w-4 h-4 shrink-0" />
-                <span>Cards</span>
+                <span
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasComCodigo ? 'bg-accent' : 'bg-surface-3'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-d1 ease-ez ${apenasComCodigo ? 'translate-x-4' : 'translate-x-1'
+                      }`}
+                  />
+                </span>
+                Apenas com código
               </button>
-              <button
-                onClick={() => changeViewMode('lista')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
-                  ? 'bg-accent-bg text-accent-fg'
-                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                  }`}
-                title="Visualização em Lista"
-              >
-                <List className="w-4 h-4 shrink-0" />
-                <span>Lista</span>
-              </button>
-              <button
-                onClick={() => changeViewMode('tabela')}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
-                  ? 'bg-accent-bg text-accent-fg'
-                  : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-                  }`}
-                title="Visualização em Tabela"
-              >
-                <Table2 className="w-4 h-4 shrink-0" />
-                <span>Tabela</span>
-              </button>
+              <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
+                <button
+                  onClick={() => changeViewMode('cards')}
+                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                    }`}
+                  title="Visualização em Cards"
+                >
+                  <LayoutGrid className="w-4 h-4 shrink-0" />
+                  <span>Cards</span>
+                </button>
+                <button
+                  onClick={() => changeViewMode('lista')}
+                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                    }`}
+                  title="Visualização em Lista"
+                >
+                  <List className="w-4 h-4 shrink-0" />
+                  <span>Lista</span>
+                </button>
+                <button
+                  onClick={() => changeViewMode('tabela')}
+                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
+                    ? 'bg-accent-bg text-accent-fg'
+                    : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
+                    }`}
+                  title="Visualização em Tabela"
+                >
+                  <Table2 className="w-4 h-4 shrink-0" />
+                  <span>Tabela</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
