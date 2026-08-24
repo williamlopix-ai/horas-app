@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import type { Projeto } from '../types'
 import { getErrorMessage } from '../utils/errors'
+import { useFecharComEsc } from '../hooks/useFecharComEsc'
 
 interface ModalProjetoProps {
   isOpen: boolean
@@ -99,6 +100,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
       setSubmitting(false)
     }
   }
+
+  useFecharComEsc(isOpen, onClose)
 
   if (!isOpen) return null
 

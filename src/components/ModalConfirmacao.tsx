@@ -1,4 +1,4 @@
-
+import { useFecharComEsc } from '../hooks/useFecharComEsc'
 
 interface ModalConfirmacaoProps {
   isOpen: boolean
@@ -21,6 +21,8 @@ export default function ModalConfirmacao({
   onConfirmar,
   onCancelar
 }: ModalConfirmacaoProps) {
+  useFecharComEsc(isOpen, onCancelar)
+
   if (!isOpen) return null
 
   return (

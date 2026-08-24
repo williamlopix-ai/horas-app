@@ -9,6 +9,7 @@ import { buscarHorarioDia } from '../services/horarios'
 import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria, Fase } from '../types'
+import { useFecharComEsc } from '../hooks/useFecharComEsc'
 
 interface ModalRegistroProps {
   isOpen: boolean
@@ -241,6 +242,8 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
     return null
   }, [horaInicio, horaFim, data, registro, registrosExistentes])
+
+  useFecharComEsc(isOpen, onClose)
 
   if (!isOpen) return null
 
