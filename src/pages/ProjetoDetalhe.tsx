@@ -1285,10 +1285,10 @@ export default function ProjetoDetalhe() {
                           {temPrevisto && (() => {
                             const teto = fase.horas_contratadas!
                             const usadoClamp = Math.min(usadoFase, teto)
-                            const reservadoClamp = Math.min(reservadoFase, teto)
                             const pctUsado = (usadoClamp / teto) * 100
-                            const pctReservadoSemUso = (Math.max(0, reservadoClamp - usadoClamp) / teto) * 100
                             const estourou = usadoFase > teto
+                            const reservadoR = Math.round(reservadoFase * 100) / 100
+                            const previstoR = Math.round(teto * 100) / 100
 
                             return (
                               <div className="mb-4 pt-1">
@@ -1299,28 +1299,21 @@ export default function ProjetoDetalhe() {
                                       style={{ width: '100%', backgroundColor: 'var(--bad)' }}
                                     />
                                   ) : (
-                                    <>
-                                      <div
-                                        className="h-full transition-all duration-500"
-                                        style={{ width: `${pctUsado}%`, backgroundColor: 'var(--ok)' }}
-                                      />
-                                      <div
-                                        className="h-full transition-all duration-500"
-                                        style={{ width: `${pctReservadoSemUso}%`, backgroundColor: 'var(--accent)' }}
-                                      />
-                                    </>
+                                    <div
+                                      className="h-full transition-all duration-500"
+                                      style={{ width: `${pctUsado}%`, backgroundColor: 'var(--ok)' }}
+                                    />
                                   )}
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-ink-500 mt-2 font-ui">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded shrink-0" style={{ backgroundColor: 'var(--ok)' }} />
-                                    <span>lançadas</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded shrink-0" style={{ backgroundColor: 'var(--accent)' }} />
-                                    <span>reservadas sem uso</span>
-                                  </div>
-                                </div>
+                                {reservadoR <= previstoR && (
+                                  <p className="text-xs text-ink-500 mt-2 font-mono">
+                                    {reservadoR === previstoR
+                                      ? `Todas as ${formatarHoras(previstoR)}h previstas estão reservadas`
+                                      : reservadoR > 0
+                                      ? `${formatarHoras(reservadoR)}h reservadas em categorias · ${formatarHoras(previstoR - reservadoR)}h ainda sem reserva`
+                                      : 'Nenhuma hora reservada em categorias'}
+                                  </p>
+                                )}
                               </div>
                             )
                           })()}
