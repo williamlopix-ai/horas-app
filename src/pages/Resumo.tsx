@@ -1,11 +1,28 @@
 import { useEffect, useState, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useConfig } from '../contexts/ConfigContext'
 import { Link, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import BreakdownSubcategorias from '../components/BreakdownSubcategorias'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { listarRegistros } from '../services/registros'
-import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente } from '../services/projetos'
+import { listarProjetos, arquivarProjeto, desarquivarProjeto, excluirPermanentemente, atualizarOrdemResumo } from '../services/projetos'
 import { buscarHorasBaseSemanal } from '../services/horas_base'
 import { subcategoriasService } from '../services/subcategorias'
 import { getErrorMessage } from '../utils/errors'
@@ -13,13 +30,46 @@ import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
-import { AlertTriangle, ChartNoAxesColumn, ChevronDown, LayoutGrid, List, Table2 } from 'lucide-react'
+import { AlertTriangle, ChartNoAxesColumn, ChevronDown, GripVertical, LayoutGrid, List, Table2 } from 'lucide-react'
 import { Button, Chip, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
 function getSemanaInicioParaData(dataStr: string, inicio: InicioSemana): string {
   return inicioDaSemana(dataStr, inicio)
+}
+
+interface ProjetoCardSortableProps {
+  id: string
+  children: ReactNode
+}
+
+function ProjetoCardSortable({ id, children }: ProjetoCardSortableProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+  const style = {
+    position: 'relative' as const,
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined
+  }
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-2 right-2 z-10 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-500 hover:text-ink-900 cursor-grab active:cursor-grabbing touch-none rounded-ctl bg-surface-0/70 backdrop-blur-sm transition-colors duration-d1 ease-ez"
+        title="Arrastar para reordenar"
+      >
+        <GripVertical className="w-5 h-5" />
+      </button>
+      {children}
+    </div>
+  )
 }
 
 export default function Resumo() {
@@ -257,6 +307,7 @@ export default function Resumo() {
       let arquivado = false
       let nome_original = null
       let billable: boolean | null = false
+      let ordem_resumo: number | null = null
 
       if (id !== 'sem_projeto') {
         const p = projetos.find(p => p.id === id)
@@ -269,6 +320,7 @@ export default function Resumo() {
           arquivado = p.arquivado
           billable = p.billable
           nome_original = p.nome_original
+          ordem_resumo = p.ordem_resumo
         }
       }
 
@@ -330,7 +382,7 @@ export default function Resumo() {
         percentual: totalHoras > 0 ? Math.round((s.duracao / totalHoras) * 100) : 0
       }))
 
-      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original, billable }
+      const item = { id, nome, cor, totalHoras, qtd, horas_contratadas, registros: regs, subcategorias, status, arquivado, nome_original, billable, ordem_resumo }
 
       if (tipo === 'rotina') {
         arrayRotina.push(item)
@@ -352,6 +404,69 @@ export default function Resumo() {
       : resumoProjetos.projetos,
     [resumoProjetos.projetos, apenasBillable]
   )
+
+  const ativosOrdenados = useMemo(() => {
+    const ativos = projetosVisiveis.filter(p => p.status === 'ativo' && !p.arquivado)
+    return [...ativos].sort((a, b) => {
+      if (a.ordem_resumo !== null && a.ordem_resumo !== undefined && b.ordem_resumo !== null && b.ordem_resumo !== undefined) {
+        if (a.ordem_resumo !== b.ordem_resumo) return a.ordem_resumo - b.ordem_resumo
+        return a.nome.localeCompare(b.nome)
+      }
+      if ((a.ordem_resumo !== null && a.ordem_resumo !== undefined) && (b.ordem_resumo === null || b.ordem_resumo === undefined)) return -1
+      if ((a.ordem_resumo === null || a.ordem_resumo === undefined) && (b.ordem_resumo !== null && b.ordem_resumo !== undefined)) return 1
+      return a.nome.localeCompare(b.nome)
+    })
+  }, [projetosVisiveis])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8
+      }
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 6
+      }
+    })
+  )
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = ativosOrdenados.findIndex(p => p.id === active.id)
+    const newIndex = ativosOrdenados.findIndex(p => p.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reorderedAtivos = arrayMove(ativosOrdenados, oldIndex, newIndex)
+    const atualizacoesOrdem = reorderedAtivos.map((proj, idx) => ({
+      id: proj.id,
+      ordem_resumo: idx + 1
+    }))
+
+    const ordemMap = new Map(atualizacoesOrdem.map(u => [u.id, u.ordem_resumo]))
+    const projetosAntigos = [...projetos]
+
+    setProjetos(prev =>
+      prev.map(p => {
+        if (ordemMap.has(p.id)) {
+          return { ...p, ordem_resumo: ordemMap.get(p.id)! }
+        }
+        return p
+      })
+    )
+
+    try {
+      await atualizarOrdemResumo(atualizacoesOrdem)
+    } catch (err: any) {
+      console.error('Erro ao atualizar ordem do resumo:', err)
+      setProjetos(projetosAntigos)
+      showToast(getErrorMessage(err), 'error')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
@@ -777,78 +892,83 @@ export default function Resumo() {
                   ) : (
                     <div className="space-y-10">
                       {/* Ativos */}
-                      {projetosVisiveis.filter(p => p.status === 'ativo' && !p.arquivado).length > 0 && (
+                      {ativosOrdenados.length > 0 && (
                         <div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {projetosVisiveis.filter(p => p.status === 'ativo' && !p.arquivado).map(proj => {
-                              const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
-                              const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
-                              const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
-                              const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
-                              const isExpanded = projetosExpandidos[proj.id] || false;
-                              const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
+                          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={ativosOrdenados.map(p => p.id)} strategy={rectSortingStrategy}>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {ativosOrdenados.map(proj => {
+                                  const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
+                                  const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
+                                  const passou = temContrato && proj.totalHoras > proj.horas_contratadas;
+                                  const diff = temContrato ? Math.abs(proj.horas_contratadas - proj.totalHoras) : 0;
+                                  const isExpanded = projetosExpandidos[proj.id] || false;
+                                  const hasDetalhamento = proj.registros.length > 0 || proj.subcategorias.length > 0;
 
-                              return (
-                                <Surface
-                                  key={proj.id}
-                                  elevacao={1}
-                                  comBorda
-                                  padding="nenhum"
-                                  onClick={() => navigate(`/projeto/${proj.id}`)}
-                                  className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
-                                        <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
-                                      </span>
-                                      <span className="font-bold text-ink-900 uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
-                                    </div>
-                                  </div>
-                                  <hr className="border-hair" />
-                                  <div className="flex-1 space-y-3">
-                                    {temContrato ? (
-                                      <p className="text-sm font-medium text-ink-500">
-                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
-                                      </p>) : (
-                                      <p className="text-sm font-medium text-ink-500">
-                                        <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
-                                      </p>
-                                    )}
-                                    {temContrato && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-3">
-                                          <div className="flex-1 bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
-                                            <div className="h-full transition-all duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
-                                          </div>
-                                          <span className="text-sm font-bold font-mono tabular-nums" style={{ color: passou ? 'var(--bad)' : 'var(--ok)' }}>{percentual}%</span>
-                                        </div>
-                                        {passou ? (
-                                          <p className="text-sm font-bold text-bad font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
-                                        ) : (
-                                          <p className="text-sm font-bold text-ok font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h restantes</p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                  {hasDetalhamento && (
-                                    <div className="pt-2">
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
-                                        className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
+                                  return (
+                                    <ProjetoCardSortable key={proj.id} id={proj.id}>
+                                      <Surface
+                                        elevacao={1}
+                                        comBorda
+                                        padding="nenhum"
+                                        onClick={() => navigate(`/projeto/${proj.id}`)}
+                                        className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
                                       >
-                                        <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                        <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
-                                      </button>
-                                      <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-                                        <BreakdownSubcategorias subcategorias={proj.subcategorias} />
-                                      </div>
-                                    </div>
-                                  )}
-                                </Surface>
-                              )
-                            })}
-                          </div>
+                                        <div className="flex items-start justify-between gap-3">
+                                          <div className="flex items-center gap-3 min-w-0">
+                                            <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
+                                              <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
+                                            </span>
+                                            <span className="font-bold text-ink-900 uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
+                                          </div>
+                                        </div>
+                                        <hr className="border-hair" />
+                                        <div className="flex-1 space-y-3">
+                                          {temContrato ? (
+                                            <p className="text-sm font-medium text-ink-500">
+                                              <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas de <span className="font-mono tabular-nums">{proj.horas_contratadas.toFixed(2).replace('.', ',')}h</span> contratadas
+                                            </p>) : (
+                                            <p className="text-sm font-medium text-ink-500">
+                                              <span className="text-ink-900 font-bold font-mono tabular-nums">{proj.totalHoras.toFixed(2).replace('.', ',')}h</span> lançadas
+                                            </p>
+                                          )}
+                                          {temContrato && (
+                                            <div className="space-y-2">
+                                              <div className="flex items-center gap-3">
+                                                <div className="flex-1 bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
+                                                  <div className="h-full transition-all duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
+                                                </div>
+                                                <span className="text-sm font-bold font-mono tabular-nums" style={{ color: passou ? 'var(--bad)' : 'var(--ok)' }}>{percentual}%</span>
+                                              </div>
+                                              {passou ? (
+                                                <p className="text-sm font-bold text-bad font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h acima do contrato</p>
+                                              ) : (
+                                                <p className="text-sm font-bold text-ok font-mono tabular-nums">{diff.toFixed(2).replace('.', ',')}h restantes</p>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                        {hasDetalhamento && (
+                                          <div className="pt-2">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); toggleProjeto(proj.id) }}
+                                              className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
+                                            >
+                                              <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
+                                              <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                              <BreakdownSubcategorias subcategorias={proj.subcategorias} />
+                                            </div>
+                                          </div>
+                                        )}
+                                      </Surface>
+                                    </ProjetoCardSortable>
+                                  )
+                                })}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
                         </div>
                       )}
 
