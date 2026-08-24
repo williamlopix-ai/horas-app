@@ -919,11 +919,7 @@ export default function ProjetoDetalhe() {
   const totalDiferencaPlanos = totalRealizadoPlanos - totalPlanejado
 
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
-  const temFasesComContrato = fases.some(f => f.horas_contratadas !== null && f.horas_contratadas > 0)
-  const totalContratadoFases = fases.reduce((acc, f) => acc + (f.horas_contratadas || 0), 0)
-  const totalContratado = (fases.length > 0 && temFasesComContrato)
-    ? totalContratadoFases
-    : (projeto?.horas_contratadas ?? null)
+  const totalContratado = projeto?.horas_contratadas ?? null
 
   const temContratado = totalContratado !== null && totalContratado > 0
   const percentualGeral = temContratado ? Math.min(100, Math.round((totalLancado / totalContratado!) * 100)) : 0
