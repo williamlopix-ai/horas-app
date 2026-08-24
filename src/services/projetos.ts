@@ -80,6 +80,25 @@ export async function atualizarOrdemProjetos(
   }
 }
 
+export async function atualizarOrdemResumo(
+  itens: { id: string; ordem_resumo: number }[]
+): Promise<void> {
+  const updates = itens.map(({ id, ordem_resumo }) =>
+    supabase
+      .from('projetos')
+      .update({ ordem_resumo })
+      .eq('id', id)
+  )
+
+  const results = await Promise.all(updates)
+
+  for (const result of results) {
+    if (result.error) {
+      throw result.error
+    }
+  }
+}
+
 export async function atualizarProjeto(
   id: string,
   dados: Partial<Omit<Projeto, 'id' | 'usuario_id' | 'criado_em'>>
