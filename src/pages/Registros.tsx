@@ -86,6 +86,8 @@ export default function Registros() {
   const [filtroProjetoId, setFiltroProjetoId] = useState<string>('todos')
   // Projeto vindo de ?projeto_id= na URL: apenas destaca visualmente, nao filtra a lista
   const [projetoDestacadoId, setProjetoDestacadoId] = useState<string | null>(null)
+  // Subcategoria vinda de ?subcategoria_id= na URL: apenas destaca visualmente, nao filtra a lista
+  const [subcategoriaDestacadaId, setSubcategoriaDestacadaId] = useState<string | null>(null)
   const [filtroSemana, setFiltroSemana] = useState<string>(() => {
     const now = new Date()
     const y = now.getFullYear()
@@ -163,6 +165,7 @@ export default function Registros() {
   useEffect(() => {
     const dataParam = searchParams.get('data')
     const projetoIdParam = searchParams.get('projeto_id')
+    const subcategoriaIdParam = searchParams.get('subcategoria_id')
 
     if (dataParam) {
       const isFormatValid = /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
@@ -177,6 +180,10 @@ export default function Registros() {
 
     if (projetoIdParam) {
       setProjetoDestacadoId(projetoIdParam)
+    }
+
+    if (subcategoriaIdParam) {
+      setSubcategoriaDestacadaId(subcategoriaIdParam)
     }
 
     const novoParam = searchParams.get('novo')
@@ -765,7 +772,7 @@ export default function Registros() {
                               {/* Registros deste projeto */}
                               <div className="flex flex-col gap-1">
                                 {itemProj.records.map((reg) => (
-                                  <div key={reg.id} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${projetoDestacadoId && reg.projeto_id === projetoDestacadoId ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
+                                  <div key={reg.id} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
                                     {/* Linha 1 no Mobile: [horário] */}
                                     <div className="flex items-center justify-between md:contents w-full">
                                       {/* Horários */}
@@ -877,7 +884,7 @@ export default function Registros() {
                         return (
                           <div
                             key={reg.id}
-                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${projetoDestacadoId && reg.projeto_id === projetoDestacadoId ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
+                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
                           >
                             {/* Linha 1 no Mobile: [TAG] [horário] */}
                             <div className="flex items-center justify-between md:contents w-full">
