@@ -1637,7 +1637,7 @@ export default function ProjetoDetalhe() {
                         </label>
                         <input
                           type="number"
-                          step="0.5"
+                          step="any"
                           min="0"
                           value={horasPlanejadasInput}
                           onChange={(e) => setHorasPlanejadasInput(e.target.value)}

@@ -35,7 +35,7 @@ export default function Resumo() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [abaAtiva, setAbaAtiva] = useState<Aba>('semanal')
+  const [abaAtiva, setAbaAtiva] = useState<Aba>('projetos')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
   const [projetosExpandidos, setProjetosExpandidos] = useState<{ [key: string]: boolean }>({})
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
