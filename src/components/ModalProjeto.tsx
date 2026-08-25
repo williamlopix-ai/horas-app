@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import type { Projeto } from '../types'
 import { getErrorMessage } from '../utils/errors'
 import { useFecharComEsc } from '../hooks/useFecharComEsc'
+import { Button, Surface, classeCampo } from './ui'
 
 interface ModalProjetoProps {
   isOpen: boolean
@@ -110,16 +111,20 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div 
-        className="bg-[#161B22] border border-gray-800 rounded-2xl w-[95%] sm:w-full max-w-md p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]"
+    <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Surface
+        elevacao={2}
+        padding="lg"
+        comBorda
+        comSombra={false}
+        className="w-[95%] sm:w-full max-w-md relative shadow-e3 flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Botão Fechar */}
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10"
+          className="absolute top-4 right-4 text-ink-700 hover:text-ink-900 transition-colors z-10"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -127,13 +132,13 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
         </button>
 
         {/* Título do Modal */}
-        <h3 className="text-xl font-bold text-white mb-4 shrink-0">
+        <h3 className="text-xl font-bold text-ink-900 mb-4 shrink-0">
           {projeto ? 'Editar Projeto' : 'Novo Projeto'}
         </h3>
 
         {/* Mensagem de Erro do Modal */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2 shrink-0">
+          <div className="mb-4 p-3 bg-bad-bg border border-bad rounded-xl text-bad text-xs flex items-center gap-2 shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -147,7 +152,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
           <div className="flex-1 overflow-y-auto pr-1 space-y-5 mb-4 custom-scrollbar">
             {/* Nome do Projeto */}
             <div>
-              <label htmlFor="nome-projeto" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="nome-projeto" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Nome do Projeto
               </label>
               <input
@@ -157,13 +162,13 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 placeholder="Ex: App Horas, Freelance, Site Corporativo"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
+                className={`${classeCampo()} min-h-[44px]`}
               />
             </div>
 
             {/* Tipo do Projeto */}
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Tipo
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -172,8 +177,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   onClick={() => setTipo('projeto')}
                   className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
                     tipo === 'projeto'
-                      ? 'bg-[#03A9F4]/10 text-[#03A9F4] border-[#03A9F4]/30'
-                      : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                      ? 'bg-accent-bg text-accent-fg border-accent'
+                      : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
                   }`}
                 >
                   Projeto
@@ -183,8 +188,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   onClick={() => setTipo('rotina')}
                   className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
                     tipo === 'rotina'
-                      ? 'bg-[#03A9F4]/10 text-[#03A9F4] border-[#03A9F4]/30'
-                      : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                      ? 'bg-accent-bg text-accent-fg border-accent'
+                      : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
                   }`}
                 >
                   Rotina
@@ -195,7 +200,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
             {/* Horas Contratadas */}
             {projeto && tipo === 'projeto' && (
               <div>
-                <label htmlFor="horas-contratadas" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="horas-contratadas" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Horas Contratadas (opcional)
                 </label>
                 <input
@@ -205,12 +210,10 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   value={horasContratadas}
                   onChange={(e) => setHorasContratadas(e.target.value)}
                   disabled={temFases}
-                  className={`bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none w-full transition-colors ${
-                    temFases ? 'cursor-not-allowed opacity-60' : 'focus:border-[#03A9F4]'
-                  }`}
+                  className={`${classeCampo()} min-h-[44px] ${temFases ? 'cursor-not-allowed opacity-60' : ''}`}
                 />
                 {temFases && (
-                  <div className="rounded-lg px-3 py-2 mt-2 text-xs border-l-[3px] border-l-[#8B949E] bg-[#0B0E14] text-[#8B949E] flex items-center gap-2">
+                  <div className="rounded-lg px-3 py-2 mt-2 text-xs border-l-[3px] border-l-ink-500 bg-surface-3 text-ink-500 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -222,7 +225,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
 
             {tipo === 'projeto' && (
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Código no Timesheet (opcional)
                 </label>
                 <input
@@ -230,22 +233,22 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   placeholder="Ex: 0815301"
                   value={codigoExterno}
                   onChange={(e) => handleCodigoExternoChange(e.target.value)}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full transition-colors"
+                  className={`${classeCampo()} min-h-[44px]`}
                 />
               </div>
             )}
 
             {tipo === 'projeto' && codigoExterno.trim() !== '' && (
-              <div className="flex items-center justify-between p-3 bg-[#161B22] border border-gray-800 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-xl">
                 <div>
-                  <span className="block text-sm font-semibold text-white">Billable</span>
-                  <span className="block text-xs text-gray-400">Projeto faturável</span>
+                  <span className="block text-sm font-semibold text-ink-900">Billable</span>
+                  <span className="block text-xs text-ink-500">Projeto faturável</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setBillable(!billable)}
                   className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 focus:outline-none ${
-                    billable ? 'bg-[#03A9F4]' : 'bg-[#1E2A38]'
+                    billable ? 'bg-accent' : 'bg-surface-0'
                   }`}
                 >
                   <div
@@ -259,7 +262,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
 
             {/* Seletor de Cores */}
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Cor de Identificação
               </label>
               <div className="grid grid-cols-6 gap-2">
@@ -269,7 +272,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                     type="button"
                     onClick={() => setCor(itemCor.valor)}
                     className={`h-9 w-9 rounded-full transition-all border flex items-center justify-center shrink-0 ${
-                      cor === itemCor.valor ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
+                      cor === itemCor.valor ? 'border-ink-900 scale-110 shadow-e2' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
                     }`}
                     style={{ backgroundColor: itemCor.valor }}
                     title={itemCor.nome}
@@ -287,7 +290,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
             {/* Status (Apenas para edição) */}
             {projeto && (
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Status do Projeto
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -296,8 +299,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                     onClick={() => setStatus('ativo')}
                     className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
                       status === 'ativo'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                        ? 'bg-ok-bg text-ok border-ok'
+                        : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
                     }`}
                   >
                     Ativo
@@ -307,8 +310,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                     onClick={() => setStatus('encerrado')}
                     className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
                       status === 'encerrado'
-                        ? 'bg-red-500/10 text-red-400 border-red-500/30'
-                        : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-700'
+                        ? 'bg-bad-bg text-bad border-bad'
+                        : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
                     }`}
                   >
                     Encerrado
@@ -319,34 +322,29 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
           </div>
 
           {/* Botões */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-800/60 shrink-0">
-            <button
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-hair shrink-0">
+            <Button
+              variante="secundario"
+              larguraTotal
+              className="sm:flex-1 min-h-[44px]"
               type="button"
               onClick={onClose}
-              className="w-full sm:flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
+              variante="primario"
               type="submit"
+              larguraTotal
+              className="sm:flex-1 min-h-[44px]"
               disabled={submitting || !nome.trim()}
-              className="w-full sm:flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
+              carregando={submitting}
             >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Salvando...
-                </>
-              ) : (
-                'Salvar'
-              )}
-            </button>
+              {submitting ? 'Salvando...' : 'Salvar'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Surface>
     </div>
   )
 }
