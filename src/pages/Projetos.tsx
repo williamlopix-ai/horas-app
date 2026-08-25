@@ -36,6 +36,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
 import { SkeletonRow } from '../components/Skeleton'
+import { Button, Surface } from '../components/ui'
 
 interface ProjetoRowItemProps {
   projeto: Projeto
@@ -85,8 +86,8 @@ function ProjetoRowItem({
       ref={setNodeRef}
       style={style}
       onClick={() => onNavigate(projeto.id)}
-      className={`hover:bg-gray-800/20 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-[#161B22] md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-gray-700/50 md:ring-0 cursor-pointer ${
-        isDragging ? 'shadow-2xl ring-2 ring-[#03A9F4]' : ''
+      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
+        isDragging ? 'shadow-e3 ring-2 ring-accent' : ''
       }`}
     >
       <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
@@ -97,7 +98,7 @@ function ProjetoRowItem({
               {...attributes}
               {...listeners}
               onClick={(e) => e.stopPropagation()}
-              className="text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing p-1 rounded transition-colors touch-none shrink-0"
+              className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing p-1 rounded transition-colors touch-none shrink-0"
               title="Arrastar para reordenar"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -111,28 +112,28 @@ function ProjetoRowItem({
             </button>
           )}
           <span
-            className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-sm"
+            className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-e1"
             style={{ backgroundColor: projeto.cor }}
           />
-          <span className="font-semibold text-white group-hover:text-[#03A9F4] transition-colors">
+          <span className="font-semibold text-ink-900 group-hover:text-accent transition-colors">
             {projeto.nome}
           </span>
         </div>
       </td>
       <td className="flex items-center md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
         {projeto.status === 'ativo' ? (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-ok-bg text-ok border border-ok">
+            <span className="h-1.5 w-1.5 rounded-full bg-ok" />
             Ativo
           </span>
         ) : projeto.status === 'encerrado' ? (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-warn-bg text-warn border border-warn">
+            <span className="h-1.5 w-1.5 rounded-full bg-warn" />
             Encerrado
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-gray-500/10 text-gray-400 border border-gray-500/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-surface-2 text-ink-500 border border-hair">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink-500" />
             Excluído
           </span>
         )}
@@ -141,7 +142,7 @@ function ProjetoRowItem({
         <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
           {projeto.status === 'excluido' ? (
             <>
-              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-gray-800/50 text-gray-500 text-xs font-semibold rounded-lg border border-gray-700/30 w-auto text-center">
+              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-surface-2 text-ink-500 text-xs font-semibold rounded-lg border border-hair w-auto text-center">
                 Excluído
               </span>
               <button
@@ -149,7 +150,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onArquivar(projeto)
                 }}
-                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-lg transition-all border border-hair-strong w-auto text-center justify-center"
               >
                 Arquivar
               </button>
@@ -161,7 +162,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onEdit(projeto)
                 }}
-                className="py-1.5 px-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white text-xs font-semibold rounded-lg transition-all border border-gray-700/50 w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-lg transition-all border border-hair-strong w-auto text-center justify-center"
               >
                 Editar
               </button>
@@ -172,8 +173,8 @@ function ProjetoRowItem({
                 }}
                 className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
                   projeto.status === 'ativo'
-                    ? 'bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border-orange-500/20'
-                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-400 border-emerald-500/20'
+                    ? 'bg-warn-bg text-warn border-warn hover:opacity-80'
+                    : 'bg-ok-bg text-ok border-ok hover:opacity-80'
                 }`}
               >
                 {projeto.status === 'ativo' ? 'Encerrar' : 'Reativar'}
@@ -183,7 +184,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onExcluir(projeto)
                 }}
-                className="py-1.5 px-3 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all border border-red-500/20 w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-bad-bg text-bad text-xs font-semibold rounded-lg transition-all border border-bad hover:opacity-80 w-auto text-center justify-center"
               >
                 Excluir
               </button>
@@ -421,7 +422,7 @@ export default function Projetos() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       
       <Sidebar />
 
@@ -431,53 +432,56 @@ export default function Projetos() {
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Projetos</h2>
-            <p className="text-sm text-gray-400">Gerencie seus projetos e clientes para associar aos seus lançamentos de horas.</p>
+            <h2 className="text-2xl font-bold text-ink-900 tracking-tight">Projetos</h2>
+            <p className="text-sm text-ink-700">Gerencie seus projetos e clientes para associar aos seus lançamentos de horas.</p>
           </div>
-          <button
+          <Button
+            variante="primario"
+            className="min-h-[44px]"
             onClick={abrirNovoProjetoModal}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none"
+            iconeEsquerda={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+            }
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
             Novo Projeto
-          </button>
+          </Button>
         </div>
 
         {/* Abas Projetos / Rotina */}
-        <div className="flex border-b border-gray-800 gap-6">
+        <div className="flex border-b border-hair gap-6">
           <button
             onClick={() => setAbaAtiva('projeto')}
             className={`pb-3 text-sm font-bold transition-all relative ${
               abaAtiva === 'projeto'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-ink-900'
+                : 'text-ink-500 hover:text-ink-900'
             }`}
           >
             Projetos
             {abaAtiva === 'projeto' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#03A9F4]" />
+              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent" />
             )}
           </button>
           <button
             onClick={() => setAbaAtiva('rotina')}
             className={`pb-3 text-sm font-bold transition-all relative ${
               abaAtiva === 'rotina'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-ink-900'
+                : 'text-ink-500 hover:text-ink-900'
             }`}
           >
             Rotina
             {abaAtiva === 'rotina' && (
-              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#03A9F4]" />
+              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent" />
             )}
           </button>
         </div>
 
         {/* Exibição de Mensagem de Erro */}
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-xl text-bad text-sm flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -486,7 +490,7 @@ export default function Projetos() {
         )}
 
         {/* Tabela ou Estado Vazio */}
-        <div className="bg-[#161B22] border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+        <Surface elevacao={1} padding="nenhum" comBorda className="overflow-hidden">
           {loading ? (
             <div className="flex flex-col">
               {[1, 2, 3].map((i) => (
@@ -495,21 +499,22 @@ export default function Projetos() {
             </div>
           ) : projetosFiltrados.length === 0 ? (
             <div className="p-12 text-center max-w-md mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-gray-400 mb-2">
+              <div className="inline-flex p-4 rounded-full bg-surface-2 text-ink-700 mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-white">Nenhum item encontrado</h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="text-lg font-bold text-ink-900">Nenhum item encontrado</h3>
+              <p className="text-sm text-ink-700">
                 Você ainda não cadastrou nenhum{abaAtiva === 'projeto' ? 'o projeto' : 'a rotina'}. Comece criando um para organizar seus lançamentos de horas de forma profissional.
               </p>
-              <button
+              <Button
+                variante="secundario"
+                className="min-h-[44px]"
                 onClick={abrirNovoProjetoModal}
-                className="py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
               >
                 Cadastrar Primeir{abaAtiva === 'projeto' ? 'o Projeto' : 'a Rotina'}
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -524,13 +529,13 @@ export default function Projetos() {
                 >
                   <table className="w-full text-left border-collapse block md:table">
                     <thead className="hidden md:table-header-group">
-                      <tr className="border-b border-gray-800 bg-gray-900/30">
-                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
-                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Ações</th>
+                      <tr className="border-b border-hair bg-surface-2">
+                        <th className="py-4 px-6 text-xs font-semibold text-ink-500 uppercase tracking-wider">Nome</th>
+                        <th className="py-4 px-6 text-xs font-semibold text-ink-500 uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-6 text-xs font-semibold text-ink-500 uppercase tracking-wider text-right">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-800/50 block md:table-row-group">
+                    <tbody className="divide-y divide-hair block md:table-row-group">
                       {projetosFiltrados.map((projeto) => (
                         <ProjetoRowItem
                           key={projeto.id}
@@ -549,7 +554,7 @@ export default function Projetos() {
               </DndContext>
             </div>
           )}
-        </div>
+        </Surface>
 
       </main>
 
@@ -563,13 +568,17 @@ export default function Projetos() {
       />
 
       {projetoParaExcluir && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div 
-            className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl animate-in zoom-in duration-200"
+        <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <Surface
+            elevacao={2}
+            padding="lg"
+            comBorda
+            comSombra={false}
+            className="w-full max-w-sm relative shadow-e3"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-white mb-2">Este projeto possui {projetoParaExcluir.numRegistros} lançamentos</h3>
-            <p className="text-sm text-gray-400 mb-6">
+            <h3 className="text-lg font-bold text-ink-900 mb-2">Este projeto possui {projetoParaExcluir.numRegistros} lançamentos</h3>
+            <p className="text-sm text-ink-700 mb-6">
               O que deseja fazer?
             </p>
             <div className="flex flex-col gap-2">
@@ -585,7 +594,7 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-orange-500/10 hover:bg-orange-500/20 active:bg-orange-500/30 text-orange-400 border border-orange-500/20 text-sm font-bold rounded-xl transition-all"
+                className="w-full py-2.5 px-4 bg-warn-bg text-warn border border-warn hover:opacity-80 text-sm font-bold rounded-xl transition-all min-h-[44px]"
               >
                 Encerrar projeto
               </button>
@@ -601,19 +610,19 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-red-500/10 hover:bg-red-600 hover:text-white active:bg-red-500/30 text-red-400 border border-red-500/20 text-sm font-bold rounded-xl transition-all"
+                className="w-full py-2.5 px-4 bg-bad-bg text-bad border border-bad hover:opacity-80 text-sm font-bold rounded-xl transition-all min-h-[44px]"
               >
                 Excluir mesmo assim
               </button>
               <button
                 type="button"
                 onClick={() => setProjetoParaExcluir(null)}
-                className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all border border-gray-700/50"
+                className="w-full py-2.5 px-4 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-sm font-semibold rounded-xl transition-all border border-hair-strong min-h-[44px]"
               >
                 Cancelar
               </button>
             </div>
-          </div>
+          </Surface>
         </div>
       )}
     </div>
