@@ -14,6 +14,7 @@ import type { Lembrete, Projeto } from '../types'
 import ModalLembrete from '../components/ModalLembrete'
 import { SkeletonCard } from '../components/Skeleton'
 import ModalConfirmacao from '../components/ModalConfirmacao'
+import { Button } from '../components/ui'
 
 export default function Lembretes() {
   const { user } = useAuth()
@@ -181,30 +182,33 @@ export default function Lembretes() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
 
       <main className="flex-1 p-4 md:p-8 lg:ml-[240px] max-w-5xl space-y-6 w-full overflow-y-auto">
         {/* Header da Seção */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Lembretes</h2>
-            <p className="text-sm text-gray-400">Organize e acompanhe seus lembretes e tarefas pendentes.</p>
+            <h2 className="text-2xl font-bold text-ink-900 tracking-tight">Lembretes</h2>
+            <p className="text-sm text-ink-700">Organize e acompanhe seus lembretes e tarefas pendentes.</p>
           </div>
-          <button
+          <Button
+            variante="primario"
+            className="min-h-[44px]"
             onClick={abrirNovoLembreteModal}
-            className="flex items-center justify-center gap-2 py-3 px-5 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none"
+            iconeEsquerda={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+            }
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
             Novo Lembrete
-          </button>
+          </Button>
         </div>
 
         {/* Exibição de Erro */}
         {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-xl text-bad text-sm flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -216,9 +220,9 @@ export default function Lembretes() {
         <div className="space-y-8">
           {/* Pendentes */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-gray-800 pb-2">
+            <h3 className="text-lg font-bold text-ink-900 flex items-center gap-2 border-b border-hair pb-2">
               <span>Pendentes</span>
-              <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-surface-3 text-ink-700 px-2 py-0.5 rounded-full font-medium">
                 {loading ? '...' : pendentes.length}
               </span>
             </h3>
@@ -230,22 +234,23 @@ export default function Lembretes() {
                 ))}
               </div>
             ) : pendentes.length === 0 ? (
-              <div className="bg-[#161B22] border border-gray-800 rounded-2xl p-12 text-center max-w-md mx-auto space-y-4">
-                <div className="inline-flex p-4 rounded-full bg-gray-800/50 text-gray-400 mb-2">
+              <div className="bg-surface-2 border border-hair rounded-card p-12 text-center max-w-md mx-auto space-y-4">
+                <div className="inline-flex p-4 rounded-full bg-surface-3 text-ink-700 mb-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-white">Nenhum lembrete pendente</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="text-lg font-bold text-ink-900">Nenhum lembrete pendente</h3>
+                <p className="text-sm text-ink-700">
                   Tudo em dia! Você não tem nenhum lembrete pendente no momento.
                 </p>
-                <button
+                <Button
+                  variante="secundario"
+                  className="min-h-[44px]"
                   onClick={abrirNovoLembreteModal}
-                  className="py-2.5 px-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 border border-gray-700 text-white text-xs font-semibold rounded-xl transition-all"
                 >
                   Criar Lembrete
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -257,29 +262,29 @@ export default function Lembretes() {
                   return (
                     <div
                       key={lembrete.id}
-                      className={`bg-[#161B22] border rounded-2xl p-5 shadow-sm transition-all flex flex-col justify-between min-h-[160px] animate-in fade-in zoom-in duration-200 ${
+                      className={`bg-surface-2 border rounded-card p-5 shadow-e1 transition-all flex flex-col justify-between min-h-[160px] ${
                         isVencido
-                          ? 'border-l-4 border-l-[#F44336] border-gray-800'
+                          ? 'border-l-4 border-l-bad border-hair'
                           : isHoje
-                          ? 'border-l-4 border-l-[#03A9F4] border-gray-800'
-                          : 'border-gray-800'
+                          ? 'border-l-4 border-l-accent border-hair'
+                          : 'border-hair'
                       }`}
                     >
                       <div className="space-y-2">
                         {/* Tags e Data */}
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <span className="text-xs font-mono text-gray-400">
+                          <span className="text-xs font-mono text-ink-700">
                             {formatarData(lembrete.data_alvo)}
                           </span>
-                          
+
                           <div className="flex items-center gap-1.5">
                             {isVencido && (
-                              <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-bold bg-[#F44336]/10 text-[#F44336] border border-[#F44336]/20">
+                              <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-bold bg-bad-bg text-bad border border-bad">
                                 Vencido
                               </span>
                             )}
                             {isHoje && (
-                              <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-bold bg-[#03A9F4]/10 text-[#03A9F4] border border-[#03A9F4]/20">
+                              <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-bold bg-accent-bg text-accent border border-accent">
                                 Hoje
                               </span>
                             )}
@@ -287,20 +292,20 @@ export default function Lembretes() {
                         </div>
 
                         {/* Título */}
-                        <h4 className="text-base font-bold text-white tracking-tight break-words line-clamp-2">
+                        <h4 className="text-base font-bold text-ink-900 tracking-tight break-words line-clamp-2">
                           {lembrete.titulo}
                         </h4>
 
                         {/* Descrição */}
                         {lembrete.descricao && (
-                          <p className="text-xs text-gray-400 line-clamp-3 break-words whitespace-pre-line">
+                          <p className="text-xs text-ink-700 line-clamp-3 break-words whitespace-pre-line">
                             {lembrete.descricao}
                           </p>
                         )}
                       </div>
 
                       {/* Footer do Card */}
-                      <div className="mt-4 pt-3 border-t border-gray-800/60 flex items-center justify-between gap-3">
+                      <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-3">
                         {/* Projeto Vinculado */}
                         <div className="min-w-0 flex-1">
                           {proj ? (
@@ -309,12 +314,12 @@ export default function Lembretes() {
                                 className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm"
                                 style={{ backgroundColor: proj.cor }}
                               />
-                              <span className="text-[11px] font-semibold text-gray-400 truncate" title={proj.nome}>
+                              <span className="text-[11px] font-semibold text-ink-700 truncate" title={proj.nome}>
                                 {proj.nome}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-gray-600 font-medium italic">Sem projeto</span>
+                            <span className="text-[10px] text-ink-300 font-medium italic">Sem projeto</span>
                           )}
                         </div>
 
@@ -322,7 +327,7 @@ export default function Lembretes() {
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleAlternarStatus(lembrete)}
-                            className="p-1.5 text-gray-400 hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-all focus:outline-none"
+                            className="p-1.5 text-ink-700 hover:text-ok hover:bg-ok-bg rounded-lg transition-all focus:outline-none"
                             title="Concluir"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -331,7 +336,7 @@ export default function Lembretes() {
                           </button>
                           <button
                             onClick={() => abrirEditarLembreteModal(lembrete)}
-                            className="p-1.5 text-gray-400 hover:text-[#03A9F4] hover:bg-[#03A9F4]/10 rounded-lg transition-all focus:outline-none"
+                            className="p-1.5 text-ink-700 hover:text-accent hover:bg-accent-bg rounded-lg transition-all focus:outline-none"
                             title="Editar"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -340,7 +345,7 @@ export default function Lembretes() {
                           </button>
                           <button
                             onClick={() => setLembreteParaExcluir(lembrete)}
-                            className="p-1.5 text-gray-400 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-all focus:outline-none"
+                            className="p-1.5 text-ink-700 hover:text-bad hover:bg-bad-bg rounded-lg transition-all focus:outline-none"
                             title="Excluir"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -358,51 +363,51 @@ export default function Lembretes() {
 
           {/* Resolvidos (Recolhível) */}
           {resolvidos.length > 0 && (
-            <div className="border-t border-gray-800/80 pt-6">
+            <div className="border-t border-hair pt-6">
               <button
                 onClick={() => setMostrarResolvidos(!mostrarResolvidos)}
-                className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-4 focus:outline-none"
+                className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors mb-4 focus:outline-none"
               >
                 <span className="text-xs">{mostrarResolvidos ? '▼' : '▶'}</span>
                 <h3 className="text-lg font-bold">Resolvidos ({resolvidos.length})</h3>
               </button>
 
               {mostrarResolvidos && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {resolvidos.map((lembrete) => {
                     const proj = getProjetoInfo(lembrete.projeto_id)
 
                     return (
                       <div
                         key={lembrete.id}
-                        className="bg-[#161B22] border border-gray-800 rounded-2xl p-5 shadow-sm opacity-50 [@media(hover:hover)]:hover:opacity-80 transition-all flex flex-col justify-between min-h-[160px]"
+                        className="bg-surface-2 border border-hair rounded-card p-5 shadow-e1 opacity-50 [@media(hover:hover)]:hover:opacity-80 transition-all flex flex-col justify-between min-h-[160px]"
                       >
                         <div className="space-y-2">
                           {/* Tags e Data */}
                           <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-xs font-mono text-gray-500 line-through">
+                            <span className="text-xs font-mono text-ink-500 line-through">
                               {formatarData(lembrete.data_alvo)}
                             </span>
-                            <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-semibold bg-ok-bg text-ok border border-ok">
                               Resolvido
                             </span>
                           </div>
 
                           {/* Título */}
-                          <h4 className="text-base font-bold text-gray-400 tracking-tight break-words line-clamp-2 line-through">
+                          <h4 className="text-base font-bold text-ink-700 tracking-tight break-words line-clamp-2 line-through">
                             {lembrete.titulo}
                           </h4>
 
                           {/* Descrição */}
                           {lembrete.descricao && (
-                            <p className="text-xs text-gray-500 line-clamp-3 break-words whitespace-pre-line line-through">
+                            <p className="text-xs text-ink-500 line-clamp-3 break-words whitespace-pre-line line-through">
                               {lembrete.descricao}
                             </p>
                           )}
                         </div>
 
                         {/* Footer do Card */}
-                        <div className="mt-4 pt-3 border-t border-gray-800/60 flex items-center justify-between gap-3">
+                        <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-3">
                           {/* Projeto Vinculado */}
                           <div className="min-w-0 flex-1">
                             {proj ? (
@@ -411,12 +416,12 @@ export default function Lembretes() {
                                   className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm opacity-50"
                                   style={{ backgroundColor: proj.cor }}
                                 />
-                                <span className="text-[11px] font-semibold text-gray-500 truncate" title={proj.nome}>
+                                <span className="text-[11px] font-semibold text-ink-500 truncate" title={proj.nome}>
                                   {proj.nome}
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-[10px] text-gray-600 font-medium italic">Sem projeto</span>
+                              <span className="text-[10px] text-ink-300 font-medium italic">Sem projeto</span>
                             )}
                           </div>
 
@@ -424,7 +429,7 @@ export default function Lembretes() {
                           <div className="flex items-center gap-1 shrink-0">
                             <button
                               onClick={() => handleAlternarStatus(lembrete)}
-                              className="p-1.5 text-gray-400 hover:text-[#03A9F4] hover:bg-[#03A9F4]/10 rounded-lg transition-all focus:outline-none"
+                              className="p-1.5 text-ink-700 hover:text-accent hover:bg-accent-bg rounded-lg transition-all focus:outline-none"
                               title="Reabrir (Mudar para Pendente)"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -433,7 +438,7 @@ export default function Lembretes() {
                             </button>
                             <button
                               onClick={() => setLembreteParaExcluir(lembrete)}
-                              className="p-1.5 text-gray-400 hover:text-[#F44336] hover:bg-[#F44336]/10 rounded-lg transition-all focus:outline-none"
+                              className="p-1.5 text-ink-700 hover:text-bad hover:bg-bad-bg rounded-lg transition-all focus:outline-none"
                               title="Excluir permanentemente"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
