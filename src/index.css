@@ -11,8 +11,9 @@
   --sh-2:0 4px 12px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.4);
   --sh-3:0 16px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);
   --scrim:rgba(6,8,11,.72);
-  --proj-1:#7C8CF8; --proj-2:#55B5A6; --proj-3:#D9A94E; --proj-4:#DB7BA0;
-  --proj-5:#A882E0; --proj-6:#5AA9D6; --proj-7:#7FBE7A; --proj-8:#E08A5C;
+  --proj-1:#F0655C; --proj-2:#C97B22; --proj-3:#F0B93F; --proj-4:#7E9622;
+  --proj-5:#63D07A; --proj-6:#17836A; --proj-7:#4ADEE0; --proj-8:#2278B8;
+  --proj-9:#8A9BFF; --proj-10:#7A3FC4; --proj-11:#E86BE0; --proj-12:#B32A5E;
 }
 :root[data-theme="light"]{
   --bg-0:#FCFCFD; --bg-1:#F5F6F8; --bg-2:#FFFFFF; --bg-3:#F0F1F4;
@@ -27,8 +28,9 @@
   --sh-2:0 2px 4px rgba(20,23,28,.05),0 8px 16px -4px rgba(20,23,28,.08);
   --sh-3:0 8px 16px rgba(20,23,28,.08),0 24px 48px -12px rgba(20,23,28,.18);
   --scrim:rgba(20,23,28,.35);
-  --proj-1:#4457C4; --proj-2:#1F7A6D; --proj-3:#9A6B12; --proj-4:#A8446B;
-  --proj-5:#6E4BB0; --proj-6:#226E96; --proj-7:#3F7C3A; --proj-8:#A85628;
+  --proj-1:#B32B22; --proj-2:#E0821F; --proj-3:#8A6410; --proj-4:#93A824;
+  --proj-5:#1E7A32; --proj-6:#2CA88C; --proj-7:#0E6E78; --proj-8:#3D9BD6;
+  --proj-9:#3A47B0; --proj-10:#9B62DB; --proj-11:#96218C; --proj-12:#DB5A85;
 }
 :root{
   --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:14px;

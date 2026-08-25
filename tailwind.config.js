@@ -16,7 +16,8 @@ export default {
         warn:    { DEFAULT:'var(--warn)', bg:'var(--warn-bg)' },
         bad:     { DEFAULT:'var(--bad)', bg:'var(--bad-bg)' },
         proj:    { 1:'var(--proj-1)', 2:'var(--proj-2)', 3:'var(--proj-3)', 4:'var(--proj-4)',
-                   5:'var(--proj-5)', 6:'var(--proj-6)', 7:'var(--proj-7)', 8:'var(--proj-8)' },
+                   5:'var(--proj-5)', 6:'var(--proj-6)', 7:'var(--proj-7)', 8:'var(--proj-8)',
+                   9:'var(--proj-9)', 10:'var(--proj-10)', 11:'var(--proj-11)', 12:'var(--proj-12)' },
       },
       fontFamily: {
         display: ['Instrument Sans','system-ui','sans-serif'],
