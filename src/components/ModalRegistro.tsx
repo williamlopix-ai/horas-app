@@ -10,6 +10,7 @@ import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria, Fase } from '../types'
 import { useFecharComEsc } from '../hooks/useFecharComEsc'
+import { Button, Surface, classeCampo } from './ui'
 
 interface ModalRegistroProps {
   isOpen: boolean
@@ -287,16 +288,20 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   }
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div
-        className="bg-[#161B22] border border-gray-800 rounded-2xl w-full mx-4 sm:mx-0 max-w-2xl max-h-[90dvh] overflow-y-auto overscroll-contain touch-pan-y p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200"
+    <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <Surface
+        elevacao={2}
+        padding="lg"
+        comBorda
+        comSombra={false}
+        className="w-full mx-4 sm:mx-0 max-w-2xl max-h-[90dvh] overflow-y-auto overscroll-contain touch-pan-y relative shadow-e3"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Botão Fechar */}
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors focus:outline-none"
+          className="absolute top-4 right-4 text-ink-700 hover:text-ink-900 transition-colors focus:outline-none"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -310,7 +315,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-xl text-bad text-xs flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -326,7 +331,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
             
             {/* Projeto */}
             <div>
-              <label htmlFor="modal-projeto" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-projeto" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Projeto *
               </label>
               <select
@@ -334,14 +339,14 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                 required
                 value={projetoId}
                 onChange={(e) => setProjetoId(e.target.value)}
-                className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
+                className={`${classeCampo()} min-h-[44px] cursor-pointer`}
               >
                 <option value="" disabled>Selecione um projeto...</option>
                 
                 {projetos.filter(p => p.tipo === 'projeto' || !p.tipo).length > 0 && (
-                  <optgroup label="── PROJETOS ──" className="bg-[#161B22] text-gray-400 font-bold">
+                  <optgroup label="── PROJETOS ──" className="bg-surface-2 text-ink-500 font-bold">
                     {projetos.filter(p => p.tipo === 'projeto' || !p.tipo).map((p) => (
-                      <option key={p.id} value={p.id} className="text-white font-normal bg-[#0B0E14]">
+                      <option key={p.id} value={p.id} className="text-ink-900 font-normal bg-surface-0">
                         {p.nome}
                       </option>
                     ))}
@@ -349,9 +354,9 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                 )}
 
                 {projetos.filter(p => p.tipo === 'rotina').length > 0 && (
-                  <optgroup label="── ROTINA ──" className="bg-[#161B22] text-gray-400 font-bold">
+                  <optgroup label="── ROTINA ──" className="bg-surface-2 text-ink-500 font-bold">
                     {projetos.filter(p => p.tipo === 'rotina').map((p) => (
-                      <option key={p.id} value={p.id} className="text-white font-normal bg-[#0B0E14]">
+                      <option key={p.id} value={p.id} className="text-ink-900 font-normal bg-surface-0">
                         {p.nome}
                       </option>
                     ))}
@@ -363,14 +368,14 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
             {/* Subcategoria (Condicional) */}
             {subcategoriasDisponiveis.length > 0 && (
               <div>
-                <label htmlFor="modal-subcategoria" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="modal-subcategoria" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Subcategoria (opcional)
                 </label>
                 <select
                   id="modal-subcategoria"
                   value={subcategoriaId}
                   onChange={(e) => setSubcategoriaId(e.target.value)}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
+                  className={`${classeCampo()} min-h-[44px] cursor-pointer`}
                 >
                   <option value="">Sem subcategoria</option>
 
@@ -391,15 +396,15 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                             <optgroup
                               key={fase.id}
                               label={fase.nome}
-                              className="bg-[#161B22] text-[#8B949E] font-bold"
-                              style={{ backgroundColor: '#161B22', color: '#8B949E' }}
+                              className="bg-surface-2 text-ink-500 font-bold"
+                              style={{ backgroundColor: 'var(--bg-2)', color: 'var(--fg-500)' }}
                             >
                               {subsDaFase.map((sub) => (
                                 <option
                                   key={sub.id}
                                   value={sub.id}
-                                  className="text-white font-normal bg-[#0B0E14]"
-                                  style={{ backgroundColor: '#0B0E14', color: '#FFFFFF' }}
+                                  className="text-ink-900 font-normal bg-surface-0"
+                                  style={{ backgroundColor: 'var(--bg-0)', color: 'var(--fg-900)' }}
                                 >
                                   {sub.nome}
                                 </option>
@@ -416,15 +421,15 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                         return (
                           <optgroup
                             label="Sem fase"
-                            className="bg-[#161B22] text-[#8B949E] font-bold"
-                            style={{ backgroundColor: '#161B22', color: '#8B949E' }}
+                            className="bg-surface-2 text-ink-500 font-bold"
+                            style={{ backgroundColor: 'var(--bg-2)', color: 'var(--fg-500)' }}
                           >
                             {subcategoriasSemFase.map((sub) => (
                               <option
                                 key={sub.id}
                                 value={sub.id}
-                                className="text-white font-normal bg-[#0B0E14]"
-                                style={{ backgroundColor: '#0B0E14', color: '#FFFFFF' }}
+                                className="text-ink-900 font-normal bg-surface-0"
+                                style={{ backgroundColor: 'var(--bg-0)', color: 'var(--fg-900)' }}
                               >
                                 {sub.nome}
                               </option>
@@ -440,7 +445,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
             {/* Data */}
             <div>
-              <label htmlFor="modal-data" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-data" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Data do Lançamento *
               </label>
               <input
@@ -449,14 +454,14 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                 required
                 value={data}
                 onChange={(e) => setData(e.target.value)}
-                className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
+                className={`${classeCampo()} min-h-[44px] cursor-pointer`}
               />
             </div>
 
             {/* Horários (Lado a Lado) */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="modal-inicio" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="modal-inicio" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Início *
                 </label>
                 <input
@@ -468,12 +473,12 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                     setHoraInicio(e.target.value)
                     setHorasEditadasManualmente(true)
                   }}
-                  className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#03A9F4] w-full cursor-pointer transition-colors"
+                  className={`${classeCampo()} min-h-[44px] cursor-pointer`}
                 />
               </div>
 
               <div>
-                <label htmlFor="modal-fim" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="modal-fim" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Fim *
                 </label>
                 <input
@@ -485,21 +490,19 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                     setHoraFim(e.target.value)
                     setHorasEditadasManualmente(true)
                   }}
-                  className={`bg-[#0B0E14] border rounded-xl px-4 py-3 text-sm text-white focus:outline-none w-full cursor-pointer transition-colors ${
-                    validacaoErro ? 'border-red-500/50 focus:border-red-500' : 'border-gray-800 focus:border-[#03A9F4]'
-                  }`}
+                  className={`${classeCampo(!!validacaoErro)} min-h-[44px] cursor-pointer`}
                 />
               </div>
             </div>
 
             {/* Validação de erro de horário */}
             {validacaoErro && (
-              <p className="text-[11px] text-red-400 font-semibold mt-1">{validacaoErro}</p>
+              <p className="text-[11px] text-bad font-semibold mt-1">{validacaoErro}</p>
             )}
 
             {/* Observações */}
             <div>
-              <label htmlFor="modal-obs" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="modal-obs" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Observações
               </label>
               <textarea
@@ -508,7 +511,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                 placeholder="Ex: Reunião de alinhamento técnico, refatoração de código..."
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
-                className="bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] w-full resize-none transition-colors"
+                className={`${classeCampo()} min-h-[44px] resize-none`}
               />
             </div>
 
@@ -516,30 +519,30 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
           {/* Coluna Direita: Preview Centesimal */}
           <div className="md:col-span-5 flex flex-col justify-between">
-            <div className="bg-[#0B0E14] border border-gray-800 rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full space-y-4">
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+            <div className="bg-surface-1 border border-hair rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full space-y-4">
+              <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">
                 Duração Centesimal
               </span>
 
               {/* Destaque Gigante */}
               <div className="space-y-1 py-4">
-                <div className="text-4xl font-mono font-extrabold text-[#03A9F4] tracking-tight animate-pulse">
+                <div className="text-4xl font-mono font-extrabold text-accent tracking-tight animate-pulse">
                   {duracaoCentesimal.toFixed(2).replace('.', ',')}h
                 </div>
-                <div className="text-xs font-semibold text-gray-400">
+                <div className="text-xs font-semibold text-ink-700">
                   {duracaoHumana} em minutos reais
                 </div>
               </div>
 
               {/* Informação Técnica */}
-              <div className="bg-[#161B22] border border-gray-800/80 rounded-xl p-3 w-full space-y-1.5">
-                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">
+              <div className="bg-surface-3 border border-hair rounded-xl p-3 w-full space-y-1.5">
+                <span className="text-[9px] font-bold text-ink-700 uppercase tracking-wider block">
                   Regra de Conversão
                 </span>
-                <p className="text-[10px] text-gray-500 leading-normal">
+                <p className="text-[10px] text-ink-500 leading-normal">
                   Minutos convertidos centesimalmente para facilitar faturamento e cálculos.
                 </p>
-                <div className="text-[11px] font-mono font-bold text-gray-300 bg-[#0B0E14] py-1 px-2 rounded mt-1 border border-gray-800/50">
+                <div className="text-[11px] font-mono font-bold text-ink-900 bg-surface-0 py-1 px-2 rounded mt-1 border border-hair">
                   {duracaoHumana} = {duracaoCentesimal.toFixed(2).replace('.', ',')}h
                 </div>
               </div>
@@ -547,36 +550,31 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
             {/* Ações */}
             <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0">
-              <button
+              <Button
+                variante="secundario"
+                larguraTotal
+                className="sm:flex-1 min-h-[44px]"
                 type="button"
                 onClick={onClose}
-                className="w-full sm:flex-1 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl transition-all border border-gray-700 focus:outline-none"
               >
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
+                variante="primario"
                 type="submit"
+                larguraTotal
+                className="sm:flex-1 min-h-[44px]"
                 disabled={submitting || !!validacaoErro || !projetoId || !data}
-                className="w-full sm:flex-1 py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none"
+                carregando={submitting}
               >
-                {submitting ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4}></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Salvando...
-                  </>
-                ) : (
-                  'Salvar'
-                )}
-              </button>
+                {submitting ? 'Salvando...' : 'Salvar'}
+              </Button>
             </div>
 
           </div>
 
         </form>
-      </div>
+      </Surface>
     </div>
   )
 }
