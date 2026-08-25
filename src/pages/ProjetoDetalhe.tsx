@@ -60,6 +60,7 @@ export default function ProjetoDetalhe() {
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
   const [secoesExpandidas, setSecoesExpandidas] = useState<Record<string, boolean>>({})
   const [avisoNovoProjeto, setAvisoNovoProjeto] = useState(false)
+  const [pulsoAtivo, setPulsoAtivo] = useState(false)
 
   const toggleSecao = (chave: string) => {
     setSecoesExpandidas(prev => ({ ...prev, [chave]: !prev[chave] }))
@@ -143,12 +144,39 @@ export default function ProjetoDetalhe() {
   useEffect(() => {
     if (searchParams.get('novo') === '1') {
       setAvisoNovoProjeto(true)
+      setPulsoAtivo(true)
       const proximos = new URLSearchParams(searchParams)
       proximos.delete('novo')
       setSearchParams(proximos, { replace: true })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!pulsoAtivo) return
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    let iniciado = false
+
+    const iniciarContagem = () => {
+      if (iniciado) return
+      iniciado = true
+      timeoutId = setTimeout(() => {
+        setPulsoAtivo(false)
+      }, 6000)
+    }
+
+    window.addEventListener('mousemove', iniciarContagem, { once: true })
+    window.addEventListener('keydown', iniciarContagem, { once: true })
+    window.addEventListener('touchstart', iniciarContagem, { once: true })
+
+    return () => {
+      window.removeEventListener('mousemove', iniciarContagem)
+      window.removeEventListener('keydown', iniciarContagem)
+      window.removeEventListener('touchstart', iniciarContagem)
+      clearTimeout(timeoutId)
+    }
+  }, [pulsoAtivo])
 
   const toggleFase = (faseId: string) => {
     setFasesExpandidas(prev => ({ ...prev, [faseId]: !prev[faseId] }))
@@ -1099,7 +1127,7 @@ export default function ProjetoDetalhe() {
         ) : (
           <div className="space-y-8 animate-in fade-in duration-300">
             {avisoNovoProjeto && !temContratado && (
-              <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-2 font-ui">
+              <div className={`rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-2 font-ui ${pulsoAtivo ? 'pulso-brilho' : ''}`}>
                 <span>Projeto criado. Defina as horas contratadas para acompanhar o progresso.</span>
               </div>
             )}
@@ -1130,16 +1158,21 @@ export default function ProjetoDetalhe() {
                   >
                     {projeto.status === 'ativo' ? 'Ativo' : projeto.status === 'encerrado' ? 'Encerrado' : 'Excluído'}
                   </span>
-                  <MenuAcoes
-                    itens={[
-                      {
-                        label: 'Editar horas contratadas',
-                        onClick: handleStartEditContratadas
-                      }
-                    ]}
-                    rotulo="Ações do projeto"
-                    desabilitado={editandoContratadas || salvandoContratadas}
-                  />
+                  <span
+                    className={`inline-flex items-center ${pulsoAtivo ? 'pulso-zoom' : ''}`}
+                    onClickCapture={() => setPulsoAtivo(false)}
+                  >
+                    <MenuAcoes
+                      itens={[
+                        {
+                          label: 'Editar horas contratadas',
+                          onClick: handleStartEditContratadas
+                        }
+                      ]}
+                      rotulo="Ações do projeto"
+                      desabilitado={editandoContratadas || salvandoContratadas}
+                    />
+                  </span>
                 </div>
               </div>
               {projeto.codigo_externo && (
@@ -1203,7 +1236,10 @@ export default function ProjetoDetalhe() {
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas
                     <button
                       type="button"
-                      onClick={handleStartEditContratadas}
+                      onClick={() => {
+                        handleStartEditContratadas()
+                        setPulsoAtivo(false)
+                      }}
                       className="text-ink-500 hover:text-ink-900 text-sm transition-colors"
                     >
                       definir horas contratadas

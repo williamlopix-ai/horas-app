@@ -99,6 +99,31 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   border-radius: 3px; 
 }
 
-::-webkit-scrollbar-thumb:hover { 
-  background: #4B5563; 
+::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
+@keyframes pulso-brilho {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+
+@keyframes pulso-zoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.pulso-brilho {
+  animation: pulso-brilho 2s ease-in-out 3;
+}
+
+.pulso-zoom {
+  animation: pulso-zoom 2s ease-in-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulso-brilho,
+  .pulso-zoom {
+    animation: none;
+  }
 }
