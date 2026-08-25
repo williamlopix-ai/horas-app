@@ -1094,24 +1094,36 @@ export default function ProjetoDetalhe() {
                   </span>
                   <h1 className="text-2xl font-display font-bold text-ink-900 tracking-tight uppercase truncate">{projeto.nome}</h1>
                 </div>
-                <span
-                  style={
-                    projeto.status === 'ativo'
-                      ? { borderColor: 'color-mix(in srgb, var(--ok) 30%, transparent)' }
-                      : projeto.status === 'encerrado'
-                      ? { borderColor: 'color-mix(in srgb, var(--warn) 30%, transparent)' }
-                      : undefined
-                  }
-                  className={`px-3 py-1 rounded-full text-xs font-bold border shrink-0 font-ui ${
-                    projeto.status === 'ativo'
-                      ? 'bg-ok-bg text-ok'
-                      : projeto.status === 'encerrado'
-                      ? 'bg-warn-bg text-warn'
-                      : 'bg-surface-3 text-ink-500 border-hair'
-                  }`}
-                >
-                  {projeto.status === 'ativo' ? 'Ativo' : projeto.status === 'encerrado' ? 'Encerrado' : 'Excluído'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    style={
+                      projeto.status === 'ativo'
+                        ? { borderColor: 'color-mix(in srgb, var(--ok) 30%, transparent)' }
+                        : projeto.status === 'encerrado'
+                        ? { borderColor: 'color-mix(in srgb, var(--warn) 30%, transparent)' }
+                        : undefined
+                    }
+                    className={`px-3 py-1 rounded-full text-xs font-bold border shrink-0 font-ui ${
+                      projeto.status === 'ativo'
+                        ? 'bg-ok-bg text-ok'
+                        : projeto.status === 'encerrado'
+                        ? 'bg-warn-bg text-warn'
+                        : 'bg-surface-3 text-ink-500 border-hair'
+                    }`}
+                  >
+                    {projeto.status === 'ativo' ? 'Ativo' : projeto.status === 'encerrado' ? 'Encerrado' : 'Excluído'}
+                  </span>
+                  <MenuAcoes
+                    itens={[
+                      {
+                        label: 'Editar horas contratadas',
+                        onClick: handleStartEditContratadas
+                      }
+                    ]}
+                    rotulo="Ações do projeto"
+                    desabilitado={editandoContratadas || salvandoContratadas}
+                  />
+                </div>
               </div>
               {projeto.codigo_externo && (
                 <div className="font-mono text-xs text-ink-500">
