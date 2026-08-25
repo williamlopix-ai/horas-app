@@ -72,6 +72,8 @@ export default function ProjetoDetalhe() {
   const [confirmandoRemoverDivisao, setConfirmandoRemoverDivisao] = useState(false)
   const [salvandoFase, setSalvandoFase] = useState(false)
   const [salvandoContratadas, setSalvandoContratadas] = useState(false)
+  const [editandoContratadas, setEditandoContratadas] = useState(false)
+  const [valorContratadasEditando, setValorContratadasEditando] = useState('')
 
   // Estados de gestão de Subcategorias na página
   const [editandoSubId, setEditandoSubId] = useState<string | null>(null)
@@ -384,6 +386,48 @@ export default function ProjetoDetalhe() {
       showToast('Horas contratadas atualizadas!', 'success')
     } catch (err: unknown) {
       console.error('Erro ao atualizar horas contratadas:', err)
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setSalvandoContratadas(false)
+    }
+  }
+
+  const handleStartEditContratadas = () => {
+    if (!projeto) return
+    setEditandoContratadas(true)
+    setValorContratadasEditando(
+      projeto.horas_contratadas !== null && projeto.horas_contratadas !== undefined
+        ? (Number.isInteger(projeto.horas_contratadas)
+            ? projeto.horas_contratadas.toString()
+            : projeto.horas_contratadas.toString().replace('.', ','))
+        : ''
+    )
+  }
+
+  const handleCancelEditContratadas = () => {
+    setEditandoContratadas(false)
+    setValorContratadasEditando('')
+  }
+
+  const handleSaveEditContratadas = async () => {
+    if (!projeto) return
+    let valor: number | null = null
+    const raw = valorContratadasEditando.trim()
+    if (raw) {
+      const parsed = parseFloat(raw.replace(',', '.'))
+      if (isNaN(parsed) || parsed < 0) {
+        showToast('Valor de horas inválido', 'error')
+        return
+      }
+      valor = parsed
+    }
+    try {
+      setSalvandoContratadas(true)
+      await atualizarProjeto(projeto.id, { horas_contratadas: valor })
+      await carregarDados(true)
+      handleCancelEditContratadas()
+    } catch (err: unknown) {
+      console.error('Erro ao salvar horas contratadas:', err)
       showToast(getErrorMessage(err), 'error')
     } finally {
       setSalvandoContratadas(false)
@@ -1078,13 +1122,63 @@ export default function ProjetoDetalhe() {
 
             <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
               <div className="flex justify-between items-center text-sm font-medium font-ui">
-                {temContratado ? (
-                  <p className="text-ink-500">
+                {editandoContratadas ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="text"
+                      value={valorContratadasEditando}
+                      onChange={(e) => setValorContratadasEditando(e.target.value)}
+                      placeholder="Horas"
+                      disabled={salvandoContratadas}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleSaveEditContratadas()
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault()
+                          handleCancelEditContratadas()
+                        }
+                      }}
+                      className={`${classeCampo()} !w-28 text-sm py-1 px-2.5 font-mono`}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveEditContratadas}
+                      disabled={salvandoContratadas}
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
+                      title="Confirmar"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEditContratadas}
+                      disabled={salvandoContratadas}
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
+                      title="Cancelar"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : temContratado ? (
+                  <button
+                    type="button"
+                    onClick={handleStartEditContratadas}
+                    className="text-ink-500 hover:text-ink-900 text-sm text-left transition-colors"
+                  >
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas de {totalContratado!.toFixed(2).replace('.', ',')}h contratadas
-                  </p>
+                  </button>
                 ) : (
-                  <p className="text-ink-500">
+                  <p className="text-ink-500 flex items-center gap-1.5">
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas
+                    <button
+                      type="button"
+                      onClick={handleStartEditContratadas}
+                      className="text-ink-500 hover:text-ink-900 text-sm transition-colors"
+                    >
+                      definir horas contratadas
+                    </button>
                   </p>
                 )}
                 {temContratado && (
