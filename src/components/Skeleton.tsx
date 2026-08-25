@@ -47,7 +47,7 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
 
 export function SkeletonRow({ className = '' }: { className?: string }) {
   return (
-    <div className={`flex items-center justify-between py-4 px-6 border-b border-gray-800/50 last:border-0 ${className}`}>
+    <div className={`flex items-center justify-between py-4 px-6 border-b border-hair last:border-0 ${className}`}>
       <div className="flex items-center gap-3 w-1/3">
         <Skeleton className="h-3.5 w-3.5 rounded-full shrink-0" />
         <SkeletonLine className="w-full" />

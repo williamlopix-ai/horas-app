@@ -94,7 +94,7 @@ export default function MenuAcoes({
         aria-label={rotulo}
         aria-haspopup="menu"
         aria-expanded={aberto}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-[#8B949E] hover:text-white hover:bg-gray-800/50 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-500 hover:text-ink-900 hover:bg-surface-3 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +118,7 @@ export default function MenuAcoes({
             bottom: posicao.bottom,
             right: posicao.right
           }}
-          className="fixed bg-[#161B22] border border-gray-800 rounded-xl shadow-2xl z-40 min-w-[180px] p-1.5 animate-in fade-in zoom-in-95 duration-150 flex flex-col"
+          className="fixed bg-surface-2 border border-hair-strong rounded-xl shadow-e3 z-40 min-w-[180px] p-1.5 flex flex-col"
           role="menu"
           aria-orientation="vertical"
           onClick={(e) => e.stopPropagation()}
@@ -129,11 +129,11 @@ export default function MenuAcoes({
             return (
               <div key={index} className="flex flex-col">
                 {item.separadorAntes && (
-                  <div className="border-t border-gray-800 my-1" />
+                  <div className="border-t border-hair my-1" />
                 )}
 
                 {isRotuloSecao ? (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E] px-3 py-1.5 cursor-default select-none">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-ink-500 px-3 py-1.5 cursor-default select-none">
                     {item.label}
                   </span>
                 ) : (
@@ -146,8 +146,8 @@ export default function MenuAcoes({
                     }}
                     className={`w-full text-left py-2.5 px-3 text-sm rounded-lg transition-colors flex items-center justify-between font-medium ${
                       item.perigo
-                        ? 'text-[#F44336] hover:bg-[#F44336]/10 hover:text-[#F44336]'
-                        : 'text-gray-200 hover:text-white hover:bg-gray-800/60'
+                        ? 'text-bad hover:bg-bad-bg hover:text-bad'
+                        : 'text-ink-700 hover:text-ink-900 hover:bg-surface-3'
                     }`}
                   >
                     {item.label}

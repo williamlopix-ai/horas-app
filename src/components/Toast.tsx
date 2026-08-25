@@ -32,9 +32,9 @@ const ICONS = {
 }
 
 const STYLES: Record<ToastType, string> = {
-  success: 'bg-[#1a2e1a] border border-[#4CAF50]/30 text-[#4CAF50]',
-  error:   'bg-[#2e1a1a] border border-[#F44336]/30 text-[#F44336]',
-  info:    'bg-[#1a2535] border border-[#03A9F4]/30 text-[#03A9F4]',
+  success: 'bg-ok-bg border border-ok text-ok',
+  error:   'bg-bad-bg border border-bad text-bad',
+  info:    'bg-accent-bg border border-accent text-accent-fg',
 }
 
 function ToastSingle({ toast, onRemove }: ToastProps) {
@@ -62,7 +62,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
   return (
     <div
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg shadow-black/30
+        flex items-center gap-3 px-4 py-3 rounded-xl shadow-e2
         text-sm font-medium max-w-[360px] w-full pointer-events-auto
         transition-all duration-300 ease-out
         ${STYLES[toast.type]}
