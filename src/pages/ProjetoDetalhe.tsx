@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
@@ -36,6 +36,7 @@ const DESTINO_PENDENTE = '__escolher__'
 export default function ProjetoDetalhe() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
@@ -58,6 +59,7 @@ export default function ProjetoDetalhe() {
 
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
   const [secoesExpandidas, setSecoesExpandidas] = useState<Record<string, boolean>>({})
+  const [avisoNovoProjeto, setAvisoNovoProjeto] = useState(false)
 
   const toggleSecao = (chave: string) => {
     setSecoesExpandidas(prev => ({ ...prev, [chave]: !prev[chave] }))
@@ -137,6 +139,16 @@ export default function ProjetoDetalhe() {
   useEffect(() => {
     carregarDados()
   }, [user, id])
+
+  useEffect(() => {
+    if (searchParams.get('novo') === '1') {
+      setAvisoNovoProjeto(true)
+      const proximos = new URLSearchParams(searchParams)
+      proximos.delete('novo')
+      setSearchParams(proximos, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const toggleFase = (faseId: string) => {
     setFasesExpandidas(prev => ({ ...prev, [faseId]: !prev[faseId] }))
@@ -1086,6 +1098,11 @@ export default function ProjetoDetalhe() {
           </Surface>
         ) : (
           <div className="space-y-8 animate-in fade-in duration-300">
+            {avisoNovoProjeto && !temContratado && (
+              <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-2 font-ui">
+                <span>Projeto criado. Defina as horas contratadas para acompanhar o progresso.</span>
+              </div>
+            )}
             <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">

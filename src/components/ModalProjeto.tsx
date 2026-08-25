@@ -193,7 +193,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
             </div>
 
             {/* Horas Contratadas */}
-            {tipo === 'projeto' && (
+            {projeto && tipo === 'projeto' && (
               <div>
                 <label htmlFor="horas-contratadas" className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   Horas Contratadas (opcional)

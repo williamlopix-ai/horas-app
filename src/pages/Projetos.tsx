@@ -290,7 +290,6 @@ export default function Projetos() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProjeto, setEditingProjeto] = useState<Projeto | null>(null)
   const [projetoTemFases, setProjetoTemFases] = useState(false)
-  const [projetoRecemCriado, setProjetoRecemCriado] = useState<Projeto | null>(null)
   const [projetoParaExcluir, setProjetoParaExcluir] = useState<{ projeto: Projeto; numRegistros: number } | null>(null)
 
   const carregarProjetos = async () => {
@@ -368,10 +367,9 @@ export default function Projetos() {
           billable: dados.billable
         } as any)
         showToast('Projeto criado!', 'success')
-        
-        // Se for do tipo 'projeto', exibe dialog para oferecer subcategorias
+
         if (novoProj.tipo === 'projeto') {
-          setProjetoRecemCriado(novoProj)
+          navigate(`/projeto/${novoProj.id}?novo=1`)
         }
       }
       await carregarProjetos()
@@ -564,40 +562,6 @@ export default function Projetos() {
         temFases={projetoTemFases}
       />
 
-      {/* Dialog de Confirmação para Adicionar Subcategorias */}
-      {projetoRecemCriado && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div 
-            className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-sm p-6 relative shadow-2xl animate-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-bold text-white mb-2">Projeto criado!</h3>
-            <p className="text-sm text-gray-400 mb-6">
-              Deseja adicionar subcategorias agora?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const id = projetoRecemCriado.id
-                  setProjetoRecemCriado(null)
-                  navigate(`/projeto/${id}`)
-                }}
-                className="w-full py-2.5 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/10"
-              >
-                Configurar agora
-              </button>
-              <button
-                type="button"
-                onClick={() => setProjetoRecemCriado(null)}
-                className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-sm font-semibold rounded-xl transition-all border border-gray-700/50"
-              >
-                Agora não
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {projetoParaExcluir && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div 
