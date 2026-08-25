@@ -12,19 +12,23 @@ interface ModalProjetoProps {
 }
 
 const PALETA_CORES = [
-  '#03A9F4',
-  '#4CAF50',
-  '#F44336',
-  '#FF9800',
-  '#9C27B0',
-  '#00BCD4',
-  '#FF5722',
-  '#607D8B'
+  { valor: 'var(--proj-1)', nome: 'vermelho' },
+  { valor: 'var(--proj-2)', nome: 'laranja' },
+  { valor: 'var(--proj-3)', nome: 'ouro' },
+  { valor: 'var(--proj-4)', nome: 'lima' },
+  { valor: 'var(--proj-5)', nome: 'verde' },
+  { valor: 'var(--proj-6)', nome: 'esmeralda' },
+  { valor: 'var(--proj-7)', nome: 'ciano' },
+  { valor: 'var(--proj-8)', nome: 'azul' },
+  { valor: 'var(--proj-9)', nome: 'índigo' },
+  { valor: 'var(--proj-10)', nome: 'roxo' },
+  { valor: 'var(--proj-11)', nome: 'magenta' },
+  { valor: 'var(--proj-12)', nome: 'framboesa' }
 ]
 
 export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFases }: ModalProjetoProps) {
   const [nome, setNome] = useState('')
-  const [cor, setCor] = useState(PALETA_CORES[0])
+  const [cor, setCor] = useState(PALETA_CORES[0].valor)
   const [status, setStatus] = useState<'ativo' | 'encerrado' | 'excluido'>('ativo')
   const [tipo, setTipo] = useState<'projeto' | 'rotina'>('projeto')
   const [horasContratadas, setHorasContratadas] = useState<string>('')
@@ -46,7 +50,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
         setBillable((projeto as any).billable ?? false)
       } else {
         setNome('')
-        setCor(PALETA_CORES[0])
+        setCor(PALETA_CORES[0].valor)
         setStatus('ativo')
         setTipo('projeto')
         setHorasContratadas('')
@@ -258,19 +262,19 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                 Cor de Identificação
               </label>
-              <div className="grid grid-cols-8 gap-2">
-                {PALETA_CORES.map((corHex) => (
+              <div className="grid grid-cols-6 gap-2">
+                {PALETA_CORES.map((itemCor) => (
                   <button
-                    key={corHex}
+                    key={itemCor.valor}
                     type="button"
-                    onClick={() => setCor(corHex)}
+                    onClick={() => setCor(itemCor.valor)}
                     className={`h-9 w-9 rounded-full transition-all border flex items-center justify-center shrink-0 ${
-                      cor === corHex ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
+                      cor === itemCor.valor ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
                     }`}
-                    style={{ backgroundColor: corHex }}
-                    title={corHex}
+                    style={{ backgroundColor: itemCor.valor }}
+                    title={itemCor.nome}
                   >
-                    {cor === corHex && (
+                    {cor === itemCor.valor && (
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-sm" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
