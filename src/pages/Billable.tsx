@@ -846,11 +846,11 @@ export default function Billable() {
                   </div>
                 ) : (
                   <div className="overflow-auto max-h-[55vh] custom-scrollbar">
-                    <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+                    <table className="w-full text-left border-separate border-spacing-0 whitespace-nowrap min-w-[640px] md:min-w-[800px]">
                       <thead>
                         <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
-                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[100px]">WO</th>
-                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
+                          <th className="sticky top-0 left-0 z-30 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px] md:min-w-[100px]">WO</th>
+                          <th className="hidden md:table-cell sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
                           {days.map((d) => (
                             <th key={d.toISOString()} className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-right w-20">
                               {LABELS_DIA[d.getDay()]}
@@ -862,6 +862,7 @@ export default function Billable() {
                       <tbody className="divide-y divide-hair">
                         {tableData.map((row, index) => {
                           const rowBg = index % 2 === 0 ? 'bg-surface-1' : 'bg-surface-0'
+                          const rowBgVar = index % 2 === 0 ? 'var(--bg-1)' : 'var(--bg-0)'
                           return (
                             <tr
                               key={row.projetoId}
@@ -873,13 +874,19 @@ export default function Billable() {
                               style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                             >
                               <td
-                                className="py-3 px-4 font-mono text-sm text-ink-500 tabular-nums cursor-pointer select-none"
+                                className={`sticky left-0 z-10 md:static md:z-auto ${rowBg} md:bg-transparent py-3 px-4 font-mono text-sm text-ink-500 tabular-nums cursor-pointer select-none min-w-[130px] md:min-w-[100px]`}
+                                style={selectedRow === row.projetoId ? { backgroundColor: `color-mix(in srgb, var(--accent) 20%, ${rowBgVar})` } : undefined}
                                 onClick={() => toggleRow(row.projetoId)}
                               >
-                                {row.codigo}
+                                <span className="block text-xs md:text-sm">
+                                  {row.codigo}
+                                </span>
+                                <span className="block md:hidden text-ink-900 font-medium text-sm whitespace-normal break-words leading-tight" title={row.nome}>
+                                  {row.nome}
+                                </span>
                               </td>
                               <td
-                                className="py-3 px-4 text-ink-900 font-medium text-sm truncate max-w-[200px] cursor-pointer select-none"
+                                className="hidden md:table-cell py-3 px-4 text-ink-900 font-medium text-sm truncate max-w-[200px] cursor-pointer select-none"
                                 title={row.nome}
                                 onClick={() => toggleRow(row.projetoId)}
                               >
@@ -900,7 +907,10 @@ export default function Billable() {
 
                         {/* Linha de Totais */}
                         <tr className="bg-surface-2 border-t-2 border-hair-strong font-semibold">
-                          <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
+                          <td className="md:hidden sticky left-0 z-10 bg-surface-2 py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px]">
+                            Total da Semana
+                          </td>
+                          <td colSpan={2} className="hidden md:table-cell py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
                             Total da Semana
                           </td>
                           {totals.dias.map((tot, idx) => (
@@ -1153,11 +1163,11 @@ export default function Billable() {
                   </div>
                 ) : (
                   <div className="overflow-auto max-h-[55vh] custom-scrollbar">
-                    <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+                    <table className="w-full text-left border-separate border-spacing-0 whitespace-nowrap min-w-[640px] md:min-w-[800px]">
                       <thead>
                         <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
-                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[100px]">WO</th>
-                          <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
+                          <th className="sticky top-0 left-0 z-30 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px] md:min-w-[100px]">WO</th>
+                          <th className="hidden md:table-cell sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
                           {weeksSorted.map((sem, idx) => (
                             <th key={sem} className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-right w-28">Semana {idx + 1}</th>
                           ))}
@@ -1167,6 +1177,7 @@ export default function Billable() {
                       <tbody className="divide-y divide-hair">
                         {tableDataMensal.map((row, index) => {
                           const rowBg = index % 2 === 0 ? 'bg-surface-1' : 'bg-surface-0'
+                          const rowBgVar = index % 2 === 0 ? 'var(--bg-1)' : 'var(--bg-0)'
                           return (
                             <tr
                               key={row.projetoId}
@@ -1178,13 +1189,19 @@ export default function Billable() {
                               style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                             >
                               <td
-                                className="py-3 px-4 font-mono text-sm text-ink-500 tabular-nums cursor-pointer select-none"
+                                className={`sticky left-0 z-10 md:static md:z-auto ${rowBg} md:bg-transparent py-3 px-4 font-mono text-sm text-ink-500 tabular-nums cursor-pointer select-none min-w-[130px] md:min-w-[100px]`}
+                                style={selectedRow === row.projetoId ? { backgroundColor: `color-mix(in srgb, var(--accent) 20%, ${rowBgVar})` } : undefined}
                                 onClick={() => toggleRow(row.projetoId)}
                               >
-                                {row.codigo}
+                                <span className="block text-xs md:text-sm">
+                                  {row.codigo}
+                                </span>
+                                <span className="block md:hidden text-ink-900 font-medium text-sm whitespace-normal break-words leading-tight" title={row.nome}>
+                                  {row.nome}
+                                </span>
                               </td>
                               <td
-                                className="py-3 px-4 text-ink-900 font-medium text-sm truncate max-w-[200px] cursor-pointer select-none"
+                                className="hidden md:table-cell py-3 px-4 text-ink-900 font-medium text-sm truncate max-w-[200px] cursor-pointer select-none"
                                 title={row.nome}
                                 onClick={() => toggleRow(row.projetoId)}
                               >
@@ -1205,7 +1222,10 @@ export default function Billable() {
 
                         {/* Linha de Totais */}
                         <tr className="bg-surface-2 border-t-2 border-hair-strong font-semibold">
-                          <td colSpan={2} className="py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
+                          <td className="md:hidden sticky left-0 z-10 bg-surface-2 py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px]">
+                            Total do Mês
+                          </td>
+                          <td colSpan={2} className="hidden md:table-cell py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
                             Total do Mês
                           </td>
                           {totalsMensal.semanas.map((tot, idx) => (
