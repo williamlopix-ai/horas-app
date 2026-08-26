@@ -737,20 +737,20 @@ export default function Registros() {
                                   {itemProj.projeto?.tipo === 'rotina' ? (
                                     <span
                                       title={projNome}
-                                      className={`inline-flex items-center gap-1 py-0.5 px-2 rounded-chip text-[11px] font-semibold border max-w-[160px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      className={`inline-flex shrink-0 items-center gap-1 py-0.5 px-2 rounded-chip text-[11px] font-semibold border max-w-full md:max-w-[240px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{
                                         borderColor: projCor,
                                         color: projCor
                                       }}
                                     >
-                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
+                                      <span className={`whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido ? 'line-through' : ''}`}>· {projNome}</span>
                                       {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
                                       {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
                                   ) : (
                                     <span
                                       title={projNome}
-                                      className={`inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-[160px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      className={`inline-flex shrink-0 items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full md:max-w-[240px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{
                                         backgroundColor: `${projCor}12`,
                                         borderColor: `${projCor}44`,
@@ -758,7 +758,7 @@ export default function Registros() {
                                       }}
                                     >
                                       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: projCor }} />
-                                      <span className={`truncate ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
+                                      <span className={`whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido ? 'line-through' : ''}`}>{projNome}</span>
                                       {isEncerrado && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Encerrado</span>}
                                       {isExcluido && <span className="ml-1 px-1 bg-surface-3 text-ink-500 rounded-chip text-[9px] not-italic shrink-0">Excluído</span>}
                                     </span>
@@ -791,11 +791,11 @@ export default function Registros() {
                                           <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                             {reg.subcategoria.fase?.nome && (
                                               <>
-                                                <span className="text-ink-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                                <span className="text-ink-500 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.fase.nome}</span>
                                                 <span className="text-ink-300">/</span>
                                               </>
                                             )}
-                                            <span className="text-ink-700 truncate">{reg.subcategoria.nome}</span>
+                                            <span className="text-ink-700 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.nome}</span>
                                           </span>
                                         )}
                                         {reg.observacao && (
@@ -937,11 +937,11 @@ export default function Registros() {
                                   <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                     {reg.subcategoria.fase?.nome && (
                                       <>
-                                        <span className="text-ink-500 truncate">{reg.subcategoria.fase.nome}</span>
+                                        <span className="text-ink-500 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.fase.nome}</span>
                                         <span className="text-ink-300">/</span>
                                       </>
                                     )}
-                                    <span className="text-ink-700 truncate">{reg.subcategoria.nome}</span>
+                                    <span className="text-ink-700 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.nome}</span>
                                   </span>
                                 )}
                                 {reg.observacao && (
