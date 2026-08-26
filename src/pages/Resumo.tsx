@@ -692,9 +692,9 @@ export default function Resumo() {
 
                 {viewMode === 'tabela' && (
                   <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
+                    <div className="overflow-visible md:overflow-x-auto">
+                      <table className="w-full text-left border-collapse block md:table">
+                        <thead className="hidden md:table-header-group">
                           <tr className="border-b border-hair bg-surface-2 text-xs font-bold text-ink-500 uppercase tracking-wider">
                             <th className="py-3.5 px-6">Período</th>
                             <th className="py-3.5 px-6 text-right">Trabalhado</th>
@@ -704,22 +704,37 @@ export default function Resumo() {
                             <th className="py-3.5 px-6 text-center">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-hair text-sm">
+                        <tbody className="block md:table-row-group divide-y divide-hair text-sm">
                           {resumoSemanas.map((semana) => {
                             const valorDiferenca = semana.diferenca
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={semana.semana_inicio} className="hover:bg-surface-2 transition-colors">
-                                <td className="py-4 px-6 font-semibold text-ink-900">{semana.titulo}</td>
-                                <td className="py-4 px-6 text-right font-mono font-semibold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-ink-500 tabular-nums">{semana.metaVigente.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{semana.percentual}%</td>
-                                <td className="py-4 px-6 text-center">
-                                  <Chip tom={semana.atingiuMeta ? 'ok' : 'erro'}>
-                                    {semana.atingiuMeta ? 'Atingida' : 'Pendente'}
-                                  </Chip>
+                              <tr key={semana.semana_inicio} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors">
+                                <td className="block md:table-cell pb-2 md:py-4 md:px-6 text-base md:text-sm font-bold md:font-semibold text-ink-900">{semana.titulo}</td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-semibold text-ink-900 tabular-nums">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Trabalhado</span>
+                                  <span>{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono text-ink-500 tabular-nums">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Meta</span>
+                                  <span>{semana.metaVigente.toFixed(2).replace('.', ',')}h</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Diferença</span>
+                                  <span>{diferencaTexto}</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-bold tabular-nums" style={{ color: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">%</span>
+                                  <span>{semana.percentual}%</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-center">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Status</span>
+                                  <span>
+                                    <Chip tom={semana.atingiuMeta ? 'ok' : 'erro'}>
+                                      {semana.atingiuMeta ? 'Atingida' : 'Pendente'}
+                                    </Chip>
+                                  </span>
                                 </td>
                               </tr>
                             )
@@ -821,9 +836,9 @@ export default function Resumo() {
 
                 {viewMode === 'tabela' && (
                   <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
+                    <div className="overflow-visible md:overflow-x-auto">
+                      <table className="w-full text-left border-collapse block md:table">
+                        <thead className="hidden md:table-header-group">
                           <tr className="border-b border-hair bg-surface-2 text-xs font-bold text-ink-500 uppercase tracking-wider">
                             <th className="py-3.5 px-6">Dia</th>
                             <th className="py-3.5 px-6 text-right">Trabalhado</th>
@@ -833,22 +848,37 @@ export default function Resumo() {
                             <th className="py-3.5 px-6 text-center">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-hair text-sm">
+                        <tbody className="block md:table-row-group divide-y divide-hair text-sm">
                           {resumoDias.map((dia) => {
                             const valorDiferenca = dia.diferenca
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={dia.data} className="hover:bg-surface-2 transition-colors">
-                                <td className="py-4 px-6 font-semibold text-ink-900">{dia.titulo}</td>
-                                <td className="py-4 px-6 text-right font-mono font-semibold text-ink-900 tabular-nums">{dia.totalHoras.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono text-ink-500 tabular-nums">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</td>
-                                <td className="py-4 px-6 text-right font-mono font-bold tabular-nums" style={{ color: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>{dia.percentual}%</td>
-                                <td className="py-4 px-6 text-center">
-                                  <Chip tom={dia.atingiuMeta ? 'ok' : 'erro'}>
-                                    {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
-                                  </Chip>
+                              <tr key={dia.data} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors">
+                                <td className="block md:table-cell pb-2 md:py-4 md:px-6 text-base md:text-sm font-bold md:font-semibold text-ink-900">{dia.titulo}</td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-semibold text-ink-900 tabular-nums">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Trabalhado</span>
+                                  <span>{dia.totalHoras.toFixed(2).replace('.', ',')}h</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono text-ink-500 tabular-nums">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Meta</span>
+                                  <span>{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Diferença</span>
+                                  <span>{diferencaTexto}</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-bold tabular-nums" style={{ color: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}>
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">%</span>
+                                  <span>{dia.percentual}%</span>
+                                </td>
+                                <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-center">
+                                  <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Status</span>
+                                  <span>
+                                    <Chip tom={dia.atingiuMeta ? 'ok' : 'erro'}>
+                                      {dia.atingiuMeta ? 'Atingida' : 'Pendente'}
+                                    </Chip>
+                                  </span>
                                 </td>
                               </tr>
                             )
@@ -919,7 +949,7 @@ export default function Resumo() {
                                             <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
                                               <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                             </span>
-                                            <span className="font-bold text-ink-900 uppercase text-base truncate" title={proj.nome}>{proj.nome}</span>
+                                            <span className="font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={proj.nome}>{proj.nome}</span>
                                           </div>
                                         </div>
                                         <hr className="border-hair" />
@@ -1000,7 +1030,7 @@ export default function Resumo() {
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                         <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                       </span>
-                                      <span className={`font-bold text-ink-900 uppercase text-base truncate ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                      <span className={`font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
                                     </div>
                                     <Chip tom="neutro" className="shrink-0">
                                       {isExcluido ? 'Excluído' : 'Encerrado'}
@@ -1087,7 +1117,7 @@ export default function Resumo() {
                                         <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                           <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                         </span>
-                                        <span className={`font-bold text-ink-900 uppercase text-base truncate ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
+                                        <span className={`font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
                                       </div>
                                     </div>
                                     <hr className="border-hair" />
@@ -1165,7 +1195,7 @@ export default function Resumo() {
                               >
                                 <div className="flex items-center gap-4">
                                   <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
-                                  <p className="font-bold text-ink-900 text-sm uppercase tracking-wide truncate" title={rotina.nome}>{rotina.nome}</p>
+                                  <p className="font-bold text-ink-900 text-sm uppercase tracking-wide whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={rotina.nome}>{rotina.nome}</p>
                                 </div>
                                 <div className="flex items-center gap-4 text-right">
                                   <span className="font-mono font-bold text-accent tabular-nums text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
