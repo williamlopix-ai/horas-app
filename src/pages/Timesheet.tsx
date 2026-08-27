@@ -277,13 +277,13 @@ export default function Timesheet() {
               placeholder="Filtrar por código..."
               value={filtroCodigo}
               onChange={(e) => setFiltroCodigo(e.target.value)}
-              className={`${classeCampo()} !pr-10 min-h-[44px]`}
+              className={`${classeCampo()} !pr-11 min-h-[44px]`}
             />
             {filtroCodigo && (
               <button
                 type="button"
                 onClick={() => setFiltroCodigo('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
+                className="absolute right-0 top-0 bottom-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                 title="Limpar filtro"
               >
                 <X className="w-3.5 h-3.5" />

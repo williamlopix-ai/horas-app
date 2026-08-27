@@ -477,7 +477,7 @@ export default function Projetos() {
         <div className="flex border-b border-hair gap-6">
           <button
             onClick={() => setAbaAtiva('projeto')}
-            className={`pb-3 text-sm font-bold transition-all relative ${
+            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-all relative ${
               abaAtiva === 'projeto'
                 ? 'text-ink-900'
                 : 'text-ink-500 hover:text-ink-900'
@@ -490,7 +490,7 @@ export default function Projetos() {
           </button>
           <button
             onClick={() => setAbaAtiva('rotina')}
-            className={`pb-3 text-sm font-bold transition-all relative ${
+            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-all relative ${
               abaAtiva === 'rotina'
                 ? 'text-ink-900'
                 : 'text-ink-500 hover:text-ink-900'

@@ -175,7 +175,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('projeto')}
-                  className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
                     tipo === 'projeto'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -186,7 +186,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('rotina')}
-                  className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
                     tipo === 'rotina'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -302,7 +302,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('ativo')}
-                    className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
                       status === 'ativo'
                         ? 'bg-ok-bg text-ok border-ok'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -313,7 +313,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('encerrado')}
-                    className={`py-2 px-4 rounded-xl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
                       status === 'encerrado'
                         ? 'bg-bad-bg text-bad border-bad'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'

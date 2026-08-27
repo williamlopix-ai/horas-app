@@ -521,7 +521,7 @@ export default function Resumo() {
               <button
                 type="button"
                 onClick={() => setApenasComCodigo(v => !v)}
-                className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez"
+                className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
               >
                 <span
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasComCodigo ? 'bg-accent' : 'bg-surface-3'
@@ -900,7 +900,7 @@ export default function Resumo() {
                   <button
                     type="button"
                     onClick={() => setApenasBillable(v => !v)}
-                    className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez"
+                    className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
                   >
                     <span
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasBillable ? 'bg-accent' : 'bg-surface-3'

@@ -702,7 +702,7 @@ export default function ProjetoDetalhe() {
                           key={r.id}
                           type="button"
                           onClick={() => abrirEditarRegistro(r)}
-                          className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                          className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <span className="font-mono text-ink-500 shrink-0">{formatarDataCurta(r.data)}</span>
@@ -944,7 +944,7 @@ export default function ProjetoDetalhe() {
                         key={dia.data}
                         type="button"
                         onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
-                        className="w-full flex items-center justify-between gap-3 text-xs py-2 px-2 rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                        className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
                       >
                         <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
                         <span className="font-mono font-semibold text-ink-900">{dia.total.toFixed(2).replace('.', ',')}h</span>
@@ -1240,7 +1240,7 @@ export default function ProjetoDetalhe() {
                         handleStartEditContratadas()
                         setPulsoAtivo(false)
                       }}
-                      className="text-ink-500 hover:text-ink-900 text-sm transition-colors"
+                      className="text-ink-500 hover:text-ink-900 text-sm transition-colors py-2 px-2.5 min-h-[44px] inline-flex items-center"
                     >
                       definir horas contratadas
                     </button>
@@ -1278,7 +1278,7 @@ export default function ProjetoDetalhe() {
                     tamanho="sm"
                     onClick={handleAtualizarContratadasParaFases}
                     disabled={salvandoContratadas}
-                    className="shrink-0"
+                    className="shrink-0 min-h-[44px]"
                   >
                     Atualizar para {somaPrevistasFases.toFixed(2).replace('.', ',')}h
                   </Button>
@@ -1310,7 +1310,7 @@ export default function ProjetoDetalhe() {
                 <button
                   type="button"
                   onClick={() => toggleSecao('fases')}
-                  className="flex items-center gap-2 group focus:outline-none"
+                  className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                 >
                   <ChevronDown
                     className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
@@ -1826,7 +1826,7 @@ export default function ProjetoDetalhe() {
                   <button
                     type="button"
                     onClick={() => toggleSecao('plano')}
-                    className="flex items-center gap-2 group focus:outline-none"
+                    className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                   >
                     <ChevronDown
                       className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
@@ -2019,7 +2019,7 @@ export default function ProjetoDetalhe() {
                   <button
                     type="button"
                     onClick={() => toggleSecao('lancamentos')}
-                    className="flex items-center gap-2 group focus:outline-none"
+                    className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                   >
                     <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
                     <h2 className="text-xl font-display font-bold text-ink-900">Lançamentos</h2>

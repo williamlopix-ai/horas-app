@@ -366,7 +366,7 @@ export default function Lembretes() {
             <div className="border-t border-hair pt-6">
               <button
                 onClick={() => setMostrarResolvidos(!mostrarResolvidos)}
-                className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors mb-4 focus:outline-none"
+                className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors mb-4 focus:outline-none py-2 min-h-[44px]"
               >
                 <span className="text-xs">{mostrarResolvidos ? '▼' : '▶'}</span>
                 <h3 className="text-lg font-bold">Resolvidos ({resolvidos.length})</h3>
