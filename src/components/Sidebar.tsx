@@ -87,7 +87,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -ml-2 rounded-ctl text-ink-500 hover:text-ink-900 hover:bg-surface-2 transition-colors duration-d1 ease-ez focus:outline-none"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-ctl text-ink-500 hover:text-ink-900 hover:bg-surface-2 transition-colors duration-d1 ease-ez focus:outline-none"
             aria-label="Abrir menu"
           >
             <span className="text-2xl">☰</span>

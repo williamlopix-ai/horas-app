@@ -76,7 +76,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
           setLeaving(true)
           setTimeout(() => onRemove(toast.id), 300)
         }}
-        className="ml-1 opacity-60 hover:opacity-100 transition-opacity focus:outline-none shrink-0"
+        className="min-h-[44px] min-w-[44px] flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity focus:outline-none shrink-0"
         aria-label="Fechar notificação"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
