@@ -788,7 +788,7 @@ export default function Ajustes() {
                                   <button
                                     type="button"
                                     onClick={() => toggleSubstituidas(faixa.semana_inicio)}
-                                    className="text-xs text-ink-500 hover:text-ink-700 transition-colors duration-d1 ease-ez focus:outline-none flex items-center gap-1"
+                                    className="text-xs text-ink-500 hover:text-ink-700 transition-colors duration-d1 ease-ez focus:outline-none flex items-center gap-1 py-2 min-h-[44px]"
                                   >
                                     <span>{aberta ? '▲' : '▾'}</span>
                                     <span>
@@ -817,7 +817,7 @@ export default function Ajustes() {
                         <button
                           type="button"
                           onClick={() => setVerTodasHorasBaseSemanal(v => !v)}
-                          className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
+                          className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none py-2 min-h-[44px] inline-flex items-center"
                         >
                           {verTodasHorasBaseSemanal ? '▲ Ver menos' : `▾ Ver todas (${faixasHorasBaseSemanal.length})`}
                         </button>
@@ -1109,7 +1109,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasHorasBaseMensal(v => !v)}
-                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none py-2 min-h-[44px] inline-flex items-center"
                           >
                             {verTodasHorasBaseMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoHorasBaseMensal.length})`}
                           </button>
@@ -1209,7 +1209,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasMargem(v => !v)}
-                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none py-2 min-h-[44px] inline-flex items-center"
                           >
                             {verTodasMargem ? '▲ Ver menos' : `▾ Ver todas (${historicoMargem.length})`}
                           </button>
@@ -1304,7 +1304,7 @@ export default function Ajustes() {
                           <button
                             type="button"
                             onClick={() => setVerTodasMargemMensal(v => !v)}
-                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
+                            className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none py-2 min-h-[44px] inline-flex items-center"
                           >
                             {verTodasMargemMensal ? '▲ Ver menos' : `▾ Ver todas (${historicoMargemMensal.length})`}
                           </button>

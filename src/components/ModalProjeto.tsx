@@ -327,7 +327,10 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
           </div>
 
           {/* Botões */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-hair shrink-0">
+          <div
+            className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-hair shrink-0"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+          >
             <Button
               variante="secundario"
               larguraTotal

@@ -61,7 +61,10 @@ export default function ModalConfirmacao({
         </p>
 
         {/* Botões do Rodapé */}
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+        <div
+          className="flex flex-col sm:flex-row gap-3 shrink-0"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+        >
           <Button
             type="button"
             variante="secundario"

@@ -549,7 +549,10 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
             </div>
 
             {/* Ações */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0">
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
+            >
               <Button
                 variante="secundario"
                 larguraTotal

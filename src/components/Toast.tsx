@@ -95,7 +95,8 @@ interface ToastContainerProps {
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
     <div
-      className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none"
+      className="fixed right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none"
+      style={{ top: 'calc(env(safe-area-inset-top) + 16px)' }}
       aria-live="polite"
       aria-label="Notificações"
     >
