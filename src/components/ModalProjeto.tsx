@@ -239,15 +239,16 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
             )}
 
             {tipo === 'projeto' && codigoExterno.trim() !== '' && (
-              <div className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-xl">
+              <label
+                onClick={() => setBillable(!billable)}
+                className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-xl min-h-[44px] cursor-pointer select-none"
+              >
                 <div>
                   <span className="block text-sm font-semibold text-ink-900">Billable</span>
                   <span className="block text-xs text-ink-500">Projeto faturável</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setBillable(!billable)}
-                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 focus:outline-none ${
+                <div
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 shrink-0 ${
                     billable ? 'bg-accent' : 'bg-surface-0'
                   }`}
                 >
@@ -256,8 +257,8 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                       billable ? 'translate-x-6' : 'translate-x-0'
                     }`}
                   />
-                </button>
-              </div>
+                </div>
+              </label>
             )}
 
             {/* Seletor de Cores */}
@@ -265,23 +266,27 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
               <label className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                 Cor de Identificação
               </label>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-6 gap-1 sm:gap-2">
                 {PALETA_CORES.map((itemCor) => (
                   <button
                     key={itemCor.valor}
                     type="button"
                     onClick={() => setCor(itemCor.valor)}
-                    className={`h-9 w-9 rounded-full transition-all border flex items-center justify-center shrink-0 ${
-                      cor === itemCor.valor ? 'border-ink-900 scale-110 shadow-e2' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: itemCor.valor }}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full transition-all focus:outline-none shrink-0"
                     title={itemCor.nome}
                   >
-                    {cor === itemCor.valor && (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-sm" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                    <span
+                      className={`h-9 w-9 rounded-full transition-all border flex items-center justify-center shrink-0 ${
+                        cor === itemCor.valor ? 'border-ink-900 scale-110 shadow-e2' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: itemCor.valor }}
+                    >
+                      {cor === itemCor.valor && (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-sm" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
                 ))}
               </div>

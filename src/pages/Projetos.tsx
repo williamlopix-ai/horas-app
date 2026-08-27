@@ -99,7 +99,7 @@ function ProjetoRowItem({
               {...attributes}
               {...listeners}
               onClick={(e) => e.stopPropagation()}
-              className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing p-1 rounded transition-colors touch-none shrink-0"
+              className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors touch-none shrink-0"
               title="Arrastar para reordenar"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

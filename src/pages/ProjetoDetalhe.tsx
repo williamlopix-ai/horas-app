@@ -837,14 +837,14 @@ export default function ProjetoDetalhe() {
                       <button
                         type="button"
                         onClick={() => toggleSub(sub.id!)}
-                        className="shrink-0 focus:outline-none"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 focus:outline-none -my-2 -ml-2"
                       >
                         <ChevronDown
                           className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
                         />
                       </button>
                     ) : (
-                      <span className="h-4 w-4 shrink-0" />
+                      <span className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 -my-2 -ml-2" />
                     )}
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
                     <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
@@ -1088,7 +1088,7 @@ export default function ProjetoDetalhe() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>Voltar</span>
@@ -1137,7 +1137,7 @@ export default function ProjetoDetalhe() {
                   <span className="w-5 h-5 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: projeto.cor }}>
                     <span className="w-2.5 h-2.5 rounded-full bg-white opacity-40"></span>
                   </span>
-                  <h1 className="text-2xl font-display font-bold text-ink-900 tracking-tight uppercase truncate">{projeto.nome}</h1>
+                  <h1 className="text-2xl font-display font-bold text-ink-900 tracking-tight uppercase whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{projeto.nome}</h1>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span
@@ -1446,7 +1446,7 @@ export default function ProjetoDetalhe() {
                                 <ChevronDown
                                   className={`h-4 w-4 text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
                                 />
-                                <span className="font-display font-bold text-ink-900 text-base truncate">{fase.nome}</span>
+                                <span className="font-display font-bold text-ink-900 text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{fase.nome}</span>
                               </div>
                               <div className="font-mono text-sm font-semibold text-ink-500 shrink-0 ml-2">
                                 {temPrevisto ? (
@@ -2064,7 +2064,7 @@ export default function ProjetoDetalhe() {
                                         <div className="flex items-center gap-3 flex-wrap min-w-0">
                                           <span className="font-mono text-xs text-ink-500 shrink-0">{formatarDataCurta(reg.data)}</span>
                                           <span className="text-xs text-ink-700 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
-                                          {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-3 border border-hair-strong text-ink-500 font-medium truncate max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
+                                          {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-3 border border-hair-strong text-ink-500 font-medium whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0">
                                           <span className="font-mono text-sm font-bold text-accent">
