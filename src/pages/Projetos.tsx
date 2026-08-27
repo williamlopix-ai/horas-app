@@ -35,6 +35,7 @@ import { supabase } from '../lib/supabase'
 import { getErrorMessage } from '../utils/errors'
 import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
+import MenuAcoes from '../components/MenuAcoes'
 import { SkeletonRow } from '../components/Skeleton'
 import { Button, Surface } from '../components/ui'
 
@@ -120,7 +121,7 @@ function ProjetoRowItem({
           </span>
         </div>
       </td>
-      <td className="flex items-center md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
+      <td className="flex items-center justify-between md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
         {projeto.status === 'ativo' ? (
           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-ok-bg text-ok border border-ok">
             <span className="h-1.5 w-1.5 rounded-full bg-ok" />
@@ -136,6 +137,29 @@ function ProjetoRowItem({
             <span className="h-1.5 w-1.5 rounded-full bg-ink-500" />
             Excluído
           </span>
+        )}
+        {projeto.status !== 'excluido' && (
+          <div className="md:hidden shrink-0">
+            <MenuAcoes
+              rotulo="Ações do projeto"
+              itens={[
+                {
+                  label: 'Editar',
+                  onClick: () => onEdit(projeto)
+                },
+                {
+                  label: projeto.status === 'ativo' ? 'Encerrar' : 'Reativar',
+                  onClick: () => onToggleStatus(projeto)
+                },
+                {
+                  label: 'Excluir',
+                  onClick: () => onExcluir(projeto),
+                  perigo: true,
+                  separadorAntes: true
+                }
+              ]}
+            />
+          </div>
         )}
       </td>
       <td className="col-span-2 block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
@@ -156,7 +180,7 @@ function ProjetoRowItem({
               </button>
             </>
           ) : (
-            <>
+            <div className="hidden md:flex gap-2">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -188,7 +212,7 @@ function ProjetoRowItem({
               >
                 Excluir
               </button>
-            </>
+            </div>
           )}
         </div>
       </td>
