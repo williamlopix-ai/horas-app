@@ -11,12 +11,13 @@ import {
   Clock,
   FolderKanban,
   List,
+  MessageSquareText,
   Pencil,
   Plus,
   Trash2,
   X
 } from 'lucide-react'
-import { Button, Surface, classeCampo } from '../components/ui'
+import { Button, Sheet, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -127,6 +128,8 @@ export default function Registros() {
     inicio: string,
     fim: string
   } | null>(null)
+
+  const [obsAberta, setObsAberta] = useState<{ titulo: string; texto: string } | null>(null)
 
   // Carregar dados iniciais
   const carregarDados = async () => {
@@ -786,7 +789,7 @@ export default function Registros() {
                                     {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
                                     <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
                                       {/* Observação e Subcategoria / Fase */}
-                                      <div className="flex-grow min-w-0 text-left flex items-center gap-2">
+                                      <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-1.5 md:flex-row md:items-center md:gap-2">
                                         {reg.subcategoria?.nome && (
                                           <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                             {reg.subcategoria.fase?.nome && (
@@ -800,7 +803,7 @@ export default function Registros() {
                                         )}
                                         {reg.observacao && (
                                           <span
-                                            className="text-sm text-ink-500 truncate min-w-0 font-ui"
+                                            className="hidden [@media(pointer:fine)]:block text-sm text-ink-500 truncate min-w-0 font-ui"
                                             title={reg.observacao}
                                           >
                                             {reg.observacao}
@@ -810,6 +813,20 @@ export default function Registros() {
 
                                       {/* Duração + Botões */}
                                       <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                        {reg.observacao && (
+                                          <button
+                                            type="button"
+                                            onClick={() => setObsAberta({
+                                              titulo: `${reg.hora_inicio.slice(0, 5)} - ${reg.hora_fim.slice(0, 5)}`,
+                                              texto: reg.observacao as string
+                                            })}
+                                            className="[@media(pointer:fine)]:hidden shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-ctl border border-hair-strong bg-surface-0 text-ink-500 transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                                            title="Ver observação"
+                                          >
+                                            <MessageSquareText className="w-icon-sm h-icon-sm shrink-0" />
+                                            <span className="sr-only">Ver observação</span>
+                                          </button>
+                                        )}
                                         {/* Duração */}
                                         <div className="shrink-0 md:w-[80px] md:text-right">
                                           <span className="text-sm font-mono font-bold text-accent">
@@ -932,7 +949,7 @@ export default function Registros() {
                             {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
                             <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
                               {/* Observação e Subcategoria / Fase */}
-                              <div className="flex-grow min-w-0 text-left flex items-center gap-2">
+                              <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-1.5 md:flex-row md:items-center md:gap-2">
                                 {reg.subcategoria?.nome && (
                                   <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
                                     {reg.subcategoria.fase?.nome && (
@@ -946,7 +963,7 @@ export default function Registros() {
                                 )}
                                 {reg.observacao && (
                                   <span
-                                    className="text-sm text-ink-500 truncate min-w-0 font-ui"
+                                    className="hidden [@media(pointer:fine)]:block text-sm text-ink-500 truncate min-w-0 font-ui"
                                     title={reg.observacao}
                                   >
                                     {reg.observacao}
@@ -956,6 +973,20 @@ export default function Registros() {
 
                               {/* Duração + Botões */}
                               <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                {reg.observacao && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setObsAberta({
+                                      titulo: `${reg.hora_inicio.slice(0, 5)} - ${reg.hora_fim.slice(0, 5)}`,
+                                      texto: reg.observacao as string
+                                    })}
+                                    className="[@media(pointer:fine)]:hidden shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-ctl border border-hair-strong bg-surface-0 text-ink-500 transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                                    title="Ver observação"
+                                  >
+                                    <MessageSquareText className="w-icon-sm h-icon-sm shrink-0" />
+                                    <span className="sr-only">Ver observação</span>
+                                  </button>
+                                )}
                                 {/* Duração */}
                                 <div className="shrink-0 md:w-[80px] md:text-right">
                                   <span className="text-sm font-mono font-bold text-accent">
@@ -1018,6 +1049,21 @@ export default function Registros() {
           inicioAtual={modalHorarioData.inicio}
           fimAtual={modalHorarioData.fim}
         />
+      )}
+
+      {/* Modal Observação Completa */}
+      {obsAberta && (
+        <Sheet
+          aberto={true}
+          aoFechar={() => setObsAberta(null)}
+          titulo="Observação"
+          descricao={obsAberta.titulo}
+          tamanho="sm"
+        >
+          <p className="text-sm text-ink-900 font-ui whitespace-pre-wrap break-words">
+            {obsAberta.texto}
+          </p>
+        </Sheet>
       )}
     </div>
   )
