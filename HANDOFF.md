@@ -256,11 +256,49 @@ Depois, `Ctrl+Shift+R` no navegador para limpar cache de CSS.
 
 ### Início
 1. Colar o conteúdo deste `HANDOFF.md`.
-2. Confirmar a branch: `git status`.
+2. Rodar o script de empacotamento e anexar os arquivos gerados.
+3. Confirmar a branch: `git status`.
 
 ### Fim
-1. Pedir o `HANDOFF.md` reescrito, **com o painel atualizado**.
-2. Substituir na raiz do repositório e commitar.
+1. Rodar o script de empacotamento de novo (os arquivos mudaram).
+2. Pedir o `HANDOFF.md` reescrito, **com o painel atualizado**.
+3. Substituir na raiz do repositório e commitar.
+
+### Script de empacotamento (PowerShell)
+
+```powershell
+$origem  = "C:\Users\Mattos\Documents\HORAS-APP"
+$destino = "$env:USERPROFILE\Desktop\HORAS-CONTEXTO"
+
+Remove-Item $destino -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $destino | Out-Null
+
+Get-ChildItem "$origem\src" -Recurse -File -Include *.ts,*.tsx,*.css |
+  Where-Object { $_.FullName -notmatch "node_modules" } |
+  ForEach-Object {
+    $rel  = $_.FullName.Substring("$origem\src\".Length)
+    $nome = $rel -replace "\\", "_"
+    Copy-Item $_.FullName -Destination (Join-Path $destino $nome)
+  }
+
+"HANDOFF.md","AGENTS.md","RESPONSIVO.md","tailwind.config.js" | ForEach-Object {
+  $caminho = Join-Path $origem $_
+  if (Test-Path $caminho) {
+    Copy-Item $caminho -Destination (Join-Path $destino ($_ -replace "\.config\.", "_config."))
+  }
+}
+
+Write-Host "Pronto:" (Get-ChildItem $destino).Count "arquivos em $destino"
+explorer $destino
+```
+
+> Os arquivos anexados ao projeto do chat podem estar **vários commits
+> atrasados**. Rodar o script antes de cada sessão. `RESPONSIVO.md` — o
+> documento de critério de aceite criado no Bloco 3 — já está incluído na
+> lista de arquivos avulsos copiados; qualquer arquivo novo dentro de
+> `src/` (páginas, componentes, hooks do Bloco 3 e 3.5) já é pego
+> automaticamente pelo `Get-ChildItem` recursivo, sem precisar editar o
+> script.
 
 ---
 

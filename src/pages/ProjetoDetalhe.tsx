@@ -1440,15 +1440,15 @@ export default function ProjetoDetalhe() {
                               type="button"
                               onClick={() => toggleFase(fase.id)}
                               disabled={editandoFaseId !== null}
-                              className="flex-1 flex items-center justify-between min-w-0 pr-4 text-left focus:outline-none disabled:cursor-default"
+                              className="flex-1 flex flex-col gap-1.5 min-w-0 pr-2 text-left focus:outline-none disabled:cursor-default md:flex-row md:items-center md:justify-between md:gap-2 md:pr-4"
                             >
-                              <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex items-start gap-3 min-w-0 w-full md:w-auto md:items-center">
                                 <ChevronDown
-                                  className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
+                                  className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 mt-1 md:mt-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
                                 />
-                                <span className="font-display font-bold text-ink-900 text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{fase.nome}</span>
+                                <span className="font-display font-bold text-ink-900 text-base min-w-0 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{fase.nome}</span>
                               </div>
-                              <div className="font-mono text-sm font-semibold text-ink-500 shrink-0 ml-2">
+                              <div className="font-mono text-sm font-semibold text-ink-500 shrink-0 pl-7 md:pl-0 md:ml-2">
                                 {temPrevisto ? (
                                   <>
                                     <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> de {previstoFormatado} previstas
