@@ -62,7 +62,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
   return (
     <div
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-xl shadow-e2
+        flex items-center gap-3 px-4 py-3 rounded-card shadow-e2
         text-sm font-medium max-w-[360px] w-full pointer-events-auto
         transition-all duration-300 ease-out
         ${STYLES[toast.type]}

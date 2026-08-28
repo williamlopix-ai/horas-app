@@ -7,7 +7,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 }
 
 export function SkeletonLine({ className = '' }: { className?: string }) {
-  return <Skeleton className={`h-4 rounded-md ${className}`} />
+  return <Skeleton className={`h-4 rounded-ctl ${className}`} />
 }
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
@@ -56,9 +56,9 @@ export function SkeletonRow({ className = '' }: { className?: string }) {
         <Skeleton className="h-6 w-20 rounded-full" />
       </div>
       <div className="flex gap-2 justify-end w-1/4">
-        <Skeleton className="h-8 w-16 rounded-lg" />
-        <Skeleton className="h-8 w-20 rounded-lg" />
-        <Skeleton className="h-8 w-16 rounded-lg" />
+        <Skeleton className="h-8 w-16 rounded-ctl" />
+        <Skeleton className="h-8 w-20 rounded-ctl" />
+        <Skeleton className="h-8 w-16 rounded-ctl" />
       </div>
     </div>
   )

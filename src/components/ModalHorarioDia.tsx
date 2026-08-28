@@ -66,7 +66,7 @@ export default function ModalHorarioDia({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#161B22] border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-[#161B22] border border-gray-800 rounded-sheet w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Cabeçalho */}
         <div className="px-6 py-5 border-b border-gray-800 flex items-center justify-between bg-[#0B0E14]/50">
@@ -76,7 +76,7 @@ export default function ModalHorarioDia({
           </div>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-colors focus:outline-none"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors focus:outline-none"
             title="Fechar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -90,7 +90,7 @@ export default function ModalHorarioDia({
           <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
             
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs flex items-start gap-2">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-card text-red-400 text-xs flex items-start gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -107,7 +107,7 @@ export default function ModalHorarioDia({
                   type="time"
                   value={inicio}
                   onChange={(e) => setInicio(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
+                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
                   required
                 />
               </div>
@@ -120,7 +120,7 @@ export default function ModalHorarioDia({
                   type="time"
                   value={fim}
                   onChange={(e) => setFim(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-xl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
+                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
                   required
                 />
               </div>
@@ -137,14 +137,14 @@ export default function ModalHorarioDia({
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-gray-800 rounded-xl transition-colors focus:outline-none"
+              className="py-2.5 px-5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors focus:outline-none"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {saving ? (
                 <>

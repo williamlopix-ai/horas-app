@@ -87,7 +87,7 @@ function ProjetoRowItem({
       ref={setNodeRef}
       style={style}
       onClick={() => onNavigate(projeto.id)}
-      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-xl md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
+      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
         isDragging ? 'shadow-e3 ring-2 ring-accent' : ''
       }`}
     >
@@ -113,32 +113,32 @@ function ProjetoRowItem({
             </button>
           )}
           <span
-            className="h-3.5 w-3.5 rounded-full border border-black/10 shrink-0 shadow-e1"
+            className="w-4 h-4 rounded-full shrink-0 shadow-sm"
             style={{ backgroundColor: projeto.cor }}
           />
-          <span className="font-semibold text-ink-900 group-hover:text-accent transition-colors">
+          <span className="font-semibold text-ink-900 text-sm md:text-base break-words whitespace-normal overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[200px] sm:max-w-xs md:max-w-none" title={projeto.nome}>
             {projeto.nome}
           </span>
         </div>
       </td>
       <td className="flex items-center justify-between md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
-        {projeto.status === 'ativo' ? (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-ok-bg text-ok border border-ok">
-            <span className="h-1.5 w-1.5 rounded-full bg-ok" />
-            Ativo
-          </span>
-        ) : projeto.status === 'encerrado' ? (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-warn-bg text-warn border border-warn">
-            <span className="h-1.5 w-1.5 rounded-full bg-warn" />
-            Encerrado
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-surface-2 text-ink-500 border border-hair">
-            <span className="h-1.5 w-1.5 rounded-full bg-ink-500" />
-            Excluído
-          </span>
-        )}
-        {projeto.status !== 'excluido' && (
+        <span
+          className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium ${
+            projeto.status === 'ativo'
+              ? 'bg-ok-bg text-ok'
+              : projeto.status === 'encerrado'
+              ? 'bg-warn-bg text-warn'
+              : 'bg-bad-bg text-bad'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+          {projeto.status === 'ativo'
+            ? 'Ativo'
+            : projeto.status === 'encerrado'
+            ? 'Encerrado'
+            : 'Excluído'}
+        </span>
+        {abaAtiva === 'projeto' && projeto.status !== 'excluido' && (
           <div className="md:hidden shrink-0">
             <MenuAcoes
               rotulo="Ações do projeto"
@@ -166,7 +166,7 @@ function ProjetoRowItem({
         <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
           {projeto.status === 'excluido' ? (
             <>
-              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-surface-2 text-ink-500 text-xs font-semibold rounded-lg border border-hair w-auto text-center">
+              <span className="inline-flex items-center justify-center py-1.5 px-3 bg-surface-2 text-ink-500 text-xs font-semibold rounded-ctl border border-hair w-auto text-center">
                 Excluído
               </span>
               <button
@@ -174,7 +174,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onArquivar(projeto)
                 }}
-                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-lg transition-all border border-hair-strong w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-all border border-hair-strong w-auto text-center justify-center"
               >
                 Arquivar
               </button>
@@ -186,7 +186,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onEdit(projeto)
                 }}
-                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-lg transition-all border border-hair-strong w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-all border border-hair-strong w-auto text-center justify-center"
               >
                 Editar
               </button>
@@ -195,7 +195,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onToggleStatus(projeto)
                 }}
-                className={`py-1.5 px-3 text-xs font-semibold rounded-lg transition-all border w-auto text-center justify-center ${
+                className={`py-1.5 px-3 text-xs font-semibold rounded-ctl transition-all border w-auto text-center justify-center ${
                   projeto.status === 'ativo'
                     ? 'bg-warn-bg text-warn border-warn hover:opacity-80'
                     : 'bg-ok-bg text-ok border-ok hover:opacity-80'
@@ -208,7 +208,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onExcluir(projeto)
                 }}
-                className="py-1.5 px-3 bg-bad-bg text-bad text-xs font-semibold rounded-lg transition-all border border-bad hover:opacity-80 w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-bad-bg text-bad text-xs font-semibold rounded-ctl transition-all border border-bad hover:opacity-80 w-auto text-center justify-center"
               >
                 Excluir
               </button>
@@ -505,7 +505,7 @@ export default function Projetos() {
 
         {/* Exibição de Mensagem de Erro */}
         {error && (
-          <div className="p-4 bg-bad-bg border border-bad rounded-xl text-bad text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -618,7 +618,7 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-warn-bg text-warn border border-warn hover:opacity-80 text-sm font-bold rounded-xl transition-all min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-warn-bg text-warn border border-warn hover:opacity-80 text-sm font-bold rounded-ctl transition-all min-h-[44px]"
               >
                 Encerrar projeto
               </button>
@@ -634,14 +634,14 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-bad-bg text-bad border border-bad hover:opacity-80 text-sm font-bold rounded-xl transition-all min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-bad-bg text-bad border border-bad hover:opacity-80 text-sm font-bold rounded-ctl transition-all min-h-[44px]"
               >
                 Excluir mesmo assim
               </button>
               <button
                 type="button"
                 onClick={() => setProjetoParaExcluir(null)}
-                className="w-full py-2.5 px-4 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-sm font-semibold rounded-xl transition-all border border-hair-strong min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-sm font-semibold rounded-ctl transition-all border border-hair-strong min-h-[44px]"
               >
                 Cancelar
               </button>

@@ -576,11 +576,11 @@ export default function Ajustes() {
                   <SkeletonLine className="w-32 h-4" />
                   <SkeletonLine className="w-64 h-3" />
                 </div>
-                <Skeleton className="w-48 h-10 rounded-xl" />
+                <Skeleton className="w-48 h-10 rounded-ctl" />
               </div>
             ))}
             <div className="pt-4 border-t border-hair">
-              <Skeleton className="w-48 h-12 rounded-xl" />
+              <Skeleton className="w-48 h-12 rounded-ctl" />
             </div>
           </Surface>
         ) : (
@@ -672,7 +672,7 @@ export default function Ajustes() {
 
                   {/* Bloco de Confirmação de Vigência */}
                   {semanaInicioHorasBase && (
-                    <div className="bg-surface-0 border border-hair rounded-xl p-3 text-xs text-ink-500 space-y-1">
+                    <div className="bg-surface-0 border border-hair rounded-card p-3 text-xs text-ink-500 space-y-1">
                       <p>
                         Nova meta: <span className="text-ink-900 font-bold">{horasBaseSemanal.toString().replace('.', ',')}h</span>
                       </p>
@@ -904,7 +904,7 @@ export default function Ajustes() {
                 {horariosSemana.length > 0 && (
                   <div className="space-y-2">
                     {horariosSemana.map(h => (
-                      <div key={h.id} className="flex items-center justify-between bg-surface-0 border border-hair rounded-xl p-3">
+                      <div key={h.id} className="flex items-center justify-between bg-surface-0 border border-hair rounded-card p-3">
                         <div>
                           <div className="text-sm font-semibold text-ink-900">{DIAS_SEMANA[h.dia_semana]}</div>
                           <div className="text-xs text-ink-500 tabular-nums">{h.inicio_dia} às {h.fim_dia}</div>
@@ -912,7 +912,7 @@ export default function Ajustes() {
                         <button
                           type="button"
                           onClick={() => handleRemoverDia(h.id)}
-                          className="p-2 text-ink-500 hover:text-bad hover:bg-bad-bg rounded-lg transition-colors duration-d1 ease-ez min-h-[44px] min-w-[44px] focus:outline-none"
+                          className="p-2 text-ink-500 hover:text-bad hover:bg-bad-bg rounded-ctl transition-colors duration-d1 ease-ez min-h-[44px] min-w-[44px] focus:outline-none"
                           title="Remover"
                         >
                           <Trash2 className="h-5 w-5" />
@@ -924,7 +924,7 @@ export default function Ajustes() {
 
                 {/* Form de Adicionar Novo Dia */}
                 {showNovoDia ? (
-                  <div className="bg-surface-0 border border-hair rounded-xl p-4 space-y-4">
+                  <div className="bg-surface-0 border border-hair rounded-card p-4 space-y-4">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Dia da Semana

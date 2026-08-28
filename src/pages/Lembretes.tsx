@@ -208,7 +208,7 @@ export default function Lembretes() {
 
         {/* Exibição de Erro */}
         {error && (
-          <div className="p-4 bg-bad-bg border border-bad rounded-xl text-bad text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -327,7 +327,7 @@ export default function Lembretes() {
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={() => handleAlternarStatus(lembrete)}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ok hover:bg-ok-bg rounded-lg transition-all focus:outline-none"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ok hover:bg-ok-bg rounded-ctl transition-all focus:outline-none"
                             title="Concluir"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -336,7 +336,7 @@ export default function Lembretes() {
                           </button>
                           <button
                             onClick={() => abrirEditarLembreteModal(lembrete)}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-lg transition-all focus:outline-none"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-ctl transition-all focus:outline-none"
                             title="Editar"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -345,7 +345,7 @@ export default function Lembretes() {
                           </button>
                           <button
                             onClick={() => setLembreteParaExcluir(lembrete)}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-lg transition-all focus:outline-none"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-ctl transition-all focus:outline-none"
                             title="Excluir"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -429,7 +429,7 @@ export default function Lembretes() {
                           <div className="flex items-center gap-2 shrink-0">
                             <button
                               onClick={() => handleAlternarStatus(lembrete)}
-                              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-lg transition-all focus:outline-none"
+                              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-ctl transition-all focus:outline-none"
                               title="Reabrir (Mudar para Pendente)"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -438,7 +438,7 @@ export default function Lembretes() {
                             </button>
                             <button
                               onClick={() => setLembreteParaExcluir(lembrete)}
-                              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-lg transition-all focus:outline-none"
+                              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-ctl transition-all focus:outline-none"
                               title="Excluir permanentemente"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

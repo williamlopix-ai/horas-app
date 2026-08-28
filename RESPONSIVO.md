@@ -59,12 +59,45 @@ Existem dois padrões, e a escolha depende do que a tela serve.
 **Usar em: Timesheet e Billable.**
 
 A grade continua grade. O usuário arrasta de lado para ver os dias, e a
-coluna do nome do projeto fica presa na esquerda, sempre visível.
+coluna identificadora fica presa na esquerda, sempre visível.
 
 Motivo: nessas duas telas o ponto é **comparar dias lado a lado**.
 Empilhar em cartão destrói exatamente a informação que se quer ler.
 O Timesheet ainda espelha a planilha corporativa (ERM) — a ordem
 `Código | Nome | Sáb…Sex | Total` é fixa e não pode ser reorganizada.
+
+#### Decisão sobre a coluna presa (25/08/2026)
+
+Prender `Código` (100px) **e** `Nome` (até 200px) consome ~300px de uma
+tela de ~380px, sobrando espaço para um dia e meio. Inviável.
+
+Decisão: **abaixo de 768px, as duas colunas viram uma única célula
+presa**, empilhada — código em cima (mono, menor, `text-ink-500`), nome
+embaixo (`font-semibold`, `text-ink-900`). Largura alvo ~130px.
+
+```
+┌──────────────┐
+│ 0043704-0002 │
+│ VALE DH      │
+└──────────────┘
+```
+
+Motivo de manter os dois: o código serve para bater com o ERM e o dono
+do app pode precisar disso no celular em emergência; o nome sozinho não
+identifica a linha no ERM, e o código sozinho convida a erro de
+digitação na hora de conferir.
+
+Em 768px ou mais, nada muda: continuam duas colunas separadas, na ordem
+que o ERM espera.
+
+Atenção técnica: a linha "Total da Semana" usa `colSpan={2}` cobrindo
+exatamente essas duas colunas — o colSpan tem que acompanhar a fusão.
+
+Requisitos de `position: sticky` em tabela:
+- fundo opaco obrigatório na célula presa (senão o conteúdo passa por baixo)
+- `z-index` maior no cruzamento com o cabeçalho já preso (`sticky top-0 z-20`)
+- o cabeçalho do Timesheet já usa `sticky top-0` — o canto superior
+  esquerdo é preso nos dois eixos e precisa do maior `z-index` da tabela
 
 ### Padrão B — cartão empilhado
 **Usar em: Projetos (já faz) e Resumo/tabela.**

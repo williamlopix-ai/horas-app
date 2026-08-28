@@ -315,7 +315,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-xl text-bad text-xs flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -519,7 +519,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
           {/* Coluna Direita: Preview Centesimal */}
           <div className="md:col-span-5 flex flex-col justify-between">
-            <div className="bg-surface-1 border border-hair rounded-2xl p-5 flex flex-col justify-center items-center text-center h-full space-y-4">
+            <div className="bg-surface-1 border border-hair rounded-card p-5 flex flex-col justify-center items-center text-center h-full space-y-4">
               <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest">
                 Duração Centesimal
               </span>
@@ -535,7 +535,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
               </div>
 
               {/* Informação Técnica */}
-              <div className="bg-surface-3 border border-hair rounded-xl p-3 w-full space-y-1.5">
+              <div className="bg-surface-3 border border-hair rounded-card p-3 w-full space-y-1.5">
                 <span className="text-[9px] font-bold text-ink-700 uppercase tracking-wider block">
                   Regra de Conversão
                 </span>

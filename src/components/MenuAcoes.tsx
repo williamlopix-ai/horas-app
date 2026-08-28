@@ -94,7 +94,7 @@ export default function MenuAcoes({
         aria-label={rotulo}
         aria-haspopup="menu"
         aria-expanded={aberto}
-        className="w-11 h-11 flex items-center justify-center rounded-lg text-ink-500 hover:text-ink-900 hover:bg-surface-3 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-11 h-11 flex items-center justify-center rounded-ctl text-ink-500 hover:text-ink-900 hover:bg-surface-3 transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +118,7 @@ export default function MenuAcoes({
             bottom: posicao.bottom,
             right: posicao.right
           }}
-          className="fixed bg-surface-2 border border-hair-strong rounded-xl shadow-e3 z-40 min-w-[180px] p-1.5 flex flex-col"
+          className="fixed bg-surface-2 border border-hair-strong rounded-card shadow-e3 z-40 min-w-[180px] p-1.5 flex flex-col"
           role="menu"
           aria-orientation="vertical"
           onClick={(e) => e.stopPropagation()}
@@ -144,7 +144,7 @@ export default function MenuAcoes({
                       item.onClick()
                       setAberto(false)
                     }}
-                    className={`w-full text-left py-2.5 px-3 text-sm rounded-lg transition-colors flex items-center justify-between font-medium ${
+                    className={`w-full text-left py-2.5 px-3 text-sm rounded-ctl transition-colors flex items-center justify-between font-medium ${
                       item.perigo
                         ? 'text-bad hover:bg-bad-bg hover:text-bad'
                         : 'text-ink-700 hover:text-ink-900 hover:bg-surface-3'

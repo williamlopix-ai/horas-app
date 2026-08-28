@@ -138,7 +138,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
 
         {/* Mensagem de Erro do Modal */}
         {error && (
-          <div className="mb-4 p-3 bg-bad-bg border border-bad rounded-xl text-bad text-xs flex items-center gap-2 shrink-0">
+          <div className="mb-4 p-3 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-2 shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -175,7 +175,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('projeto')}
-                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
                     tipo === 'projeto'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -186,7 +186,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('rotina')}
-                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
                     tipo === 'rotina'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -213,7 +213,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   className={`${classeCampo()} min-h-[44px] ${temFases ? 'cursor-not-allowed opacity-60' : ''}`}
                 />
                 {temFases && (
-                  <div className="rounded-lg px-3 py-2 mt-2 text-xs border-l-[3px] border-l-ink-500 bg-surface-3 text-ink-500 flex items-center gap-2">
+                  <div className="rounded-card px-3 py-2 mt-2 text-xs border-l-[3px] border-l-ink-500 bg-surface-3 text-ink-500 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -241,7 +241,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
             {tipo === 'projeto' && codigoExterno.trim() !== '' && (
               <label
                 onClick={() => setBillable(!billable)}
-                className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-xl min-h-[44px] cursor-pointer select-none"
+                className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-card min-h-[44px] cursor-pointer select-none"
               >
                 <div>
                   <span className="block text-sm font-semibold text-ink-900">Billable</span>
@@ -302,7 +302,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('ativo')}
-                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
                       status === 'ativo'
                         ? 'bg-ok-bg text-ok border-ok'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -313,7 +313,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('encerrado')}
-                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-xl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
                       status === 'encerrado'
                         ? 'bg-bad-bg text-bad border-bad'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'

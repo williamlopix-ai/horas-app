@@ -646,7 +646,7 @@ export default function ProjetoDetalhe() {
     const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
 
     return (
-      <div className="bg-surface-1 rounded-xl p-4 border border-hair space-y-3">
+      <div className="bg-surface-1 rounded-card p-4 border border-hair space-y-3">
         <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-mono">Subcategorias</span>
         <div className="space-y-2.5">
           {items.map((sub) => {
@@ -702,7 +702,7 @@ export default function ProjetoDetalhe() {
                           key={r.id}
                           type="button"
                           onClick={() => abrirEditarRegistro(r)}
-                          className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                          className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <span className="font-mono text-ink-500 shrink-0">{formatarDataCurta(r.data)}</span>
@@ -944,7 +944,7 @@ export default function ProjetoDetalhe() {
                         key={dia.data}
                         type="button"
                         onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
-                        className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-lg hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                        className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
                       >
                         <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
                         <span className="font-mono font-semibold text-ink-900">{dia.total.toFixed(2).replace('.', ',')}h</span>
