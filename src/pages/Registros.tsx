@@ -692,7 +692,7 @@ export default function Registros() {
                   </div>
 
                   {/* Lançamentos e Gaps */}
-                  <div className={`flex flex-col gap-1.5 transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                  <div className={`flex flex-col gap-1.5 transition-all duration-d2 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                     {viewMode === 'projeto' ? (
                       // Agrupar registros do dia por projeto
                       (() => {

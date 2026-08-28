@@ -34,13 +34,13 @@
 }
 :root{
   --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:14px;
-  --d1:120ms; --d2:180ms; --d3:260ms; --ez:cubic-bezier(.2,.8,.3,1);
+  --d1:300ms; --d2:550ms; --d3:260ms; --d4:800ms; --d5:380ms; --ez:cubic-bezier(.2,.8,.3,1);
   --fd:'Instrument Sans',system-ui,sans-serif;
   --fu:'Inter Variable','Inter',system-ui,sans-serif;
   --fm:'IBM Plex Mono',ui-monospace,monospace;
 }
 @media (prefers-reduced-motion:reduce){
-  :root{ --d1:0ms; --d2:0ms; --d3:0ms; }
+  :root{ --d1:0ms; --d2:0ms; --d3:0ms; --d4:0ms; --d5:0ms; }
 }
 @tailwind base;
 @tailwind components;

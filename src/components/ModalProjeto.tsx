@@ -248,12 +248,12 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <span className="block text-xs text-ink-500">Projeto faturável</span>
                 </div>
                 <div
-                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 shrink-0 ${
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-d1 shrink-0 ${
                     billable ? 'bg-accent' : 'bg-surface-0'
                   }`}
                 >
                   <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-d1 ${
                       billable ? 'translate-x-6' : 'translate-x-0'
                     }`}
                   />

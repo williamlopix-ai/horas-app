@@ -110,7 +110,7 @@ export default function Sidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-surface-1 border-r border-hair flex flex-col shrink-0 min-h-screen transition-transform duration-300 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-surface-1 border-r border-hair flex flex-col shrink-0 min-h-screen transition-transform duration-d3 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         <div className="p-6 border-b border-hair flex items-center gap-3">
           <div className="p-2 rounded-ctl bg-accent-bg text-accent-fg">
             <Clock className="w-6 h-6" />

@@ -64,7 +64,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
       className={`
         flex items-center gap-3 px-4 py-3 rounded-card shadow-e2
         text-sm font-medium max-w-[360px] w-full pointer-events-auto
-        transition-all duration-300 ease-out
+        transition-all duration-d3 ease-out
         ${STYLES[toast.type]}
         ${visible && !leaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
       `}

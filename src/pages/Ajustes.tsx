@@ -1040,7 +1040,7 @@ export default function Ajustes() {
                     <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Horas Base Mensal</h3>
                     <p className="text-xs text-ink-500">Total de horas disponíveis por mês. Se não configurado, usa base semanal × 4.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'horasBaseMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-d5 ${openBillableSection === 'horasBaseMensal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'horasBaseMensal' && (
                   <div className="space-y-4 mt-4">
@@ -1131,7 +1131,7 @@ export default function Ajustes() {
                     <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Meta percentual semanal</h3>
                     <p className="text-xs text-ink-500">Percentual de meta billable semanal a ser atingido.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-d5 ${openBillableSection === 'metaSemanal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'metaSemanal' && (
                   <div className="space-y-4 mt-4">
@@ -1231,7 +1231,7 @@ export default function Ajustes() {
                     <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Meta percentual mensal</h3>
                     <p className="text-xs text-ink-500">Percentual de meta billable mensal a ser atingido.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-d5 ${openBillableSection === 'metaMensal' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'metaMensal' && (
                   <div className="space-y-4 mt-4">
@@ -1326,7 +1326,7 @@ export default function Ajustes() {
                     <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">SALDO ACUMULADO — DATA DE INÍCIO</h3>
                     <p className="text-xs text-ink-500">O saldo acumulado será calculado a partir da semana selecionada.</p>
                   </div>
-                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-200 ${openBillableSection === 'saldoAcumulado' ? 'rotate-0' : '-rotate-90'}`} />
+                  <ChevronDown size={14} className={`text-ink-500 shrink-0 ml-4 transition-transform duration-d5 ${openBillableSection === 'saldoAcumulado' ? 'rotate-0' : '-rotate-90'}`} />
                 </button>
                 {openBillableSection === 'saldoAcumulado' && (
                   <div className="space-y-3 mt-4">

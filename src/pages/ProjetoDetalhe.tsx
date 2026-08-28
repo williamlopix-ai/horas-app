@@ -1125,7 +1125,7 @@ export default function ProjetoDetalhe() {
             </Button>
           </Surface>
         ) : (
-          <div className="space-y-8 animate-in fade-in duration-300">
+          <div className="space-y-8 animate-in fade-in duration-d3">
             {avisoNovoProjeto && !temContratado && (
               <div className={`rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-2 font-ui ${pulsoAtivo ? 'pulso-brilho' : ''}`}>
                 <span>Projeto criado. Defina as horas contratadas para acompanhar o progresso.</span>
@@ -1255,7 +1255,7 @@ export default function ProjetoDetalhe() {
               {temContratado && (
                 <div className="w-full bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
                   <div
-                    className="h-full transition-all duration-500"
+                    className="h-full transition-all duration-d4"
                     style={{
                       width: `${percentualGeral}%`,
                       backgroundColor: excedeuContratado ? 'var(--bad)' : 'var(--ok)'
@@ -1487,7 +1487,7 @@ export default function ProjetoDetalhe() {
                             </div>
                           </div>
                         )}
-                        <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
+                        <div className={`overflow-hidden transition-all duration-d2 ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
                           {temPrevisto && (() => {
                             const teto = fase.horas_contratadas!
                             const usadoClamp = Math.min(usadoFase, teto)
@@ -1501,12 +1501,12 @@ export default function ProjetoDetalhe() {
                                 <div className="w-full bg-surface-0 h-[8px] rounded-full overflow-hidden border border-hair flex">
                                   {estourou ? (
                                     <div
-                                      className="h-full transition-all duration-500"
+                                      className="h-full transition-all duration-d4"
                                       style={{ width: '100%', backgroundColor: 'var(--bad)' }}
                                     />
                                   ) : (
                                     <div
-                                      className="h-full transition-all duration-500"
+                                      className="h-full transition-all duration-d4"
                                       style={{ width: `${pctUsado}%`, backgroundColor: 'var(--ok)' }}
                                     />
                                   )}
