@@ -831,92 +831,94 @@ export default function ProjetoDetalhe() {
 
             return (
               <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
-                <div className="flex justify-between items-center text-xs gap-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
-                    {temLancamento && !isEditingReserva ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleSub(sub.id!)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 focus:outline-none -my-2 -ml-2"
-                      >
-                        <ChevronDown
-                          className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
-                        />
-                      </button>
-                    ) : (
-                      <span className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 -my-2 -ml-2" />
-                    )}
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
-                    <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
-                    {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
-                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-surface-2 border border-hair-strong text-ink-500 shrink-0 font-medium font-mono">
-                        sem reserva
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isEditingReserva ? (
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <input
-                          type="text"
-                          value={valorReservaEditando}
-                          onChange={(e) => setValorReservaEditando(e.target.value)}
-                          placeholder="Horas"
-                          disabled={salvandoSub}
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleSaveEditReserva(sub.id!, sub.nome)
-                            } else if (e.key === 'Escape') {
-                              e.preventDefault()
-                              handleCancelEditReserva()
-                            }
-                          }}
-                          className={`${classeCampo()} !w-24 text-xs py-1 px-2.5 font-mono`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleSaveEditReserva(sub.id!, sub.nome)}
-                          disabled={salvandoSub}
-                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
-                          title="Confirmar"
-                        >
-                          <Check className="w-icon-sm h-icon-sm" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelEditReserva}
-                          disabled={salvandoSub}
-                          className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
-                          title="Cancelar"
-                        >
-                          <X className="w-icon-sm h-icon-sm" />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="font-mono text-right shrink-0">
-                          <span className="font-bold text-ink-900">{duracaoFormatada}</span>
-                          {temAlocacao && (
-                            <span className="text-xs text-ink-500"> de {alocadoFormatado} reservadas</span>
-                          )}
-                        </div>
-                        <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
-                          {!temAlocacao ? `${sub.percentual ?? 0}%` : ''}
+                <div className="flex justify-between items-start md:items-center text-xs gap-2">
+                  {temLancamento && !isEditingReserva ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSub(sub.id!)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 focus:outline-none -my-2 -ml-2"
+                    >
+                      <ChevronDown
+                        className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  ) : (
+                    <span className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 -my-2 -ml-2" />
+                  )}
+                  <div className="flex-1 min-w-0 flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between md:gap-2">
+                    <div className="flex items-center gap-2 min-w-0 md:pr-2">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
+                      <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                      {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
+                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-surface-2 border border-hair-strong text-ink-500 shrink-0 font-medium font-mono">
+                          sem reserva
                         </span>
-                        {!isBaldeSemSub && (
-                          <div className="shrink-0 ml-1">
-                            <MenuAcoes
-                              itens={itensMenu}
-                              rotulo={`Ações para ${sub.nome}`}
-                              desabilitado={salvandoSub || editandoSubId !== null || editandoReservaId !== null}
-                            />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 pl-3.5 md:pl-0">
+                      {isEditingReserva ? (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <input
+                            type="text"
+                            value={valorReservaEditando}
+                            onChange={(e) => setValorReservaEditando(e.target.value)}
+                            placeholder="Horas"
+                            disabled={salvandoSub}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleSaveEditReserva(sub.id!, sub.nome)
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault()
+                                handleCancelEditReserva()
+                              }
+                            }}
+                            className={`${classeCampo()} !w-24 text-xs py-1 px-2.5 font-mono`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEditReserva(sub.id!, sub.nome)}
+                            disabled={salvandoSub}
+                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
+                            title="Confirmar"
+                          >
+                            <Check className="w-icon-sm h-icon-sm" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEditReserva}
+                            disabled={salvandoSub}
+                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
+                            title="Cancelar"
+                          >
+                            <X className="w-icon-sm h-icon-sm" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-mono text-right shrink-0">
+                            <span className="font-bold text-ink-900">{duracaoFormatada}</span>
+                            {temAlocacao && (
+                              <span className="text-xs text-ink-500"> de {alocadoFormatado} reservadas</span>
+                            )}
                           </div>
-                        )}
-                      </>
-                    )}
+                          <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
+                            {!temAlocacao ? `${sub.percentual ?? 0}%` : ''}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  {!isEditingReserva && !isBaldeSemSub && (
+                    <div className="shrink-0 ml-1">
+                      <MenuAcoes
+                        itens={itensMenu}
+                        rotulo={`Ações para ${sub.nome}`}
+                        desabilitado={salvandoSub || editandoSubId !== null || editandoReservaId !== null}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {temAlocacao && !isEditingReserva && (
