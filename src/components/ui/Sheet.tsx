@@ -90,7 +90,7 @@ export function Sheet({
             aria-label="Fechar"
             className="text-ink-500 hover:text-ink-900 p-1 rounded-ctl hover:bg-surface-3 transition-colors duration-d1 ease-ez -mr-1 -mt-1"
           >
-            <X className="w-4 h-4" />
+            <X className="w-icon-sm h-icon-sm" />
           </button>
         </div>
 

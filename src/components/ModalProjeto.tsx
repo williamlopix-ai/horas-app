@@ -126,7 +126,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
           type="button"
           className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors focus:outline-none z-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-lg h-icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -139,7 +139,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
         {/* Mensagem de Erro do Modal */}
         {error && (
           <div className="mb-4 p-3 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-2 shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>{error}</span>
@@ -214,7 +214,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 />
                 {temFases && (
                   <div className="rounded-card px-3 py-2 mt-2 text-xs border-l-[3px] border-l-ink-500 bg-surface-3 text-ink-500 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xs h-icon-xs shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span>Este projeto usa fases. As horas contratadas são gerenciadas na página do projeto.</span>
@@ -282,7 +282,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                       style={{ backgroundColor: itemCor.valor }}
                     >
                       {cor === itemCor.valor && (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white drop-shadow-sm" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm text-white drop-shadow-sm" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}

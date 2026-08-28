@@ -680,7 +680,7 @@ export default function ProjetoDetalhe() {
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                       <ChevronDown
-                        className={`h-4 w-4 text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${baldeExpandido ? 'rotate-180' : ''}`}
+                        className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${baldeExpandido ? 'rotate-180' : ''}`}
                       />
                       <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                     </div>
@@ -767,7 +767,7 @@ export default function ProjetoDetalhe() {
                       className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
                       title="Confirmar"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="w-icon-sm h-icon-sm" />
                     </button>
                     <button
                       type="button"
@@ -776,7 +776,7 @@ export default function ProjetoDetalhe() {
                       className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
                       title="Cancelar"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="w-icon-sm h-icon-sm" />
                     </button>
                   </div>
                 </div>
@@ -840,7 +840,7 @@ export default function ProjetoDetalhe() {
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 focus:outline-none -my-2 -ml-2"
                       >
                         <ChevronDown
-                          className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
+                          className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${subsExpandidas[sub.id!] ? 'rotate-180' : ''}`}
                         />
                       </button>
                     ) : (
@@ -882,7 +882,7 @@ export default function ProjetoDetalhe() {
                           className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
                           title="Confirmar"
                         >
-                          <Check className="h-4 w-4" />
+                          <Check className="w-icon-sm h-icon-sm" />
                         </button>
                         <button
                           type="button"
@@ -891,7 +891,7 @@ export default function ProjetoDetalhe() {
                           className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
                           title="Cancelar"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="w-icon-sm h-icon-sm" />
                         </button>
                       </div>
                     ) : (
@@ -1090,7 +1090,7 @@ export default function ProjetoDetalhe() {
             onClick={() => navigate(-1)}
             className="inline-flex items-center gap-2 text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
           >
-            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <ArrowLeft className="w-icon-sm h-icon-sm shrink-0" />
             <span>Voltar</span>
           </button>
         </div>
@@ -1100,7 +1100,7 @@ export default function ProjetoDetalhe() {
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
             className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
           </div>
         )}
@@ -1211,7 +1211,7 @@ export default function ProjetoDetalhe() {
                       className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
                       title="Confirmar"
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="w-icon-sm h-icon-sm" />
                     </button>
                     <button
                       type="button"
@@ -1220,7 +1220,7 @@ export default function ProjetoDetalhe() {
                       className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
                       title="Cancelar"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="w-icon-sm h-icon-sm" />
                     </button>
                   </div>
                 ) : temContratado ? (
@@ -1266,7 +1266,7 @@ export default function ProjetoDetalhe() {
               {fasesExcedemContratado && (
                 <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center justify-between gap-2 font-ui">
                   <span className="flex items-center gap-2">
-                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
+                    <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                     {temContratado ? (
                       <span>as fases somam {somaPrevistasFases.toFixed(2).replace('.', ',')}h previstas, acima das {totalContratado!.toFixed(2).replace('.', ',')}h contratadas</span>
                     ) : (
@@ -1313,7 +1313,7 @@ export default function ProjetoDetalhe() {
                   className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                 >
                   <ChevronDown
-                    className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
+                    className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
                   />
                   <h2 className="text-xl font-display font-bold text-ink-900">Fases & Subcategorias</h2>
                   {!secoesExpandidas['fases'] && (
@@ -1421,7 +1421,7 @@ export default function ProjetoDetalhe() {
                                 className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors flex items-center justify-center"
                                 title="Confirmar"
                               >
-                                <Check className="h-5 w-5" />
+                                <Check className="w-icon-md h-icon-md" />
                               </button>
                               <button
                                 type="button"
@@ -1430,7 +1430,7 @@ export default function ProjetoDetalhe() {
                                 className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ink-500 hover:text-ink-900 transition-colors flex items-center justify-center"
                                 title="Cancelar"
                               >
-                                <X className="h-5 w-5" />
+                                <X className="w-icon-md h-icon-md" />
                               </button>
                             </div>
                           </div>
@@ -1444,7 +1444,7 @@ export default function ProjetoDetalhe() {
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <ChevronDown
-                                  className={`h-4 w-4 text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
+                                  className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
                                 />
                                 <span className="font-display font-bold text-ink-900 text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{fase.nome}</span>
                               </div>
@@ -1566,7 +1566,7 @@ export default function ProjetoDetalhe() {
                                 className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
                                 title="Cancelar"
                               >
-                                <X className="h-4 w-4" />
+                                <X className="w-icon-sm h-icon-sm" />
                               </button>
                             </div>
                           )}
@@ -1600,14 +1600,14 @@ export default function ProjetoDetalhe() {
                               } else if (diffFase < 0) {
                                 return (
                                   <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
-                                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
+                                    <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                                     <span>{formatarHoras(Math.abs(diffFase))}h além das {formatarHoras(fase.horas_contratadas!)}h previstas</span>
                                   </div>
                                 )
                               } else {
                                 return (
                                   <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
-                                    <Check className="h-3.5 w-3.5 shrink-0 text-ok" />
+                                    <Check className="w-icon-xs h-icon-xs shrink-0 text-ok" />
                                     <span>Totalmente reservado</span>
                                   </div>
                                 )
@@ -1764,7 +1764,7 @@ export default function ProjetoDetalhe() {
                         className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
                         title="Cancelar"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="w-icon-sm h-icon-sm" />
                       </button>
                     </div>
                   )}
@@ -1801,14 +1801,14 @@ export default function ProjetoDetalhe() {
                       } else if (diff < 0) {
                         return (
                           <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
-                            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-bad" />
+                            <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                             <span>{formatarHoras(Math.abs(diff))}h além das {formatarHoras(projeto.horas_contratadas)}h contratadas</span>
                           </div>
                         )
                       } else {
                         return (
                           <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
-                            <Check className="h-3.5 w-3.5 shrink-0 text-ok" />
+                            <Check className="w-icon-xs h-icon-xs shrink-0 text-ok" />
                             <span>Totalmente reservado</span>
                           </div>
                         )
@@ -1829,7 +1829,7 @@ export default function ProjetoDetalhe() {
                     className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                   >
                     <ChevronDown
-                      className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
+                      className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
                     />
                     <h2 className="text-xl font-display font-bold text-ink-900">Plano semanal</h2>
                     {!secoesExpandidas['plano'] && (
@@ -1981,7 +1981,7 @@ export default function ProjetoDetalhe() {
                                     className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                     title="Excluir plano semanal"
                                   >
-                                    <Trash2 className="h-4 w-4" />
+                                    <Trash2 className="w-icon-sm h-icon-sm" />
                                   </button>
                                 </td>
                               </tr>
@@ -2021,7 +2021,7 @@ export default function ProjetoDetalhe() {
                     onClick={() => toggleSecao('lancamentos')}
                     className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
                   >
-                    <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
                     <h2 className="text-xl font-display font-bold text-ink-900">Lançamentos</h2>
                     {!secoesExpandidas['lancamentos'] && (
                       <span className="text-xs text-ink-500 font-ui font-normal">
@@ -2049,7 +2049,7 @@ export default function ProjetoDetalhe() {
                           <Surface key={grupo.semanaInicio} elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                             <button type="button" onClick={() => toggleSemana(grupo.semanaInicio)} className="w-full flex items-center justify-between p-5 hover:bg-surface-3 transition-colors duration-d1 ease-ez focus:outline-none">
                               <div className="flex items-center gap-3 min-w-0">
-                                <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d3 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d3 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                 <span className="font-bold text-ink-900 text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
                               </div>
                               <div className="font-mono text-sm font-semibold text-ink-900">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
@@ -2082,9 +2082,9 @@ export default function ProjetoDetalhe() {
                                             className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors focus:outline-none"
                                             title="Ver no dia"
                                           >
-                                            <Eye className="h-4 w-4" />
+                                            <Eye className="w-icon-sm h-icon-sm" />
                                           </button>
-                                          <Pencil className="h-4 w-4 text-ink-500 hover:text-accent transition-colors" />
+                                          <Pencil className="w-icon-sm h-icon-sm text-ink-500 hover:text-accent transition-colors" />
                                         </div>
                                       </div>
                                       {reg.observacao && <p className="text-xs text-ink-500 break-words leading-relaxed">{reg.observacao}</p>}
@@ -2182,7 +2182,7 @@ export default function ProjetoDetalhe() {
                       type="button"
                       className="absolute top-4 right-4 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors z-10 disabled:opacity-50"
                     >
-                      <X className="h-6 w-6" />
+                      <X className="w-icon-lg h-icon-lg" />
                     </button>
 
                     <h3 className="text-xl font-display font-bold text-ink-900 mb-2 shrink-0">

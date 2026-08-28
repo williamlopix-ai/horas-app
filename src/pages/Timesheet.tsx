@@ -248,7 +248,7 @@ export default function Timesheet() {
             variante="secundario"
             tamanho="md"
             type="button"
-            iconeEsquerda={<Copy className="h-4 w-4" />}
+            iconeEsquerda={<Copy className="w-icon-sm h-icon-sm" />}
             className="min-h-[44px]"
             onClick={handleCopy}
             disabled={loading || tableData.length === 0}
@@ -263,7 +263,7 @@ export default function Timesheet() {
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
             className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
           </div>
         )}
@@ -286,7 +286,7 @@ export default function Timesheet() {
                 className="absolute right-0 top-0 bottom-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                 title="Limpar filtro"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-icon-xs h-icon-xs" />
               </button>
             )}
           </div>
@@ -301,7 +301,7 @@ export default function Timesheet() {
                 title="Semana anterior"
                 aria-label="Semana anterior"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-icon-sm h-icon-sm" />
               </button>
               <span className="text-base font-bold text-ink-900 min-w-[200px] text-center select-none">
                 {formatWeekInterval(currentDate)}
@@ -313,7 +313,7 @@ export default function Timesheet() {
                 title="Próxima semana"
                 aria-label="Próxima semana"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-icon-sm h-icon-sm" />
               </button>
             </div>
             {/* Indicador no Mobile */}
@@ -339,7 +339,7 @@ export default function Timesheet() {
           ) : projetos.length === 0 ? (
             <div className="p-6 text-center max-w-lg mx-auto space-y-4">
               <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                <FileChartColumn className="h-8 w-8" />
+                <FileChartColumn className="w-icon-xl h-icon-xl" />
               </div>
               <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto apto para timesheet</h3>
               <p className="text-sm text-ink-500 leading-relaxed font-ui">
@@ -357,7 +357,7 @@ export default function Timesheet() {
           ) : tableData.length === 0 ? (
             <div className="p-6 text-center max-w-lg mx-auto space-y-4">
               <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                <Search className="h-8 w-8" />
+                <Search className="w-icon-xl h-icon-xl" />
               </div>
               <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum resultado encontrado</h3>
               <p className="text-sm text-ink-500 leading-relaxed font-ui">

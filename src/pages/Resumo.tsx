@@ -65,7 +65,7 @@ function ProjetoCardSortable({ id, children }: ProjetoCardSortableProps) {
         className="absolute top-2 right-2 z-10 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-500 hover:text-ink-900 cursor-grab active:cursor-grabbing touch-none rounded-ctl bg-surface-0/70 backdrop-blur-sm transition-colors duration-d1 ease-ez"
         title="Arrastar para reordenar"
       >
-        <GripVertical className="w-5 h-5" />
+        <GripVertical className="w-icon-md h-icon-md" />
       </button>
       {children}
     </div>
@@ -485,7 +485,7 @@ export default function Resumo() {
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
             className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
           </div>
         )}
@@ -543,7 +543,7 @@ export default function Resumo() {
                     }`}
                   title="Visualização em Cards"
                 >
-                  <LayoutGrid className="w-4 h-4 shrink-0" />
+                  <LayoutGrid className="w-icon-sm h-icon-sm shrink-0" />
                   <span>Cards</span>
                 </button>
                 <button
@@ -554,7 +554,7 @@ export default function Resumo() {
                     }`}
                   title="Visualização em Lista"
                 >
-                  <List className="w-4 h-4 shrink-0" />
+                  <List className="w-icon-sm h-icon-sm shrink-0" />
                   <span>Lista</span>
                 </button>
                 <button
@@ -565,7 +565,7 @@ export default function Resumo() {
                     }`}
                   title="Visualização em Tabela"
                 >
-                  <Table2 className="w-4 h-4 shrink-0" />
+                  <Table2 className="w-icon-sm h-icon-sm shrink-0" />
                   <span>Tabela</span>
                 </button>
               </div>
@@ -582,7 +582,7 @@ export default function Resumo() {
         ) : registros.length === 0 ? (
           <Surface elevacao={1} comBorda padding="nenhum" className="p-12 text-center max-w-lg mx-auto space-y-4">
             <div className="inline-flex p-4 rounded-full bg-surface-2 text-accent mb-2">
-              <ChartNoAxesColumn className="h-8 w-8" />
+              <ChartNoAxesColumn className="w-icon-xl h-icon-xl" />
             </div>
             <h3 className="text-lg font-display font-bold text-ink-900">Nenhum histórico encontrado</h3>
             <p className="text-sm text-ink-500 leading-relaxed">
@@ -985,7 +985,7 @@ export default function Resumo() {
                                               className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                             >
                                               <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                              <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                              <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                             </button>
                                             <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                               <BreakdownSubcategorias subcategorias={proj.subcategorias} />
@@ -1055,7 +1055,7 @@ export default function Resumo() {
                                         className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                       >
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                        <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                        <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                       </button>
                                       <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                         <BreakdownSubcategorias subcategorias={proj.subcategorias} />
@@ -1087,7 +1087,7 @@ export default function Resumo() {
                             onClick={() => setMostrarArquivados(!mostrarArquivados)}
                             className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors py-2 duration-d1 ease-ez mb-4 focus:outline-none"
                           >
-                            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-d2 ease-ez ${mostrarArquivados ? 'rotate-180' : '-rotate-90'}`} />
+                            <ChevronDown className={`w-icon-sm h-icon-sm shrink-0 transition-transform duration-d2 ease-ez ${mostrarArquivados ? 'rotate-180' : '-rotate-90'}`} />
                             <h2 className="text-lg font-display font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
                           </button>
 
@@ -1139,7 +1139,7 @@ export default function Resumo() {
                                           className="w-full flex items-center justify-between text-xs font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez py-3.5 focus:outline-none"
                                         >
                                           <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
-                                          <ChevronDown className={`h-4 w-4 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
+                                          <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                         </button>
                                         <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                           <BreakdownSubcategorias subcategorias={proj.subcategorias} />
@@ -1200,7 +1200,7 @@ export default function Resumo() {
                                 <div className="flex items-center gap-4 text-right">
                                   <span className="font-mono font-bold text-accent tabular-nums text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
                                   <span className="text-xs font-semibold text-ink-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
-                                  <ChevronDown className={`h-4 w-4 text-ink-500 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
+                                  <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
                                 </div>
                               </div>
 
@@ -1248,7 +1248,7 @@ export default function Resumo() {
             className="w-[95%] sm:w-full max-w-md p-6 shadow-e3 flex flex-col"
           >
             <h3 className="text-xl font-display font-bold text-ink-900 mb-2 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-bad shrink-0" /> Atenção — Ação irreversível
+              <AlertTriangle className="w-icon-md h-icon-md text-bad shrink-0" /> Atenção — Ação irreversível
             </h3>
             <p className="text-sm text-ink-500 mb-6 leading-relaxed">
               Todos os lançamentos vinculados a <strong className="text-ink-900">{projetoParaExcluir.nome}</strong> serão excluídos permanentemente.

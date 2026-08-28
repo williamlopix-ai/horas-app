@@ -473,7 +473,7 @@ export default function Registros() {
             variante="primario"
             onClick={abrirNovoRegistroModal}
             className="min-h-[44px] px-4 shrink-0"
-            iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
+            iconeEsquerda={<Plus className="w-icon-sm h-icon-sm shrink-0" />}
           >
             Novo Registro
           </Button>
@@ -485,7 +485,7 @@ export default function Registros() {
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
             className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
           </div>
         )}
@@ -522,7 +522,7 @@ export default function Registros() {
                 title="Semana anterior"
                 aria-label="Semana anterior"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-icon-sm h-icon-sm" />
               </button>
 
               <div className="flex-1 bg-surface-2 border border-hair-strong rounded-ctl h-11 flex items-center justify-center px-3 min-w-0">
@@ -538,7 +538,7 @@ export default function Registros() {
                 title="Próxima semana"
                 aria-label="Próxima semana"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-icon-sm h-icon-sm" />
               </button>
 
               <button
@@ -572,7 +572,7 @@ export default function Registros() {
                   className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer whitespace-nowrap px-2 min-h-[44px] inline-flex items-center gap-1 shrink-0 font-medium"
                   title="Limpar data"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-icon-xs h-icon-xs" />
                   <span>Limpar</span>
                 </button>
               )}
@@ -593,7 +593,7 @@ export default function Registros() {
               }`}
               title="Lista detalhada com gaps"
             >
-              <List className="w-4 h-4 shrink-0" />
+              <List className="w-icon-sm h-icon-sm shrink-0" />
               <span>Lista</span>
             </button>
             <button
@@ -605,7 +605,7 @@ export default function Registros() {
               }`}
               title="Agrupado por projeto"
             >
-              <FolderKanban className="w-4 h-4 shrink-0" />
+              <FolderKanban className="w-icon-sm h-icon-sm shrink-0" />
               <span>Por Projeto</span>
             </button>
           </div>
@@ -627,7 +627,7 @@ export default function Registros() {
         ) : registrosAgrupadosPorData.length === 0 ? (
           <Surface elevacao={1} comBorda padding="lg" className="text-center max-w-lg mx-auto space-y-4">
             <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-              <Clock className="w-8 h-8 shrink-0" />
+              <Clock className="w-icon-xl h-icon-xl shrink-0" />
             </div>
             <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum lançamento encontrado</h3>
             <p className="text-sm text-ink-500 leading-relaxed font-ui">
@@ -638,7 +638,7 @@ export default function Registros() {
                 variante="primario"
                 onClick={abrirNovoRegistroModal}
                 className="min-h-[44px] px-4"
-                iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
+                iconeEsquerda={<Plus className="w-icon-sm h-icon-sm shrink-0" />}
               >
                 Lançar horas
               </Button>
@@ -657,7 +657,7 @@ export default function Registros() {
                     onClick={() => toggleDia(grupo.data)}
                   >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-ink-500 transition-transform duration-d2 ease-ez shrink-0 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
+                      <ChevronDown className={`w-icon-sm h-icon-sm sm:w-icon-md sm:h-icon-md text-ink-500 transition-transform duration-d2 ease-ez shrink-0 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
                       <div>
                         <h3 className="text-xs sm:text-sm font-bold text-ink-900 tracking-wide uppercase flex items-center gap-2 font-display">
                           <span className="capitalize normal-case">{grupo.titulo}</span>
@@ -685,7 +685,7 @@ export default function Registros() {
                         className="min-h-[44px] min-w-[44px] p-2.5 text-ink-500 hover:text-ink-900 bg-surface-1 hover:bg-surface-3 border border-hair-strong rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                         title="Editar Horário do Dia"
                       >
-                        <Clock className="w-4 h-4 shrink-0" />
+                        <Clock className="w-icon-sm h-icon-sm shrink-0" />
                         <span className="sr-only">Editar Horário do Dia</span>
                       </button>
                     </div>
@@ -825,7 +825,7 @@ export default function Registros() {
                                             className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Editar Lançamento"
                                           >
-                                            <Pencil className="w-4 h-4 shrink-0" />
+                                            <Pencil className="w-icon-sm h-icon-sm shrink-0" />
                                             <span className="sr-only">Editar Lançamento</span>
                                           </button>
                                           <button
@@ -834,7 +834,7 @@ export default function Registros() {
                                             className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Excluir Lançamento"
                                           >
-                                            <Trash2 className="w-4 h-4 shrink-0" />
+                                            <Trash2 className="w-icon-sm h-icon-sm shrink-0" />
                                             <span className="sr-only">Excluir Lançamento</span>
                                           </button>
                                         </div>
@@ -971,7 +971,7 @@ export default function Registros() {
                                     className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Editar Lançamento"
                                   >
-                                    <Pencil className="w-4 h-4 shrink-0" />
+                                    <Pencil className="w-icon-sm h-icon-sm shrink-0" />
                                     <span className="sr-only">Editar Lançamento</span>
                                   </button>
                                   <button
@@ -980,7 +980,7 @@ export default function Registros() {
                                     className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Excluir Lançamento"
                                   >
-                                    <Trash2 className="w-4 h-4 shrink-0" />
+                                    <Trash2 className="w-icon-sm h-icon-sm shrink-0" />
                                     <span className="sr-only">Excluir Lançamento</span>
                                   </button>
                                 </div>

@@ -303,7 +303,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
           type="button"
           className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors focus:outline-none"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-lg h-icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -316,7 +316,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         {/* Mensagem de Erro */}
         {error && (
           <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>{error}</span>

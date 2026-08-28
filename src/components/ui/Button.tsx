@@ -59,7 +59,7 @@ export function Button({
       {...rest}
     >
       {carregando ? (
-        <Loader2 className={`animate-spin ${tamanho === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
+        <Loader2 className={`animate-spin ${tamanho === 'sm' ? 'w-icon-xs h-icon-xs' : 'w-icon-xs h-icon-xs'}`} />
       ) : (
         iconeEsquerda && <span className="shrink-0 flex items-center">{iconeEsquerda}</span>
       )}

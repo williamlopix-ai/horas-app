@@ -102,7 +102,7 @@ function ProjetoRowItem({
               className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors touch-none shrink-0"
               title="Arrastar para reordenar"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-icon-md h-icon-md" viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="9" cy="6" r="1.5" />
                 <circle cx="15" cy="6" r="1.5" />
                 <circle cx="9" cy="12" r="1.5" />
@@ -464,7 +464,7 @@ export default function Projetos() {
             className="min-h-[44px]"
             onClick={abrirNovoProjetoModal}
             iconeEsquerda={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
             }
@@ -506,7 +506,7 @@ export default function Projetos() {
         {/* Exibição de Mensagem de Erro */}
         {error && (
           <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>{error}</span>
@@ -524,7 +524,7 @@ export default function Projetos() {
           ) : projetosFiltrados.length === 0 ? (
             <div className="p-12 text-center max-w-md mx-auto space-y-4">
               <div className="inline-flex p-4 rounded-full bg-surface-2 text-ink-700 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>

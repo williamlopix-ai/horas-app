@@ -603,7 +603,7 @@ export default function Billable() {
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
             className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
           >
-            <AlertTriangle className="w-5 h-5 shrink-0 text-bad" />
+            <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
           </div>
         )}
@@ -797,7 +797,7 @@ export default function Billable() {
                   title="Semana anterior"
                   aria-label="Semana anterior"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-icon-sm h-icon-sm" />
                 </button>
                 <div className="overflow-hidden h-6 flex items-center justify-center min-w-[260px]">
                   <span
@@ -814,7 +814,7 @@ export default function Billable() {
                   title="Próxima semana"
                   aria-label="Próxima semana"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-icon-sm h-icon-sm" />
                 </button>
               </div>
 
@@ -829,7 +829,7 @@ export default function Billable() {
                 ) : billableProjetos.length === 0 ? (
                   <div className="p-6 text-center max-w-lg mx-auto space-y-4">
                     <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                      <FileChartColumn className="h-8 w-8" />
+                      <FileChartColumn className="w-icon-xl h-icon-xl" />
                     </div>
                     <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto billable ativo</h3>
                     <p className="text-sm text-ink-500 leading-relaxed font-ui">
@@ -1114,7 +1114,7 @@ export default function Billable() {
                   title="Mês anterior"
                   aria-label="Mês anterior"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-icon-sm h-icon-sm" />
                 </button>
                 <div className="overflow-hidden h-6 flex items-center justify-center min-w-[260px]">
                   <span
@@ -1131,7 +1131,7 @@ export default function Billable() {
                   title="Próximo mês"
                   aria-label="Próximo mês"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-icon-sm h-icon-sm" />
                 </button>
               </div>
 
@@ -1146,7 +1146,7 @@ export default function Billable() {
                 ) : billableProjetosMensal.length === 0 ? (
                   <div className="p-6 text-center max-w-lg mx-auto space-y-4">
                     <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                      <FileChartColumn className="h-8 w-8" />
+                      <FileChartColumn className="w-icon-xl h-icon-xl" />
                     </div>
                     <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto billable ativo</h3>
                     <p className="text-sm text-ink-500 leading-relaxed font-ui">

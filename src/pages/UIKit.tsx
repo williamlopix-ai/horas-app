@@ -51,7 +51,7 @@ export default function UIKit() {
         </div>
         <Button
           variante="secundario"
-          iconeEsquerda={tema === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          iconeEsquerda={tema === 'dark' ? <Sun className="w-icon-sm h-icon-sm" /> : <Moon className="w-icon-sm h-icon-sm" />}
           onClick={alternarTema}
         >
           Tema: {tema === 'dark' ? 'Escuro' : 'Claro'}
@@ -74,7 +74,7 @@ export default function UIKit() {
           <Button variante="destrutivo" tamanho="sm">Destrutivo sm</Button>
         </div>
         <div className="flex flex-wrap gap-3 items-center pt-2">
-          <Button variante="primario" iconeEsquerda={<Plus className="w-4 h-4" />}>
+          <Button variante="primario" iconeEsquerda={<Plus className="w-icon-sm h-icon-sm" />}>
             Com Ícone
           </Button>
           <Button variante="secundario" carregando>
@@ -102,7 +102,7 @@ export default function UIKit() {
           <Chip tom="alerta">alerta (pendente)</Chip>
           <Chip tom="erro">erro (crítico)</Chip>
           <Chip tom="acento">acento (destaque)</Chip>
-          <Chip tom="neutro" icone={<Clock className="w-3 h-3" />}>
+          <Chip tom="neutro" icone={<Clock className="w-icon-xs h-icon-xs" />}>
             com ícone
           </Chip>
           <Chip tom="neutro" pontoCor="var(--proj-3)">
@@ -185,7 +185,7 @@ export default function UIKit() {
               valor="38.00"
               unidade="h"
               tom="ok"
-              icone={<CheckCircle2 className="w-4 h-4 text-ok" />}
+              icone={<CheckCircle2 className="w-icon-sm h-icon-sm text-ok" />}
               apoio="+3.5h vs semana anterior"
             />
           </Surface>
@@ -195,7 +195,7 @@ export default function UIKit() {
               valor="4.50"
               unidade="h"
               tom="alerta"
-              icone={<AlertCircle className="w-4 h-4 text-warn" />}
+              icone={<AlertCircle className="w-icon-sm h-icon-sm text-warn" />}
               apoio="Faltam 2 dias úteis"
             />
           </Surface>
@@ -266,7 +266,7 @@ export default function UIKit() {
                 tamanho="sm"
                 onClick={() => alert('Clicou na ação sem disparar o clique da linha!')}
               >
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="w-icon-sm h-icon-sm" />
               </Button>
             }
           />

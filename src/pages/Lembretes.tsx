@@ -197,7 +197,7 @@ export default function Lembretes() {
             className="min-h-[44px]"
             onClick={abrirNovoLembreteModal}
             iconeEsquerda={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
             }
@@ -209,7 +209,7 @@ export default function Lembretes() {
         {/* Exibição de Erro */}
         {error && (
           <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>{error}</span>
@@ -236,7 +236,7 @@ export default function Lembretes() {
             ) : pendentes.length === 0 ? (
               <div className="bg-surface-2 border border-hair rounded-card p-12 text-center max-w-md mx-auto space-y-4">
                 <div className="inline-flex p-4 rounded-full bg-surface-3 text-ink-700 mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
@@ -330,7 +330,7 @@ export default function Lembretes() {
                             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ok hover:bg-ok-bg rounded-ctl transition-all focus:outline-none"
                             title="Concluir"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           </button>
@@ -339,7 +339,7 @@ export default function Lembretes() {
                             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-ctl transition-all focus:outline-none"
                             title="Editar"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                           </button>
@@ -348,7 +348,7 @@ export default function Lembretes() {
                             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-ctl transition-all focus:outline-none"
                             title="Excluir"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -432,7 +432,7 @@ export default function Lembretes() {
                               className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-ctl transition-all focus:outline-none"
                               title="Reabrir (Mudar para Pendente)"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.706 8h-2.5" />
                               </svg>
                             </button>
@@ -441,7 +441,7 @@ export default function Lembretes() {
                               className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-bad hover:bg-bad-bg rounded-ctl transition-all focus:outline-none"
                               title="Excluir permanentemente"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                             </button>

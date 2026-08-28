@@ -94,7 +94,7 @@ export default function Sidebar() {
           </button>
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-ctl bg-accent-bg text-accent-fg">
-              <Clock className="w-5 h-5" />
+              <Clock className="w-icon-md h-icon-md" />
             </div>
             <span className="text-lg font-display font-bold tracking-tight text-ink-900">HORAS</span>
           </div>
@@ -113,7 +113,7 @@ export default function Sidebar() {
       <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-surface-1 border-r border-hair flex flex-col shrink-0 min-h-screen transition-transform duration-d3 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
         <div className="p-6 border-b border-hair flex items-center gap-3">
           <div className="p-2 rounded-ctl bg-accent-bg text-accent-fg">
-            <Clock className="w-6 h-6" />
+            <Clock className="w-icon-lg h-icon-lg" />
           </div>
           <span className="text-xl font-display font-bold tracking-tight text-ink-900">HORAS</span>
         </div>
@@ -127,7 +127,7 @@ export default function Sidebar() {
             className="w-full min-h-[44px] px-3 flex items-center justify-between bg-surface-2 border border-hair rounded-ctl text-sm text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
           >
             <div className="flex items-center gap-2.5 truncate">
-              <Search className="w-4 h-4 shrink-0 text-ink-500" />
+              <Search className="w-icon-sm h-icon-sm shrink-0 text-ink-500" />
               <span className="truncate">Buscar...</span>
             </div>
             <kbd className="px-1.5 py-0.5 text-[11px] font-mono text-ink-500 bg-surface-3 rounded border border-hair shrink-0">
@@ -142,7 +142,7 @@ export default function Sidebar() {
             variante="primario"
             larguraTotal
             className="min-h-[44px]"
-            iconeEsquerda={<Plus className="w-4 h-4 shrink-0" />}
+            iconeEsquerda={<Plus className="w-icon-sm h-icon-sm shrink-0" />}
             onClick={() => {
               setIsSidebarOpen(false)
               navigate('/registros?novo=1')
@@ -168,7 +168,7 @@ export default function Sidebar() {
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                 }`}
               >
-                <Icone className="w-5 h-5 shrink-0" />
+                <Icone className="w-icon-md h-icon-md shrink-0" />
                 <span className="flex-1 truncate">{rotulo}</span>
                 {item.badge && pendentesCount > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-white text-[11px] font-mono font-bold">

@@ -66,7 +66,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
       contentClassName="fixed left-1/2 top-[12vh] -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[560px] bg-surface-2 rounded-sheet shadow-e3 border border-hair overflow-hidden outline-none font-ui"
     >
       <div className="flex items-center px-4 border-b border-hair">
-        <Search className="w-4 h-4 text-ink-500 shrink-0 mr-3" />
+        <Search className="w-icon-sm h-icon-sm text-ink-500 shrink-0 mr-3" />
         <Command.Input
           value={busca}
           onValueChange={setBusca}
@@ -93,7 +93,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
                 onSelect={() => navegarPara(item.rota)}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
               >
-                <Icone className="w-4 h-4 shrink-0" />
+                <Icone className="w-icon-sm h-icon-sm shrink-0" />
                 <span className="flex-1 truncate">{item.rotulo}</span>
               </Command.Item>
             )
@@ -117,7 +117,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
                   onSelect={() => navegarPara(`/projeto/${projeto.id}`)}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
                 >
-                  <FolderKanban className="w-4 h-4 shrink-0" />
+                  <FolderKanban className="w-icon-sm h-icon-sm shrink-0" />
                   <span className="flex-1 truncate">{projeto.nome}</span>
                   {projeto.codigo_externo && (
                     <span className="text-xs font-mono text-ink-500 opacity-80">
