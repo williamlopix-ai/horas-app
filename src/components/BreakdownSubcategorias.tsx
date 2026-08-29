@@ -49,10 +49,10 @@ export default function BreakdownSubcategorias({ subcategorias }: BreakdownSubca
 
           return (
             <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
-              <div className="flex justify-between items-center text-xs gap-2">
+              <div className="flex justify-between items-start text-xs gap-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${sub.id === null ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
-                  <span className="text-ink-700 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
+                  <span className="text-ink-700 whitespace-normal break-words min-w-0 overflow-hidden" title={sub.nome}>{sub.nome}</span>
                   {temAlgumaAlocacao && !temAlocacao && sub.id !== null && (
                     <Chip tom="neutro" className="shrink-0">sem alocação</Chip>
                   )}
