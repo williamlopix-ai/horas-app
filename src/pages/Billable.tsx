@@ -570,7 +570,7 @@ export default function Billable() {
         </div>
 
         {/* Abas no topo */}
-        <div className="flex border-b border-hair gap-6 mt-4">
+        <div className="flex border-b border-hair gap-xl mt-4">
           <button
             type="button"
             onClick={() => setActiveTab('semanal')}
@@ -601,7 +601,7 @@ export default function Billable() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -614,7 +614,7 @@ export default function Billable() {
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loading ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-lg">
                   {[1, 2, 3, 4].map((i) => (
                     <Surface key={i} elevacao={1} comBorda padding="nenhum" className="animate-pulse p-6 h-32 flex flex-col justify-between">
                       <div className="h-3 bg-surface-3 rounded w-2/3" />
@@ -624,7 +624,7 @@ export default function Billable() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentDate.getTime()}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-lg" key={currentDate.getTime()}>
                   {/* Card 1 — META DA SEMANA */}
                   <Surface
                     elevacao={1}
@@ -636,7 +636,7 @@ export default function Billable() {
                     <span className="text-xs uppercase tracking-widest text-ink-500">
                       META DA SEMANA
                     </span>
-                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2 flex items-baseline gap-sm">
                       <AnimatedNumber
                         value={metaReal}
                         formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
@@ -723,7 +723,7 @@ export default function Billable() {
               )}
 
               {/* Saldo Acumulado — linha discreta */}
-              <div className="flex items-center gap-2 px-1">
+              <div className="flex items-center gap-sm px-1">
                 <span className="text-xs text-ink-500">Saldo acumulado:</span>
                 {saldoInicioSemana ? (
                   <span className={`text-xs font-semibold tabular-nums ${saldoAcumulado >= 0 ? 'text-ok' : 'text-bad'}`}>
@@ -789,7 +789,7 @@ export default function Billable() {
               </Surface>
 
               {/* Navegador de semana */}
-              <div className="flex items-center justify-center gap-4 py-2">
+              <div className="flex items-center justify-center gap-lg py-2">
                 <button
                   type="button"
                   onClick={prevWeek}
@@ -838,7 +838,7 @@ export default function Billable() {
                     <div className="pt-2">
                       <Link
                         to="/projetos"
-                        className="inline-flex items-center justify-center gap-1.5 rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                        className="inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
                       >
                         Gerenciar Projetos
                       </Link>
@@ -934,7 +934,7 @@ export default function Billable() {
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loadingMensal ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-lg">
                   {[1, 2, 3, 4].map((i) => (
                     <Surface key={i} elevacao={1} comBorda padding="nenhum" className="animate-pulse p-6 h-32 flex flex-col justify-between">
                       <div className="h-3 bg-surface-3 rounded w-2/3" />
@@ -944,7 +944,7 @@ export default function Billable() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" key={currentMonth.getTime()}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-lg" key={currentMonth.getTime()}>
                   {/* Card 1 — META DO MÊS */}
                   <Surface
                     elevacao={1}
@@ -956,7 +956,7 @@ export default function Billable() {
                     <span className="text-xs uppercase tracking-widest text-ink-500">
                       META DO MÊS
                     </span>
-                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-ink-900 tabular-nums mt-2 flex items-baseline gap-sm">
                       <AnimatedNumber
                         value={metaRealMensal}
                         formatter={(v) => `${v.toFixed(2).replace('.', ',')}h`}
@@ -1043,7 +1043,7 @@ export default function Billable() {
               )}
 
               {/* Saldo Acumulado — linha discreta */}
-              <div className="flex items-center gap-2 px-1">
+              <div className="flex items-center gap-sm px-1">
                 <span className="text-xs text-ink-500">Saldo acumulado:</span>
                 {saldoInicioSemana ? (
                   <span className={`text-xs font-semibold tabular-nums ${saldoAcumuladoMensal >= 0 ? 'text-ok' : 'text-bad'}`}>
@@ -1106,7 +1106,7 @@ export default function Billable() {
               </Surface>
 
               {/* Navegador de mês */}
-              <div className="flex items-center justify-center gap-4 py-2">
+              <div className="flex items-center justify-center gap-lg py-2">
                 <button
                   type="button"
                   onClick={prevMonth}
@@ -1155,7 +1155,7 @@ export default function Billable() {
                     <div className="pt-2">
                       <Link
                         to="/projetos"
-                        className="inline-flex items-center justify-center gap-1.5 rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                        className="inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
                       >
                         Gerenciar Projetos
                       </Link>

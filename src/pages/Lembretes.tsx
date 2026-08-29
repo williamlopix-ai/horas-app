@@ -187,7 +187,7 @@ export default function Lembretes() {
 
       <main className="flex-1 p-4 md:p-8 lg:ml-[240px] max-w-5xl space-y-6 w-full overflow-y-auto">
         {/* Header da Seção */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
           <div>
             <h2 className="text-2xl font-bold text-ink-900 tracking-tight">Lembretes</h2>
             <p className="text-sm text-ink-700">Organize e acompanhe seus lembretes e tarefas pendentes.</p>
@@ -208,7 +208,7 @@ export default function Lembretes() {
 
         {/* Exibição de Erro */}
         {error && (
-          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-md">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -220,7 +220,7 @@ export default function Lembretes() {
         <div className="space-y-8">
           {/* Pendentes */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-ink-900 flex items-center gap-2 border-b border-hair pb-2">
+            <h3 className="text-lg font-bold text-ink-900 flex items-center gap-sm border-b border-hair pb-2">
               <span>Pendentes</span>
               <span className="text-xs bg-surface-3 text-ink-700 px-2 py-0.5 rounded-full font-medium">
                 {loading ? '...' : pendentes.length}
@@ -228,7 +228,7 @@ export default function Lembretes() {
             </h3>
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                 {[1, 2, 3].map((i) => (
                   <SkeletonCard key={i} />
                 ))}
@@ -253,7 +253,7 @@ export default function Lembretes() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                 {pendentes.map((lembrete) => {
                   const proj = getProjetoInfo(lembrete.projeto_id)
                   const isHoje = lembrete.data_alvo === hoje
@@ -272,12 +272,12 @@ export default function Lembretes() {
                     >
                       <div className="space-y-2">
                         {/* Tags e Data */}
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center justify-between gap-sm flex-wrap">
                           <span className="text-xs font-mono text-ink-700">
                             {formatarData(lembrete.data_alvo)}
                           </span>
 
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-xs">
                             {isVencido && (
                               <span className="inline-flex items-center py-0.5 px-2 rounded-full text-[10px] font-bold bg-bad-bg text-bad border border-bad">
                                 Vencido
@@ -305,11 +305,11 @@ export default function Lembretes() {
                       </div>
 
                       {/* Footer do Card */}
-                      <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-3">
+                      <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-md">
                         {/* Projeto Vinculado */}
                         <div className="min-w-0 flex-1">
                           {proj ? (
-                            <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex items-center gap-xs min-w-0">
                               <span
                                 className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm"
                                 style={{ backgroundColor: proj.cor }}
@@ -324,7 +324,7 @@ export default function Lembretes() {
                         </div>
 
                         {/* Botões de Ação */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-sm shrink-0">
                           <button
                             onClick={() => handleAlternarStatus(lembrete)}
                             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ok hover:bg-ok-bg rounded-ctl transition-all focus:outline-none"
@@ -366,14 +366,14 @@ export default function Lembretes() {
             <div className="border-t border-hair pt-6">
               <button
                 onClick={() => setMostrarResolvidos(!mostrarResolvidos)}
-                className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors mb-4 focus:outline-none py-2 min-h-[44px]"
+                className="flex items-center gap-sm text-ink-500 hover:text-ink-900 transition-colors mb-4 focus:outline-none py-2 min-h-[44px]"
               >
                 <span className="text-xs">{mostrarResolvidos ? '▼' : '▶'}</span>
                 <h3 className="text-lg font-bold">Resolvidos ({resolvidos.length})</h3>
               </button>
 
               {mostrarResolvidos && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                   {resolvidos.map((lembrete) => {
                     const proj = getProjetoInfo(lembrete.projeto_id)
 
@@ -384,7 +384,7 @@ export default function Lembretes() {
                       >
                         <div className="space-y-2">
                           {/* Tags e Data */}
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center justify-between gap-sm flex-wrap">
                             <span className="text-xs font-mono text-ink-500 line-through">
                               {formatarData(lembrete.data_alvo)}
                             </span>
@@ -407,11 +407,11 @@ export default function Lembretes() {
                         </div>
 
                         {/* Footer do Card */}
-                        <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-3">
+                        <div className="mt-4 pt-3 border-t border-hair flex items-center justify-between gap-md">
                           {/* Projeto Vinculado */}
                           <div className="min-w-0 flex-1">
                             {proj ? (
-                              <div className="flex items-center gap-1.5 min-w-0">
+                              <div className="flex items-center gap-xs min-w-0">
                                 <span
                                   className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm opacity-50"
                                   style={{ backgroundColor: proj.cor }}
@@ -426,7 +426,7 @@ export default function Lembretes() {
                           </div>
 
                           {/* Botões de Ação */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-sm shrink-0">
                             <button
                               onClick={() => handleAlternarStatus(lembrete)}
                               className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-accent hover:bg-accent-bg rounded-ctl transition-all focus:outline-none"

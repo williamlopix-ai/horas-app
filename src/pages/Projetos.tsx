@@ -87,12 +87,12 @@ function ProjetoRowItem({
       ref={setNodeRef}
       style={style}
       onClick={() => onNavigate(projeto.id)}
-      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-3 gap-y-1 md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
+      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-md gap-y-2xs md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
         isDragging ? 'shadow-e3 ring-2 ring-accent' : ''
       }`}
     >
       <td className="block md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-md">
           {isDraggable && (
             <button
               type="button"
@@ -123,7 +123,7 @@ function ProjetoRowItem({
       </td>
       <td className="flex items-center justify-between md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
         <span
-          className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium ${
+          className={`inline-flex items-center gap-xs py-1 px-2.5 rounded-full text-xs font-medium ${
             projeto.status === 'ativo'
               ? 'bg-ok-bg text-ok'
               : projeto.status === 'encerrado'
@@ -163,7 +163,7 @@ function ProjetoRowItem({
         )}
       </td>
       <td className="col-span-2 block md:table-cell py-1 md:py-4 px-0 md:px-6 text-left md:text-right">
-        <div className="flex flex-row flex-wrap md:inline-flex gap-2 w-full md:w-auto">
+        <div className="flex flex-row flex-wrap md:inline-flex gap-sm w-full md:w-auto">
           {projeto.status === 'excluido' ? (
             <>
               <span className="inline-flex items-center justify-center py-1.5 px-3 bg-surface-2 text-ink-500 text-xs font-semibold rounded-ctl border border-hair w-auto text-center">
@@ -180,7 +180,7 @@ function ProjetoRowItem({
               </button>
             </>
           ) : (
-            <div className="hidden md:flex gap-2">
+            <div className="hidden md:flex gap-sm">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -454,7 +454,7 @@ export default function Projetos() {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
         
         {/* Header da Seção */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
           <div>
             <h2 className="text-2xl font-bold text-ink-900 tracking-tight">Projetos</h2>
             <p className="text-sm text-ink-700">Gerencie seus projetos e clientes para associar aos seus lançamentos de horas.</p>
@@ -474,7 +474,7 @@ export default function Projetos() {
         </div>
 
         {/* Abas Projetos / Rotina */}
-        <div className="flex border-b border-hair gap-6">
+        <div className="flex border-b border-hair gap-xl">
           <button
             onClick={() => setAbaAtiva('projeto')}
             className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-all relative ${
@@ -505,7 +505,7 @@ export default function Projetos() {
 
         {/* Exibição de Mensagem de Erro */}
         {error && (
-          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-3">
+          <div className="p-4 bg-bad-bg border border-bad rounded-card text-bad text-sm flex items-center gap-md">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -605,7 +605,7 @@ export default function Projetos() {
             <p className="text-sm text-ink-700 mb-6">
               O que deseja fazer?
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-sm">
               <button
                 type="button"
                 onClick={async () => {

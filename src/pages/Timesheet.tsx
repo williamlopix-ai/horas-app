@@ -239,7 +239,7 @@ export default function Timesheet() {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
 
         {/* Header da Seção */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
           <div>
             <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Timesheet</h1>
             <p className="text-sm text-ink-500">Grade semanal para preenchimento de horas no sistema externo.</p>
@@ -261,7 +261,7 @@ export default function Timesheet() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -269,7 +269,7 @@ export default function Timesheet() {
         )}
 
         {/* Navegação Semanal e Filtro por Código */}
-        <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4">
+        <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col md:flex-row md:items-center justify-between gap-lg p-4">
           {/* Filtro por Código */}
           <div className="relative w-full md:w-72">
             <input
@@ -292,8 +292,8 @@ export default function Timesheet() {
           </div>
 
           {/* Navegação Semanal */}
-          <div className="flex flex-col items-center justify-center gap-1 w-full md:w-auto md:flex-1">
-            <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-2xs w-full md:w-auto md:flex-1">
+            <div className="flex items-center justify-center gap-lg">
               <button
                 type="button"
                 onClick={prevWeek}
@@ -348,7 +348,7 @@ export default function Timesheet() {
               <div className="pt-2">
                 <Link
                   to="/projetos"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                  className="inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
                 >
                   Gerenciar Projetos
                 </Link>

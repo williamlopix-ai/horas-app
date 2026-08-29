@@ -64,7 +64,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           1. Button
         </h2>
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-md items-center">
           <Button variante="primario" tamanho="md">Primário md</Button>
           <Button variante="primario" tamanho="sm">Primário sm</Button>
           <Button variante="secundario" tamanho="md">Secundário md</Button>
@@ -74,7 +74,7 @@ export default function UIKit() {
           <Button variante="destrutivo" tamanho="md">Destrutivo md</Button>
           <Button variante="destrutivo" tamanho="sm">Destrutivo sm</Button>
         </div>
-        <div className="flex flex-wrap gap-3 items-center pt-2">
+        <div className="flex flex-wrap gap-md items-center pt-2">
           <Button variante="primario" iconeEsquerda={<Plus className="w-icon-sm h-icon-sm" />}>
             Com Ícone
           </Button>
@@ -97,7 +97,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           2. Chip
         </h2>
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-md items-center">
           <Chip tom="neutro">neutro</Chip>
           <Chip tom="ok">ok (ativo)</Chip>
           <Chip tom="alerta">alerta (pendente)</Chip>
@@ -117,7 +117,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           3. Surface
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
           <Surface elevacao={0} padding="md" comBorda>
             <span className="font-mono text-xs text-ink-500">Elevação 0 (com borda)</span>
           </Surface>
@@ -138,7 +138,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           4. Field
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
           <Field rotulo="Rótulo Simples">
             <input
               type="text"
@@ -170,7 +170,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           5. Stat
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
           <Surface elevacao={2} padding="md" comBorda>
             <Stat
               rotulo="Total Horas"
@@ -330,7 +330,7 @@ export default function UIKit() {
         <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
           8. Dica
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-xl items-start">
           {/* a) Texto curto com Dica */}
           <Surface elevacao={1} padding="md" comBorda className="space-y-2">
             <span className="font-mono text-xs text-ink-500 block">
