@@ -98,7 +98,7 @@ export function Sheet({
 
         {rodape && (
           <div
-            className="p-4 border-t border-hair flex justify-end gap-2 shrink-0"
+            className="p-4 border-t border-hair flex justify-end gap-sm shrink-0"
             style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
           >
             {rodape}

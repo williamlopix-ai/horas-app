@@ -68,7 +68,7 @@ export function DataRow({
   return (
     <div
       onClick={onClick}
-      className={`w-full flex items-center gap-3 py-2 text-left transition-colors duration-d1 ease-ez ${
+      className={`w-full flex items-center gap-md py-2 text-left transition-colors duration-d1 ease-ez ${
         onClick ? 'cursor-pointer hover:bg-surface-3 rounded-ctl -mx-2 px-2' : ''
       } ${className}`}
     >

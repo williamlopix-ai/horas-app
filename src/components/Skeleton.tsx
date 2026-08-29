@@ -12,15 +12,15 @@ export function SkeletonLine({ className = '' }: { className?: string }) {
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-surface-2 border border-hair rounded-card p-6 flex flex-col gap-4 shadow-e1 ${className}`}>
-      <div className="flex justify-between items-start gap-4">
+    <div className={`bg-surface-2 border border-hair rounded-card p-6 flex flex-col gap-lg shadow-e1 ${className}`}>
+      <div className="flex justify-between items-start gap-lg">
         <div className="space-y-2 w-full">
           <SkeletonLine className="w-16 h-3" />
           <SkeletonLine className="w-3/4 h-5" />
         </div>
         <Skeleton className="h-8 w-8 rounded-full shrink-0" />
       </div>
-      <div className="grid grid-cols-3 gap-4 py-2 border-y border-hair mt-2">
+      <div className="grid grid-cols-3 gap-lg py-2 border-y border-hair mt-2">
         <div>
           <SkeletonLine className="w-12 h-3 mb-2" />
           <SkeletonLine className="w-full h-6" />
@@ -48,14 +48,14 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
 export function SkeletonRow({ className = '' }: { className?: string }) {
   return (
     <div className={`flex items-center justify-between py-4 px-6 border-b border-hair last:border-0 ${className}`}>
-      <div className="flex items-center gap-3 w-1/3">
+      <div className="flex items-center gap-md w-1/3">
         <Skeleton className="h-3.5 w-3.5 rounded-full shrink-0" />
         <SkeletonLine className="w-full" />
       </div>
       <div className="w-1/4">
         <Skeleton className="h-6 w-20 rounded-full" />
       </div>
-      <div className="flex gap-2 justify-end w-1/4">
+      <div className="flex gap-sm justify-end w-1/4">
         <Skeleton className="h-8 w-16 rounded-ctl" />
         <Skeleton className="h-8 w-20 rounded-ctl" />
         <Skeleton className="h-8 w-16 rounded-ctl" />

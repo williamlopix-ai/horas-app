@@ -30,7 +30,7 @@ export function Stat({
 
   return (
     <div className={`flex flex-col ${className}`}>
-      <div className="flex items-center justify-between gap-2 mb-1">
+      <div className="flex items-center justify-between gap-sm mb-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
           {rotulo}
         </span>

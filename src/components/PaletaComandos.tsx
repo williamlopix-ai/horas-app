@@ -91,7 +91,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
                 key={item.rota}
                 value={item.rotulo}
                 onSelect={() => navegarPara(item.rota)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
+                className="flex items-center gap-md px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
               >
                 <Icone className="w-icon-sm h-icon-sm shrink-0" />
                 <span className="flex-1 truncate">{item.rotulo}</span>
@@ -115,7 +115,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
                   key={projeto.id}
                   value={`${projeto.nome} ${projeto.codigo_externo ?? ''}`}
                   onSelect={() => navegarPara(`/projeto/${projeto.id}`)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
+                  className="flex items-center gap-md px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
                 >
                   <FolderKanban className="w-icon-sm h-icon-sm shrink-0" />
                   <span className="flex-1 truncate">{projeto.nome}</span>

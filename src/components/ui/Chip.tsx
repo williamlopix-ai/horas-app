@@ -18,7 +18,7 @@ export function Chip({
   className = '',
 }: ChipProps) {
   const baseClasses =
-    'inline-flex items-center gap-1.5 font-mono text-[10.5px] px-2 py-0.5 rounded-chip whitespace-nowrap'
+    'inline-flex items-center gap-xs font-mono text-[10.5px] px-2 py-0.5 rounded-chip whitespace-nowrap'
 
   const tomClasses = {
     neutro: 'bg-surface-3 text-ink-500 border border-hair',
