@@ -17,7 +17,7 @@ import {
   Trash2,
   X
 } from 'lucide-react'
-import { Button, Sheet, Surface, classeCampo } from '../components/ui'
+import { Button, Dica, Sheet, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -802,12 +802,14 @@ export default function Registros() {
                                           </span>
                                         )}
                                         {reg.observacao && (
-                                          <span
-                                            className="hidden [@media(pointer:fine)]:block text-sm text-ink-500 truncate min-w-0 font-ui"
-                                            title={reg.observacao}
+                                          <Dica
+                                            texto={reg.observacao}
+                                            className="hidden [@media(pointer:fine)]:inline-flex"
                                           >
-                                            {reg.observacao}
-                                          </span>
+                                            <span className="text-sm text-ink-500 truncate min-w-0 font-ui">
+                                              {reg.observacao}
+                                            </span>
+                                          </Dica>
                                         )}
                                       </div>
 
@@ -962,12 +964,14 @@ export default function Registros() {
                                   </span>
                                 )}
                                 {reg.observacao && (
-                                  <span
-                                    className="hidden [@media(pointer:fine)]:block text-sm text-ink-500 truncate min-w-0 font-ui"
-                                    title={reg.observacao}
+                                  <Dica
+                                    texto={reg.observacao}
+                                    className="hidden [@media(pointer:fine)]:inline-flex"
                                   >
-                                    {reg.observacao}
-                                  </span>
+                                    <span className="text-sm text-ink-500 truncate min-w-0 font-ui">
+                                      {reg.observacao}
+                                    </span>
+                                  </Dica>
                                 )}
                               </div>
 
