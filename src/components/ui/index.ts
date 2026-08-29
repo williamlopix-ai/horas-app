@@ -18,3 +18,6 @@ export type { BarraSegmentada, DataRowProps } from './DataRow'
 
 export { Sheet } from './Sheet'
 export type { TamanhoSheet, SheetProps } from './Sheet'
+
+export { Dica } from './Dica'
+export type { DicaProps } from './Dica'

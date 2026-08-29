@@ -8,6 +8,7 @@ import {
   Stat,
   DataRow,
   Sheet,
+  Dica,
 } from '../components/ui'
 import {
   Sun,
@@ -46,7 +47,7 @@ export default function UIKit() {
             UI Kit & Design Primitives
           </h1>
           <p className="text-[13px] text-ink-500 mt-1">
-            Galeria de testes das 7 primitivas de interface (Fase 2)
+            Galeria de testes das 8 primitivas de interface (Fase 2)
           </p>
         </div>
         <Button
@@ -322,6 +323,70 @@ export default function UIKit() {
             </div>
           </div>
         </Sheet>
+      </section>
+
+      {/* 8. Dica */}
+      <section className="space-y-4">
+        <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
+          8. Dica
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          {/* a) Texto curto com Dica */}
+          <Surface elevacao={1} padding="md" comBorda className="space-y-2">
+            <span className="font-mono text-xs text-ink-500 block">
+              a) Texto curto (sem corte)
+            </span>
+            <div>
+              <Dica texto="Dica simples e direta sobre este item">
+                <Button variante="secundario" tamanho="sm">
+                  Passe o mouse ou foque aqui
+                </Button>
+              </Dica>
+            </div>
+          </Surface>
+
+          {/* b) Texto longo truncado simulando observação em Registros */}
+          <Surface elevacao={1} padding="md" comBorda className="space-y-2">
+            <span className="font-mono text-xs text-ink-500 block">
+              b) Texto truncado (simulando observação em Registros)
+            </span>
+            <div className="max-w-[240px] p-2 bg-surface-2 rounded-ctl border border-hair">
+              <Dica texto="Refatoração completa da camada de serviços e sincronização com Supabase para suportar modo offline e retry automático.">
+                <p className="text-sm text-ink-700 truncate min-w-0 cursor-help">
+                  Refatoração completa da camada de serviços e sincronização com Supabase...
+                </p>
+              </Dica>
+            </div>
+          </Surface>
+
+          {/* c) Container com overflow-hidden provando que o balão escapa do contorno */}
+          <Surface elevacao={1} padding="md" comBorda className="space-y-2">
+            <span className="font-mono text-xs text-ink-500 block">
+              c) Dentro de container com overflow-hidden (balão escapa via portal)
+            </span>
+            <div className="overflow-hidden h-16 p-3 bg-surface-2 rounded-ctl border border-hair flex items-center justify-center">
+              <Dica texto="Este balão foi renderizado no document.body via portal e não é cortado pelo overflow-hidden!">
+                <Button variante="fantasma" tamanho="sm">
+                  Elemento preso em overflow-hidden
+                </Button>
+              </Dica>
+            </div>
+          </Surface>
+
+          {/* d) Próximo da borda direita da tela para verificar deslocamento */}
+          <Surface elevacao={1} padding="md" comBorda className="space-y-2">
+            <span className="font-mono text-xs text-ink-500 block">
+              d) Próximo da borda direita (ajuste horizontal automático)
+            </span>
+            <div className="flex justify-end">
+              <Dica texto="Balão posicionado na extremidade direita da tela, deslocado horizontalmente para respeitar a margem de 8px.">
+                <Button variante="primario" tamanho="sm">
+                  Alinhado à Direita
+                </Button>
+              </Dica>
+            </div>
+          </Surface>
+        </div>
       </section>
     </div>
   )
