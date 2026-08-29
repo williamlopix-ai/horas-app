@@ -1193,11 +1193,11 @@ export default function Resumo() {
                                 className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors duration-d1 ease-ez cursor-pointer"
                                 onClick={() => toggleRotina(rotina.id)}
                               >
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 min-w-0">
                                   <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
                                   <p className="font-bold text-ink-900 text-sm uppercase tracking-wide whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={rotina.nome}>{rotina.nome}</p>
                                 </div>
-                                <div className="flex items-center gap-4 text-right">
+                                <div className="flex items-center gap-4 text-right shrink-0">
                                   <span className="font-mono font-bold text-accent tabular-nums text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
                                   <span className="text-xs font-semibold text-ink-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
                                   <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
