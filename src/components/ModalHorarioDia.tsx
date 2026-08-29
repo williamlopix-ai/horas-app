@@ -90,7 +90,7 @@ export default function ModalHorarioDia({
           <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
             
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-card text-red-400 text-xs flex items-start gap-2">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-card text-red-400 text-xs flex items-start gap-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -98,7 +98,7 @@ export default function ModalHorarioDia({
               </div>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex gap-lg">
               <div className="flex-1 space-y-1.5">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                   Início
@@ -133,7 +133,7 @@ export default function ModalHorarioDia({
           </div>
 
           {/* Rodapé (Ações) */}
-          <div className="px-6 py-4 border-t border-gray-800 bg-[#0B0E14]/50 flex justify-end gap-3 mt-auto">
+          <div className="px-6 py-4 border-t border-gray-800 bg-[#0B0E14]/50 flex justify-end gap-md mt-auto">
             <button
               type="button"
               onClick={onClose}
@@ -144,7 +144,7 @@ export default function ModalHorarioDia({
             <button
               type="submit"
               disabled={saving}
-              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-sm"
             >
               {saving ? (
                 <>

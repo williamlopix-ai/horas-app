@@ -315,7 +315,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-bad-bg border border-bad rounded-card text-bad text-xs flex items-center gap-sm">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -324,7 +324,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         )}
 
         {/* Layout de Duas Colunas */}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-xl">
           
           {/* Coluna Esquerda: Campos */}
           <div className="md:col-span-7 space-y-4">
@@ -459,7 +459,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
             </div>
 
             {/* Horários (Lado a Lado) */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-lg">
               <div>
                 <label htmlFor="modal-inicio" className="block text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">
                   Início *
@@ -550,7 +550,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
 
             {/* Ações */}
             <div
-              className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-0"
+              className="flex flex-col sm:flex-row gap-md pt-6 md:pt-0"
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}
             >
               <Button

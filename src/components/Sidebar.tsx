@@ -84,7 +84,7 @@ export default function Sidebar() {
     <>
       {/* Header Mobile */}
       <header className="lg:hidden bg-surface-1 border-b border-hair px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-md">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center -ml-2 rounded-ctl text-ink-500 hover:text-ink-900 hover:bg-surface-2 transition-colors duration-d1 ease-ez focus:outline-none"
@@ -92,7 +92,7 @@ export default function Sidebar() {
           >
             <span className="text-2xl">☰</span>
           </button>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-sm">
             <div className="p-1.5 rounded-ctl bg-accent-bg text-accent-fg">
               <Clock className="w-icon-md h-icon-md" />
             </div>
@@ -111,7 +111,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-surface-1 border-r border-hair flex flex-col shrink-0 min-h-screen transition-transform duration-d3 transform lg:transform-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:fixed lg:left-0 lg:top-0 lg:bottom-0`}>
-        <div className="p-6 border-b border-hair flex items-center gap-3">
+        <div className="p-6 border-b border-hair flex items-center gap-md">
           <div className="p-2 rounded-ctl bg-accent-bg text-accent-fg">
             <Clock className="w-icon-lg h-icon-lg" />
           </div>
@@ -126,7 +126,7 @@ export default function Sidebar() {
             aria-label="Abrir paleta de comandos"
             className="w-full min-h-[44px] px-3 flex items-center justify-between bg-surface-2 border border-hair rounded-ctl text-sm text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none"
           >
-            <div className="flex items-center gap-2.5 truncate">
+            <div className="flex items-center gap-sm truncate">
               <Search className="w-icon-sm h-icon-sm shrink-0 text-ink-500" />
               <span className="truncate">Buscar...</span>
             </div>
@@ -162,7 +162,7 @@ export default function Sidebar() {
                 key={rota}
                 to={rota}
                 aria-current={ativo ? 'page' : undefined}
-                className={`flex items-center gap-3 py-3 px-3 rounded-ctl text-sm font-medium transition-colors duration-d1 ease-ez ${
+                className={`flex items-center gap-md py-3 px-3 rounded-ctl text-sm font-medium transition-colors duration-d1 ease-ez ${
                   ativo
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
@@ -180,7 +180,7 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-hair flex items-center justify-between gap-2">
+        <div className="p-4 border-t border-hair flex items-center justify-between gap-sm">
           <span className="text-xs text-ink-500 font-mono truncate min-w-0">{user?.email}</span>
           <MenuAcoes
             itens={[{ label: 'Sair', onClick: () => signOut(), perigo: true }]}
