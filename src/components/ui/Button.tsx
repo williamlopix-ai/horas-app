@@ -32,8 +32,8 @@ export function Button({
     'inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] disabled:opacity-50 disabled:cursor-not-allowed'
 
   const tamanhoClasses = {
-    sm: 'px-2.5 py-1 text-xs',
-    md: 'px-3.5 py-1.5 text-[13px]',
+    sm: 'px-ctl-sm-x py-ctl-sm-y text-xs',
+    md: 'px-ctl-md-x py-ctl-md-y text-[13px]',
   }[tamanho]
 
   const varianteClasses = {
