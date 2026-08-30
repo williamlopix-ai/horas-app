@@ -495,21 +495,21 @@ export default function Resumo() {
           <div className="flex p-0.5 sm:p-1 bg-surface-1 border border-hair rounded-ctl w-fit">
             <button
               onClick={() => setAbaAtiva('semanal')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'semanal' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+              className={`px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'semanal' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
                 }`}
             >
               Semanal
             </button>
             <button
               onClick={() => setAbaAtiva('diario')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'diario' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+              className={`px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'diario' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
                 }`}
             >
               Diário
             </button>
             <button
               onClick={() => setAbaAtiva('projetos')}
-              className={`px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'projetos' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
+              className={`px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${abaAtiva === 'projetos' ? 'bg-accent-bg text-accent-fg' : 'text-ink-500 hover:text-ink-900'
                 }`}
             >
               Por Projetos
@@ -537,7 +537,7 @@ export default function Resumo() {
               <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
                 <button
                   onClick={() => changeViewMode('cards')}
-                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
+                  className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}
@@ -548,7 +548,7 @@ export default function Resumo() {
                 </button>
                 <button
                   onClick={() => changeViewMode('lista')}
-                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
+                  className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}
@@ -559,7 +559,7 @@ export default function Resumo() {
                 </button>
                 <button
                   onClick={() => changeViewMode('tabela')}
-                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
+                  className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}

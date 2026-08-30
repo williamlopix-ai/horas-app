@@ -589,7 +589,7 @@ export default function Registros() {
           <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                 viewMode === 'lista'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
@@ -601,7 +601,7 @@ export default function Registros() {
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                 viewMode === 'projeto'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'

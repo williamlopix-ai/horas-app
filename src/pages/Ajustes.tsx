@@ -600,7 +600,7 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setInicioSemana('sabado')}
-                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'sabado'
+                      className={`flex-1 sm:flex-initial px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'sabado'
                         ? 'bg-accent-bg text-accent-fg'
                         : 'text-ink-500 hover:text-ink-900'
                         }`}
@@ -610,7 +610,7 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setInicioSemana('segunda')}
-                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'segunda'
+                      className={`flex-1 sm:flex-initial px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'segunda'
                         ? 'bg-accent-bg text-accent-fg'
                         : 'text-ink-500 hover:text-ink-900'
                         }`}
@@ -620,7 +620,7 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setInicioSemana('domingo')}
-                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'domingo'
+                      className={`flex-1 sm:flex-initial px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${inicioSemana === 'domingo'
                         ? 'bg-accent-bg text-accent-fg'
                         : 'text-ink-500 hover:text-ink-900'
                         }`}
@@ -838,7 +838,7 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setFormatoHoras('decimal')}
-                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'decimal'
+                      className={`flex-1 sm:flex-initial px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'decimal'
                         ? 'bg-accent-bg text-accent-fg'
                         : 'text-ink-500 hover:text-ink-900'
                         }`}
@@ -848,7 +848,7 @@ export default function Ajustes() {
                     <button
                       type="button"
                       onClick={() => setFormatoHoras('hhmm')}
-                      className={`flex-1 sm:flex-initial px-3 py-2 sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'hhmm'
+                      className={`flex-1 sm:flex-initial px-ctl-aba-x py-ctl-aba-y sm:px-5 min-h-[44px] text-xs sm:text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none ${formatoHoras === 'hhmm'
                         ? 'bg-accent-bg text-accent-fg'
                         : 'text-ink-500 hover:text-ink-900'
                         }`}
