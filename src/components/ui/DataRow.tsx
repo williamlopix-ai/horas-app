@@ -68,8 +68,22 @@ export function DataRow({
   return (
     <div
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onClick()
+              }
+            }
+          : undefined
+      }
       className={`w-full flex items-center gap-md py-2 text-left transition-colors duration-d1 ease-ez ${
-        onClick ? 'cursor-pointer hover:bg-surface-3 rounded-ctl -mx-2 px-2' : ''
+        onClick
+          ? 'cursor-pointer hover:bg-surface-3 rounded-ctl -mx-2 px-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent'
+          : ''
       } ${className}`}
     >
       <div className="flex-1 min-w-0">
