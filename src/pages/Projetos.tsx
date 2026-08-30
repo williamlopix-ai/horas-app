@@ -86,8 +86,7 @@ function ProjetoRowItem({
     <tr
       ref={setNodeRef}
       style={style}
-      onClick={() => onNavigate(projeto.id)}
-      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-md gap-y-2xs md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 cursor-pointer ${
+      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-md gap-y-2xs md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 ${
         isDragging ? 'shadow-e3 ring-2 ring-accent' : ''
       }`}
     >
@@ -116,9 +115,14 @@ function ProjetoRowItem({
             className="w-4 h-4 rounded-full shrink-0 shadow-sm"
             style={{ backgroundColor: projeto.cor }}
           />
-          <span className="font-semibold text-ink-900 text-sm md:text-base break-words whitespace-normal overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[200px] sm:max-w-xs md:max-w-none" title={projeto.nome}>
+          <button
+            type="button"
+            onClick={() => onNavigate(projeto.id)}
+            className="font-semibold text-ink-900 text-sm md:text-base break-words whitespace-normal overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[200px] sm:max-w-xs md:max-w-none text-left bg-transparent border-none p-0 m-0 cursor-pointer hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-sm"
+            title={projeto.nome}
+          >
             {projeto.nome}
-          </span>
+          </button>
         </div>
       </td>
       <td className="flex items-center justify-between md:table-cell py-1 md:py-4 px-0 md:px-6 self-center">
