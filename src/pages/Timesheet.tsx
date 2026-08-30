@@ -416,9 +416,17 @@ export default function Timesheet() {
                         </span>
                       </td>
                       <td
-                        className="hidden md:table-cell py-3 px-4 font-semibold text-ink-900 truncate max-w-[200px] cursor-pointer select-none"
+                        role="button"
+                        tabIndex={0}
+                        className="hidden md:table-cell py-3 px-4 font-semibold text-ink-900 truncate max-w-[200px] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:ring-inset"
                         title={row.nome}
                         onClick={() => toggleRow(row.projetoId)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            toggleRow(row.projetoId)
+                          }
+                        }}
                       >
                         {row.nome}
                       </td>
