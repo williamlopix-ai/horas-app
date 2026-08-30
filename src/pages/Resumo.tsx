@@ -483,7 +483,7 @@ export default function Resumo() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -491,7 +491,7 @@ export default function Resumo() {
         )}
 
         {/* Sistema de Abas e Toggle de Visualização */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-lg">
           <div className="flex p-0.5 sm:p-1 bg-surface-1 border border-hair rounded-ctl w-fit">
             <button
               onClick={() => setAbaAtiva('semanal')}
@@ -517,11 +517,11 @@ export default function Resumo() {
           </div>
 
           {(abaAtiva === 'semanal' || abaAtiva === 'diario') && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-md">
               <button
                 type="button"
                 onClick={() => setApenasComCodigo(v => !v)}
-                className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
+                className="flex items-center gap-sm text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
               >
                 <span
                   className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasComCodigo ? 'bg-accent' : 'bg-surface-3'
@@ -537,7 +537,7 @@ export default function Resumo() {
               <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
                 <button
                   onClick={() => changeViewMode('cards')}
-                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
+                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'cards'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}
@@ -548,7 +548,7 @@ export default function Resumo() {
                 </button>
                 <button
                   onClick={() => changeViewMode('lista')}
-                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
+                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}
@@ -559,7 +559,7 @@ export default function Resumo() {
                 </button>
                 <button
                   onClick={() => changeViewMode('tabela')}
-                  className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
+                  className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'tabela'
                     ? 'bg-accent-bg text-accent-fg'
                     : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
                     }`}
@@ -574,7 +574,7 @@ export default function Resumo() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-xl">
             {[1, 2, 3, 4].map((i) => (
               <SkeletonCard key={i} />
             ))}
@@ -604,7 +604,7 @@ export default function Resumo() {
             {abaAtiva === 'semanal' && (
               <div>
                 {viewMode === 'cards' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-xl">
                     {resumoSemanas.map((semana) => {
                       const valorDiferenca = semana.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
@@ -619,7 +619,7 @@ export default function Resumo() {
                           className="p-6 space-y-5 flex flex-col justify-between hover:border-hair-strong transition-colors duration-d1 ease-ez"
                         >
                           {/* Cabeçalho */}
-                          <div className="flex justify-between items-start gap-4">
+                          <div className="flex justify-between items-start gap-lg">
                             <div>
                               <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500 block mb-1">Período</span>
                               <h3 className="text-base font-display font-bold text-ink-900 leading-snug">{semana.titulo}</h3>
@@ -632,7 +632,7 @@ export default function Resumo() {
                           </div>
 
                           {/* Dados */}
-                          <div className="grid grid-cols-3 gap-4 py-2 border-y border-hair">
+                          <div className="grid grid-cols-3 gap-lg py-2 border-y border-hair">
                             <div>
                               <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block mb-1 font-ui">Trabalhado</span>
                               <span className="text-lg font-mono font-bold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span>
@@ -667,18 +667,18 @@ export default function Resumo() {
                 )}
 
                 {viewMode === 'lista' && (
-                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-2 p-4 divide-y divide-hair">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-sm p-4 divide-y divide-hair">
                     {resumoSemanas.map((semana) => {
                       const valorDiferenca = semana.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
                       const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                       return (
-                        <div key={semana.semana_inicio} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div key={semana.semana_inicio} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-md text-sm">
+                          <div className="flex items-center gap-sm min-w-0 flex-1">
                             <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${semana.atingiuMeta ? 'bg-ok' : 'bg-bad'}`} />
                             <span className="font-bold text-ink-900 truncate">{semana.titulo}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-ink-500">
+                          <div className="flex flex-wrap items-center gap-x-xl gap-y-2xs text-xs text-ink-500">
                             <div>Trabalhado: <span className="font-mono font-bold text-ink-900 tabular-nums">{semana.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Meta: <span className="font-mono text-ink-700 tabular-nums">{semana.metaVigente.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Diferença: <span className="font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span></div>
@@ -753,7 +753,7 @@ export default function Resumo() {
             {abaAtiva === 'diario' && (
               <div>
                 {viewMode === 'cards' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-xl">
                     {resumoDias.map((dia) => {
                       const valorDiferenca = dia.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
@@ -768,7 +768,7 @@ export default function Resumo() {
                           className="p-5 space-y-4 flex flex-col justify-between hover:border-hair-strong transition-colors duration-d1 ease-ez"
                         >
                           {/* Cabeçalho */}
-                          <div className="flex justify-between items-start gap-4">
+                          <div className="flex justify-between items-start gap-lg">
                             <div>
                               <h3 className="text-sm font-display font-bold text-ink-900 leading-snug">{dia.titulo}</h3>
                             </div>
@@ -811,18 +811,18 @@ export default function Resumo() {
                 )}
 
                 {viewMode === 'lista' && (
-                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-2 p-4 divide-y divide-hair">
+                  <Surface elevacao={1} comBorda padding="nenhum" className="flex flex-col gap-sm p-4 divide-y divide-hair">
                     {resumoDias.map((dia) => {
                       const valorDiferenca = dia.diferenca
                       const isPositivoOuZero = valorDiferenca >= 0
                       const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                       return (
-                        <div key={dia.data} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-3 text-sm">
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div key={dia.data} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 first:pt-0 last:pb-0 gap-md text-sm">
+                          <div className="flex items-center gap-sm min-w-0 flex-1">
                             <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${dia.atingiuMeta ? 'bg-ok' : 'bg-bad'}`} />
                             <span className="font-bold text-ink-900 truncate">{dia.titulo}</span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-ink-500">
+                          <div className="flex flex-wrap items-center gap-x-xl gap-y-2xs text-xs text-ink-500">
                             <div>Trabalhado: <span className="font-mono font-bold text-ink-900 tabular-nums">{dia.totalHoras.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Meta: <span className="font-mono text-ink-700 tabular-nums">{dia.metaDiariaVigente.toFixed(2).replace('.', ',')}h</span></div>
                             <div>Diferença: <span className="font-mono font-bold tabular-nums" style={{ color: isPositivoOuZero ? 'var(--ok)' : 'var(--bad)' }}>{diferencaTexto}</span></div>
@@ -900,7 +900,7 @@ export default function Resumo() {
                   <button
                     type="button"
                     onClick={() => setApenasBillable(v => !v)}
-                    className="flex items-center gap-2 text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
+                    className="flex items-center gap-sm text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez py-2 min-h-[44px]"
                   >
                     <span
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-d1 ease-ez ${apenasBillable ? 'bg-accent' : 'bg-surface-3'
@@ -926,7 +926,7 @@ export default function Resumo() {
                         <div>
                           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={ativosOrdenados.map(p => p.id)} strategy={rectSortingStrategy}>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                                 {ativosOrdenados.map(proj => {
                                   const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                   const percentual = temContrato ? Math.min(100, Math.round((proj.totalHoras / proj.horas_contratadas) * 100)) : 0;
@@ -944,8 +944,8 @@ export default function Resumo() {
                                         onClick={() => navigate(`/projeto/${proj.id}`)}
                                         className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
                                       >
-                                        <div className="flex items-start justify-between gap-3">
-                                          <div className="flex items-center gap-3 min-w-0">
+                                        <div className="flex items-start justify-between gap-md">
+                                          <div className="flex items-center gap-md min-w-0">
                                             <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
                                               <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                             </span>
@@ -964,7 +964,7 @@ export default function Resumo() {
                                           )}
                                           {temContrato && (
                                             <div className="space-y-2">
-                                              <div className="flex items-center gap-3">
+                                              <div className="flex items-center gap-md">
                                                 <div className="flex-1 bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
                                                   <div className="h-full transition-all duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
                                                 </div>
@@ -1006,7 +1006,7 @@ export default function Resumo() {
                       {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).length > 0 && (
                         <div>
                           <h2 className="text-lg font-display font-bold text-ink-700 mb-4">Encerrados / Excluídos</h2>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                             {projetosVisiveis.filter(p => p.status !== 'ativo' && !p.arquivado).map(proj => {
                               const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                               const isExpanded = projetosExpandidos[proj.id] || false;
@@ -1025,8 +1025,8 @@ export default function Resumo() {
                                   onClick={() => navigate(`/projeto/${proj.id}`)}
                                   className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                 >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
+                                  <div className="flex items-start justify-between gap-md">
+                                    <div className="flex items-center gap-md min-w-0">
                                       <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                         <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                       </span>
@@ -1085,14 +1085,14 @@ export default function Resumo() {
                         <div className="border-t border-hair pt-6">
                           <button
                             onClick={() => setMostrarArquivados(!mostrarArquivados)}
-                            className="flex items-center gap-2 text-ink-500 hover:text-ink-900 transition-colors py-2 duration-d1 ease-ez mb-4 focus:outline-none"
+                            className="flex items-center gap-sm text-ink-500 hover:text-ink-900 transition-colors py-2 duration-d1 ease-ez mb-4 focus:outline-none"
                           >
                             <ChevronDown className={`w-icon-sm h-icon-sm shrink-0 transition-transform duration-d2 ease-ez ${mostrarArquivados ? 'rotate-180' : '-rotate-90'}`} />
                             <h2 className="text-lg font-display font-bold">Arquivados ({projetosVisiveis.filter(p => p.arquivado).length})</h2>
                           </button>
 
                           {mostrarArquivados && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                               {projetosVisiveis.filter(p => p.arquivado).map(proj => {
                                 const temContrato = proj.horas_contratadas !== null && proj.horas_contratadas > 0;
                                 const isExpanded = projetosExpandidos[proj.id] || false;
@@ -1112,8 +1112,8 @@ export default function Resumo() {
                                     onClick={() => navigate(`/projeto/${proj.id}`)}
                                     className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                   >
-                                    <div className="flex items-start justify-between gap-3">
-                                      <div className="flex items-center gap-3 min-w-0">
+                                    <div className="flex items-start justify-between gap-md">
+                                      <div className="flex items-center gap-md min-w-0">
                                         <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                           <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                         </span>
@@ -1146,7 +1146,7 @@ export default function Resumo() {
                                         </div>
                                       </div>
                                     )}
-                                    <div className="pt-3 border-t border-hair mt-auto flex flex-col gap-2">
+                                    <div className="pt-3 border-t border-hair mt-auto flex flex-col gap-sm">
                                       <Button
                                         variante="secundario"
                                         tamanho="sm"
@@ -1193,11 +1193,11 @@ export default function Resumo() {
                                 className="flex items-center justify-between p-4 hover:bg-surface-2 transition-colors duration-d1 ease-ez cursor-pointer"
                                 onClick={() => toggleRotina(rotina.id)}
                               >
-                                <div className="flex items-center gap-4 min-w-0">
+                                <div className="flex items-center gap-lg min-w-0">
                                   <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
                                   <p className="font-bold text-ink-900 text-sm uppercase tracking-wide whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={rotina.nome}>{rotina.nome}</p>
                                 </div>
-                                <div className="flex items-center gap-4 text-right shrink-0">
+                                <div className="flex items-center gap-lg text-right shrink-0">
                                   <span className="font-mono font-bold text-accent tabular-nums text-base">{rotina.totalHoras.toFixed(2).replace('.', ',')}h</span>
                                   <span className="text-xs font-semibold text-ink-500 w-[70px]">{rotina.qtd} {rotina.qtd === 1 ? 'registro' : 'registros'}</span>
                                   <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : 'rotate-0'}`} />
@@ -1205,9 +1205,9 @@ export default function Resumo() {
                               </div>
 
                               <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex flex-col gap-1 px-4 ml-[22px] border-l-2 border-hair pl-3">
+                                <div className="flex flex-col gap-2xs px-4 ml-[22px] border-l-2 border-hair pl-3">
                                   {rotina.registros.map((reg: any) => (
-                                    <div key={reg.id} className="flex items-center gap-3 py-1">
+                                    <div key={reg.id} className="flex items-center gap-md py-1">
                                       <span className="text-xs text-ink-500 font-mono tabular-nums w-[50px] shrink-0">{formatarDataCurta(reg.data)}</span>
                                       <span className="text-ink-300">·</span>
                                       <span className="text-xs text-ink-500 font-mono tabular-nums w-[85px] shrink-0">{reg.hora_inicio.slice(0, 5)}-{reg.hora_fim.slice(0, 5)}</span>
@@ -1247,7 +1247,7 @@ export default function Resumo() {
             padding="nenhum"
             className="w-[95%] sm:w-full max-w-md p-6 shadow-e3 flex flex-col"
           >
-            <h3 className="text-xl font-display font-bold text-ink-900 mb-2 flex items-center gap-2">
+            <h3 className="text-xl font-display font-bold text-ink-900 mb-2 flex items-center gap-sm">
               <AlertTriangle className="w-icon-md h-icon-md text-bad shrink-0" /> Atenção — Ação irreversível
             </h3>
             <p className="text-sm text-ink-500 mb-6 leading-relaxed">
@@ -1255,7 +1255,7 @@ export default function Resumo() {
               <br /><br />
               Esta ação não pode ser desfeita.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-md">
               <Button
                 variante="secundario"
                 tamanho="md"

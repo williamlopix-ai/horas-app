@@ -676,15 +676,15 @@ export default function ProjetoDetalhe() {
                   <button
                     type="button"
                     onClick={() => setBaldeExpandido(v => !v)}
-                    className="w-full flex justify-between items-center text-xs gap-2 text-left focus:outline-none group"
+                    className="w-full flex justify-between items-center text-xs gap-sm text-left focus:outline-none group"
                   >
-                    <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-sm flex-1 min-w-0 pr-2">
                       <ChevronDown
                         className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 transition-transform duration-d2 ease-ez ${baldeExpandido ? 'rotate-180' : ''}`}
                       />
                       <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-sm shrink-0">
                       <div className="font-mono text-right shrink-0">
                         <span className="font-bold text-ink-900">{duracaoFormatada}</span>
                       </div>
@@ -702,9 +702,9 @@ export default function ProjetoDetalhe() {
                           key={r.id}
                           type="button"
                           onClick={() => abrirEditarRegistro(r)}
-                          className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                          className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="flex items-center gap-sm min-w-0 flex-1">
                             <span className="font-mono text-ink-500 shrink-0">{formatarDataCurta(r.data)}</span>
                             <span className="text-ink-700 font-mono shrink-0">{r.hora_inicio.slice(0, 5)}–{r.hora_fim.slice(0, 5)}</span>
                             {r.observacao ? (
@@ -740,7 +740,7 @@ export default function ProjetoDetalhe() {
 
             if (isEditingThisSub) {
               return (
-                <div key={sub.id} className="flex items-center gap-2 w-full py-1">
+                <div key={sub.id} className="flex items-center gap-sm w-full py-1">
                   <input
                     type="text"
                     value={nomeSubEditando}
@@ -759,7 +759,7 @@ export default function ProjetoDetalhe() {
                     className={`${classeCampo()} !flex-1 !w-auto min-w-0 text-xs py-1 px-2.5`}
                     autoFocus
                   />
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-2xs shrink-0">
                     <button
                       type="button"
                       onClick={() => handleSaveEditSub(sub.id!)}
@@ -831,7 +831,7 @@ export default function ProjetoDetalhe() {
 
             return (
               <div key={sub.id || 'sem_sub'} className="space-y-1 py-0.5">
-                <div className="flex justify-between items-start md:items-center text-xs gap-2">
+                <div className="flex justify-between items-start md:items-center text-xs gap-sm">
                   {temLancamento && !isEditingReserva ? (
                     <button
                       type="button"
@@ -845,8 +845,8 @@ export default function ProjetoDetalhe() {
                   ) : (
                     <span className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 -my-2 -ml-2" />
                   )}
-                  <div className="flex-1 min-w-0 flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between md:gap-2">
-                    <div className="flex items-center gap-2 min-w-0 md:pr-2">
+                  <div className="flex-1 min-w-0 flex flex-col gap-xs md:flex-row md:items-center md:justify-between md:gap-sm">
+                    <div className="flex items-center gap-sm min-w-0 md:pr-2">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isBaldeSemSub ? 'border border-ink-500 bg-transparent' : 'bg-accent'}`} />
                       <span className="text-ink-900 whitespace-normal break-words" title={sub.nome}>{sub.nome}</span>
                       {temAlgumaAlocacao && !temAlocacao && !isBaldeSemSub && !isEditingReserva && (
@@ -855,9 +855,9 @@ export default function ProjetoDetalhe() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 pl-3.5 md:pl-0">
+                    <div className="flex items-center gap-sm shrink-0 pl-3.5 md:pl-0">
                       {isEditingReserva ? (
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-xs shrink-0">
                           <input
                             type="text"
                             value={valorReservaEditando}
@@ -922,7 +922,7 @@ export default function ProjetoDetalhe() {
                 </div>
 
                 {temAlocacao && !isEditingReserva && (
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-sm mt-1">
                     <div className="flex-1 bg-surface-2 h-1 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-d3 ease-ez ${excedeu ? 'bg-bad' : 'bg-accent'}`}
@@ -946,7 +946,7 @@ export default function ProjetoDetalhe() {
                         key={dia.data}
                         type="button"
                         onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
-                        className="w-full flex items-center justify-between gap-3 text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                        className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
                       >
                         <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
                         <span className="font-mono font-semibold text-ink-900">{dia.total.toFixed(2).replace('.', ',')}h</span>
@@ -1090,7 +1090,7 @@ export default function ProjetoDetalhe() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
+            className="inline-flex items-center gap-sm text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
           >
             <ArrowLeft className="w-icon-sm h-icon-sm shrink-0" />
             <span>Voltar</span>
@@ -1100,7 +1100,7 @@ export default function ProjetoDetalhe() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -1110,7 +1110,7 @@ export default function ProjetoDetalhe() {
         {loading ? (
           <div className="space-y-6">
             <SkeletonCard />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-xl">
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
@@ -1129,19 +1129,19 @@ export default function ProjetoDetalhe() {
         ) : (
           <div className="space-y-8 animate-in fade-in duration-d3">
             {avisoNovoProjeto && !temContratado && (
-              <div className={`rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-2 font-ui ${pulsoAtivo ? 'pulso-brilho' : ''}`}>
+              <div className={`rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-accent bg-accent-bg text-accent flex items-center gap-sm font-ui ${pulsoAtivo ? 'pulso-brilho' : ''}`}>
                 <span>Projeto criado. Defina as horas contratadas para acompanhar o progresso.</span>
               </div>
             )}
             <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-lg">
+                <div className="flex items-center gap-md min-w-0">
                   <span className="w-5 h-5 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: projeto.cor }}>
                     <span className="w-2.5 h-2.5 rounded-full bg-white opacity-40"></span>
                   </span>
                   <h1 className="text-2xl font-display font-bold text-ink-900 tracking-tight uppercase whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{projeto.nome}</h1>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-sm shrink-0">
                   <span
                     style={
                       projeto.status === 'ativo'
@@ -1187,7 +1187,7 @@ export default function ProjetoDetalhe() {
             <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
               <div className="flex justify-between items-center text-sm font-medium font-ui">
                 {editandoContratadas ? (
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-xs shrink-0">
                     <input
                       type="text"
                       value={valorContratadasEditando}
@@ -1234,7 +1234,7 @@ export default function ProjetoDetalhe() {
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas de {totalContratado!.toFixed(2).replace('.', ',')}h contratadas
                   </button>
                 ) : (
-                  <p className="text-ink-500 flex items-center gap-1.5">
+                  <p className="text-ink-500 flex items-center gap-xs">
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas
                     <button
                       type="button"
@@ -1266,8 +1266,8 @@ export default function ProjetoDetalhe() {
                 </div>
               )}
               {fasesExcedemContratado && (
-                <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center justify-between gap-2 font-ui">
-                  <span className="flex items-center gap-2">
+                <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center justify-between gap-sm font-ui">
+                  <span className="flex items-center gap-sm">
                     <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                     {temContratado ? (
                       <span>as fases somam {somaPrevistasFases.toFixed(2).replace('.', ',')}h previstas, acima das {totalContratado!.toFixed(2).replace('.', ',')}h contratadas</span>
@@ -1288,7 +1288,7 @@ export default function ProjetoDetalhe() {
               )}
             </Surface>
 
-            <div className={`grid grid-cols-1 ${temContratado ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-6`}>
+            <div className={`grid grid-cols-1 ${temContratado ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-xl`}>
               {temContratado && (
                 <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-1">
                   <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-ui">Restantes</span>
@@ -1312,7 +1312,7 @@ export default function ProjetoDetalhe() {
                 <button
                   type="button"
                   onClick={() => toggleSecao('fases')}
-                  className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
+                  className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
                 >
                   <ChevronDown
                     className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
@@ -1326,7 +1326,7 @@ export default function ProjetoDetalhe() {
                     </span>
                   )}
                 </button>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-md">
                   <Button
                     variante="primario"
                     tamanho="sm"
@@ -1377,8 +1377,8 @@ export default function ProjetoDetalhe() {
                     return (
                       <Surface key={fase.id} elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                         {isEditingThisFase ? (
-                          <div className="p-5 flex items-center justify-between gap-3 bg-surface-1 border-b border-hair">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="p-5 flex items-center justify-between gap-md bg-surface-1 border-b border-hair">
+                            <div className="flex items-center gap-sm flex-1 min-w-0">
                               <input
                                 type="text"
                                 value={nomeFaseEditando}
@@ -1415,7 +1415,7 @@ export default function ProjetoDetalhe() {
                                 className={`${classeCampo()} !w-24 text-sm py-1.5 px-3 font-mono`}
                               />
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-2xs shrink-0">
                               <button
                                 type="button"
                                 onClick={() => handleSaveEditFase(fase.id)}
@@ -1442,9 +1442,9 @@ export default function ProjetoDetalhe() {
                               type="button"
                               onClick={() => toggleFase(fase.id)}
                               disabled={editandoFaseId !== null}
-                              className="flex-1 flex flex-col gap-1.5 min-w-0 pr-2 text-left focus:outline-none disabled:cursor-default md:flex-row md:items-center md:justify-between md:gap-2 md:pr-4"
+                              className="flex-1 flex flex-col gap-xs min-w-0 pr-2 text-left focus:outline-none disabled:cursor-default md:flex-row md:items-center md:justify-between md:gap-sm md:pr-4"
                             >
-                              <div className="flex items-start gap-3 min-w-0 w-full md:w-auto md:items-center">
+                              <div className="flex items-start gap-md min-w-0 w-full md:w-auto md:items-center">
                                 <ChevronDown
                                   className={`w-icon-sm h-icon-sm text-ink-500 shrink-0 mt-1 md:mt-0 transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`}
                                 />
@@ -1529,7 +1529,7 @@ export default function ProjetoDetalhe() {
                           {renderListaSubcategorias(subcategoriasComPercentual)}
 
                           {adicionandoEmFaseId === fase.id && (
-                            <div className="flex items-center gap-2 mt-3">
+                            <div className="flex items-center gap-sm mt-3">
                               <input
                                 type="text"
                                 placeholder="Nova subcategoria..."
@@ -1573,7 +1573,7 @@ export default function ProjetoDetalhe() {
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between gap-3 mt-3">
+                          <div className="flex items-center justify-between gap-md mt-3">
                             {adicionandoEmFaseId !== fase.id ? (
                               <Button
                                 variante="secundario"
@@ -1601,14 +1601,14 @@ export default function ProjetoDetalhe() {
                                 )
                               } else if (diffFase < 0) {
                                 return (
-                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
+                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-sm shrink-0 font-ui">
                                     <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                                     <span>{formatarHoras(Math.abs(diffFase))}h além das {formatarHoras(fase.horas_contratadas!)}h previstas</span>
                                   </div>
                                 )
                               } else {
                                 return (
-                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
+                                  <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-sm shrink-0 font-ui">
                                     <Check className="w-icon-xs h-icon-xs shrink-0 text-ok" />
                                     <span>Totalmente reservado</span>
                                   </div>
@@ -1657,11 +1657,11 @@ export default function ProjetoDetalhe() {
                     }
 
                     return (
-                      <div className="border border-dashed border-hair-strong rounded-card p-5 space-y-3">
-                        <div className="flex items-start justify-between gap-4">
+                      <div className="border border-dashed border-hair-strong rounded-card p-5 space-y-md">
+                        <div className="flex items-start justify-between gap-lg">
                           <div>
                             <span className="text-sm font-semibold text-ink-500 block font-ui">Sem fase</span>
-                            <p className="text-xs text-ink-500 mt-0.5 font-ui">
+                            <p className="text-xs text-ink-500 mt-xs font-ui">
                               Lançamentos que não pertencem a nenhuma fase. Some quando todos tiverem subcategoria.
                             </p>
                           </div>
@@ -1679,7 +1679,7 @@ export default function ProjetoDetalhe() {
 
               {secoesExpandidas['fases'] && fases.length === 0 && (
                 /* PROJETO SEM FASES */
-                <Surface elevacao={1} comBorda padding="lg" className="space-y-3">
+                <Surface elevacao={1} comBorda padding="lg" className="space-y-md">
                   {(() => {
                     const subIdsCadastradas = new Set(subcategorias.map(s => s.id))
                     const duracaoSemSub = registros
@@ -1727,7 +1727,7 @@ export default function ProjetoDetalhe() {
                   })()}
 
                   {adicionandoSemFase && (
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-sm mt-md">
                       <input
                         type="text"
                         placeholder="Nova subcategoria..."
@@ -1771,7 +1771,7 @@ export default function ProjetoDetalhe() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-3 mt-3">
+                  <div className="flex items-center justify-between gap-md mt-md">
                     {!adicionandoSemFase ? (
                       <Button
                         variante="secundario"
@@ -1802,14 +1802,14 @@ export default function ProjetoDetalhe() {
                         )
                       } else if (diff < 0) {
                         return (
-                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-2 shrink-0 font-ui">
+                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-bad bg-bad-bg text-bad flex items-center gap-sm shrink-0 font-ui">
                             <AlertTriangle className="w-icon-xs h-icon-xs shrink-0 text-bad" />
                             <span>{formatarHoras(Math.abs(diff))}h além das {formatarHoras(projeto.horas_contratadas)}h contratadas</span>
                           </div>
                         )
                       } else {
                         return (
-                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-2 shrink-0 font-ui">
+                          <div className="rounded-ctl px-3 py-1.5 text-xs border-l-[3px] border-l-ok bg-ok-bg text-ok flex items-center gap-sm shrink-0 font-ui">
                             <Check className="w-icon-xs h-icon-xs shrink-0 text-ok" />
                             <span>Totalmente reservado</span>
                           </div>
@@ -1822,13 +1822,13 @@ export default function ProjetoDetalhe() {
             </div>
 
             {/* Seção Plano Semanal */}
-            <div className="space-y-6">
+            <div className="space-y-lg">
               <div>
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => toggleSecao('plano')}
-                    className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
+                    className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
                   >
                     <ChevronDown
                       className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
@@ -1842,12 +1842,12 @@ export default function ProjetoDetalhe() {
                   </button>
                 </div>
                 {secoesExpandidas['plano'] && (
-                  <p className="text-xs text-ink-500 mt-1 ml-6">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
+                  <p className="text-xs text-ink-500 mt-xs ml-lg">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
                 )}
               </div>
 
               {secoesExpandidas['plano'] && (
-                <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-5">
+                <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-md">
                   {planosSemanais.length === 0 && (
                     <p className="text-xs text-ink-500">
                       Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
@@ -1855,9 +1855,9 @@ export default function ProjetoDetalhe() {
                   )}
 
                   {/* Form de adicionar/editar semana */}
-                  <form onSubmit={handleSalvarPlanoSemanal} className="space-y-3">
-                    <div className="flex flex-wrap items-end gap-3">
-                      <div className="flex flex-col gap-1 min-w-[160px]">
+                  <form onSubmit={handleSalvarPlanoSemanal} className="space-y-md">
+                    <div className="flex flex-wrap items-end gap-md">
+                      <div className="flex flex-col gap-xs min-w-[160px]">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Semana
                         </label>
@@ -1870,7 +1870,7 @@ export default function ProjetoDetalhe() {
                         />
                       </div>
 
-                      <div className="flex flex-col gap-1 w-36">
+                      <div className="flex flex-col gap-xs w-36">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Horas planejadas
                         </label>
@@ -2015,13 +2015,13 @@ export default function ProjetoDetalhe() {
               )}
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-lg">
               <div>
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
                     onClick={() => toggleSecao('lancamentos')}
-                    className="flex items-center gap-2 group focus:outline-none py-2 min-h-[44px]"
+                    className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
                   >
                     <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
                     <h2 className="text-xl font-display font-bold text-ink-900">Lançamentos</h2>
@@ -2033,7 +2033,7 @@ export default function ProjetoDetalhe() {
                   </button>
                 </div>
                 {secoesExpandidas['lancamentos'] && (
-                  <p className="text-xs text-ink-500 mt-1 ml-6">Clique para editar · use o olho para ver o dia completo em Registros</p>
+                  <p className="text-xs text-ink-500 mt-xs ml-lg">Clique para editar · use o olho para ver o dia completo em Registros</p>
                 )}
               </div>
 
@@ -2044,31 +2044,31 @@ export default function ProjetoDetalhe() {
                       <p className="text-sm text-ink-500">Nenhum lançamento neste projeto.</p>
                     </Surface>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-md">
                       {registrosPorSemana.map((grupo) => {
                         const isExpanded = semanasExpandidas[grupo.semanaInicio] ?? false
                         return (
                           <Surface key={grupo.semanaInicio} elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                             <button type="button" onClick={() => toggleSemana(grupo.semanaInicio)} className="w-full flex items-center justify-between p-5 hover:bg-surface-3 transition-colors duration-d1 ease-ez focus:outline-none">
-                              <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex items-center gap-md min-w-0">
                                 <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d3 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                 <span className="font-bold text-ink-900 text-base truncate">{formatarSemanaLabel(grupo.semanaInicio)}</span>
                               </div>
                               <div className="font-mono text-sm font-semibold text-ink-900">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
                             </button>
                             <div className={`overflow-hidden transition-all duration-d3 ease-ez ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-hair' : 'max-h-0 opacity-0'}`}>
-                              <div className="flex flex-col gap-2 pt-3">
+                              <div className="flex flex-col gap-sm pt-3">
                                 {grupo.registros.map((reg) => {
                                   const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
                                   return (
-                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-2 group">
-                                      <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 flex-wrap min-w-0">
+                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group">
+                                      <div className="flex items-center justify-between gap-md">
+                                        <div className="flex items-center gap-md flex-wrap min-w-0">
                                           <span className="font-mono text-xs text-ink-500 shrink-0">{formatarDataCurta(reg.data)}</span>
                                           <span className="text-xs text-ink-700 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
                                           {nomeSub && <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-3 border border-hair-strong text-ink-500 font-medium whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[150px] sm:max-w-[200px]">{nomeSub}</span>}
                                         </div>
-                                        <div className="flex items-center gap-3 shrink-0">
+                                        <div className="flex items-center gap-md shrink-0">
                                           <span className="font-mono text-sm font-bold text-accent">
                                             {reg.duracao.toFixed(2).replace('.', ',')}h
                                           </span>
@@ -2215,7 +2215,7 @@ export default function ProjetoDetalhe() {
                       </select>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                    <div className="flex flex-col sm:flex-row gap-md shrink-0">
                       <Button
                         variante="secundario"
                         tamanho="md"
