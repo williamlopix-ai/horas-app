@@ -561,7 +561,7 @@ export default function Ajustes() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -642,8 +642,8 @@ export default function Ajustes() {
 
                 <div className="space-y-4">
                   {/* Linha 1: Valores e Data */}
-                  <div className="flex flex-wrap gap-4 items-end">
-                    <div className="flex flex-col gap-1">
+                  <div className="flex flex-wrap gap-lg items-end">
+                    <div className="flex flex-col gap-2xs">
                       <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Horas
                       </label>
@@ -657,7 +657,7 @@ export default function Ajustes() {
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2xs">
                       <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         A partir de
                       </label>
@@ -695,7 +695,7 @@ export default function Ajustes() {
                                   Já existe meta cadastrada depois desta data. O que fazer?
                                 </p>
                                 <div className="space-y-2">
-                                  <label className="flex items-start gap-2.5 cursor-pointer">
+                                  <label className="flex items-start gap-sm cursor-pointer">
                                     <input
                                       type="radio"
                                       name="modoMetaPosterior"
@@ -713,7 +713,7 @@ export default function Ajustes() {
                                     </div>
                                   </label>
 
-                                  <label className="flex items-start gap-2.5 cursor-pointer">
+                                  <label className="flex items-start gap-sm cursor-pointer">
                                     <input
                                       type="radio"
                                       name="modoMetaPosterior"
@@ -767,7 +767,7 @@ export default function Ajustes() {
 
                           return (
                             <div key={faixa.semana_inicio} className="space-y-1">
-                              <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center gap-sm flex-wrap">
                                 <span className={`w-2 h-2 rounded-full shrink-0 ${isVigente ? 'bg-ok' : 'bg-ink-500'}`} />
                                 <span className="text-sm text-ink-900 font-semibold tabular-nums">
                                   {faixa.vencedora.horas_base.toString().replace('.', ',')}h
@@ -788,7 +788,7 @@ export default function Ajustes() {
                                   <button
                                     type="button"
                                     onClick={() => toggleSubstituidas(faixa.semana_inicio)}
-                                    className="text-xs text-ink-500 hover:text-ink-700 transition-colors duration-d1 ease-ez focus:outline-none flex items-center gap-1 py-2 min-h-[44px]"
+                                    className="text-xs text-ink-500 hover:text-ink-700 transition-colors duration-d1 ease-ez focus:outline-none flex items-center gap-2xs py-2 min-h-[44px]"
                                   >
                                     <span>{aberta ? '▲' : '▾'}</span>
                                     <span>
@@ -799,7 +799,7 @@ export default function Ajustes() {
                                   {aberta && (
                                     <div className="mt-1.5 space-y-1 border-l border-hair pl-2.5">
                                       {faixa.substituidas.map(sub => (
-                                        <div key={sub.id} className="text-xs text-ink-500 tabular-nums flex items-center gap-2">
+                                        <div key={sub.id} className="text-xs text-ink-500 tabular-nums flex items-center gap-sm">
                                           <span className="font-medium">{sub.horas_base.toString().replace('.', ',')}h</span>
                                           <span>•</span>
                                           <span>{new Date(sub.criado_em).toLocaleDateString('pt-BR')}</span>
@@ -865,8 +865,8 @@ export default function Ajustes() {
                   <h3 className="text-sm font-bold text-ink-900 uppercase tracking-wider">Horário Padrão do Dia</h3>
                   <p className="text-xs text-ink-500">Defina os horários de início e fim da sua jornada de trabalho.</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex flex-col gap-1.5 flex-1 w-full">
+                <div className="flex flex-col sm:flex-row gap-lg">
+                  <div className="flex flex-col gap-xs flex-1 w-full">
                     <label htmlFor="inicioDia" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                       Início
                     </label>
@@ -878,7 +878,7 @@ export default function Ajustes() {
                       className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                     />
                   </div>
-                  <div className="flex flex-col gap-1.5 flex-1 w-full">
+                  <div className="flex flex-col gap-xs flex-1 w-full">
                     <label htmlFor="fimDia" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                       Fim
                     </label>
@@ -925,7 +925,7 @@ export default function Ajustes() {
                 {/* Form de Adicionar Novo Dia */}
                 {showNovoDia ? (
                   <div className="bg-surface-0 border border-hair rounded-card p-4 space-y-4">
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-xs">
                       <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         Dia da Semana
                       </label>
@@ -940,8 +940,8 @@ export default function Ajustes() {
                       </select>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="flex flex-col sm:flex-row gap-lg">
+                      <div className="flex flex-col gap-xs flex-1">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Início
                         </label>
@@ -952,7 +952,7 @@ export default function Ajustes() {
                           className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
                         />
                       </div>
-                      <div className="flex flex-col gap-1.5 flex-1">
+                      <div className="flex flex-col gap-xs flex-1">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Fim
                         </label>
@@ -965,7 +965,7 @@ export default function Ajustes() {
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-md pt-2">
                       <Button
                         variante="secundario"
                         tamanho="md"
@@ -997,7 +997,7 @@ export default function Ajustes() {
                           setShowNovoDia(true)
                         }
                       }}
-                      className="flex items-center gap-2 text-accent hover:text-accent-fg text-sm font-bold transition-colors duration-d1 ease-ez min-h-[44px] focus:outline-none"
+                      className="flex items-center gap-sm text-accent hover:text-accent-fg text-sm font-bold transition-colors duration-d1 ease-ez min-h-[44px] focus:outline-none"
                     >
                       <Plus className="w-icon-md h-icon-md" />
                       Adicionar dia
@@ -1045,8 +1045,8 @@ export default function Ajustes() {
                 {openBillableSection === 'horasBaseMensal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
-                    <div className="flex flex-wrap gap-4 items-end">
-                      <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap gap-lg items-end">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Horas
                         </label>
@@ -1060,7 +1060,7 @@ export default function Ajustes() {
                         />
                       </div>
 
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
@@ -1095,7 +1095,7 @@ export default function Ajustes() {
                         </p>
                         <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasHorasBaseMensal ? historicoHorasBaseMensal : historicoHorasBaseMensal.slice(0, 3)).map((h, idx) => (
-                            <div key={h.id} className="flex items-start gap-2">
+                            <div key={h.id} className="flex items-start gap-sm">
                               <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
                                 <span className="text-sm text-ink-900 font-semibold tabular-nums">{h.horas_base}h</span>
@@ -1136,12 +1136,12 @@ export default function Ajustes() {
                 {openBillableSection === 'metaSemanal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
-                    <div className="flex flex-wrap gap-4 items-end">
-                      <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap gap-lg items-end">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Margem (%)
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-sm">
                           <input
                             type="number"
                             step="any"
@@ -1155,7 +1155,7 @@ export default function Ajustes() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
@@ -1195,7 +1195,7 @@ export default function Ajustes() {
                         </p>
                         <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasMargem ? historicoMargem : historicoMargem.slice(0, 3)).map((h, idx) => (
-                            <div key={h.id} className="flex items-start gap-2">
+                            <div key={h.id} className="flex items-start gap-sm">
                               <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
                                 <span className="text-sm text-ink-900 font-semibold">{h.margem_minima}%</span>
@@ -1236,12 +1236,12 @@ export default function Ajustes() {
                 {openBillableSection === 'metaMensal' && (
                   <div className="space-y-4 mt-4">
                     {/* Linha 1: Valores e Data */}
-                    <div className="flex flex-wrap gap-4 items-end">
-                      <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap gap-lg items-end">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Margem (%)
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-sm">
                           <input
                             type="number"
                             step="any"
@@ -1255,7 +1255,7 @@ export default function Ajustes() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-2xs">
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           A partir de
                         </label>
@@ -1290,7 +1290,7 @@ export default function Ajustes() {
                         </p>
                         <div className="border-l-2 border-dashed border-hair ml-1 pl-3 space-y-2">
                           {(verTodasMargemMensal ? historicoMargemMensal : historicoMargemMensal.slice(0, 3)).map((h, idx) => (
-                            <div key={h.id} className="flex items-start gap-2">
+                            <div key={h.id} className="flex items-start gap-sm">
                               <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${idx === 0 ? 'bg-ok' : 'bg-ink-500'}`} />
                               <div>
                                 <span className="text-sm text-ink-900 font-semibold">{h.margem_minima}%</span>
@@ -1330,7 +1330,7 @@ export default function Ajustes() {
                 </button>
                 {openBillableSection === 'saldoAcumulado' && (
                   <div className="space-y-3 mt-4">
-                    <div className="flex flex-col gap-1.5 max-w-[200px]">
+                    <div className="flex flex-col gap-xs max-w-[200px]">
                       <label htmlFor="saldoInicioSemana" className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                         A partir de
                       </label>

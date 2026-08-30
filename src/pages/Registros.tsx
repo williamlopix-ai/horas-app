@@ -467,7 +467,7 @@ export default function Registros() {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
           <div>
             <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Lançamento de Horas</h1>
             <p className="text-sm text-ink-500 font-ui">Acompanhe seu progresso e identifique horas ociosas no seu dia.</p>
@@ -486,7 +486,7 @@ export default function Registros() {
         {error && (
           <div
             style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-3"
+            className="p-4 bg-bad-bg border rounded-card text-bad text-sm flex items-center gap-md"
           >
             <AlertTriangle className="w-icon-md h-icon-md shrink-0 text-bad" />
             <span className="font-ui">{error}</span>
@@ -494,7 +494,7 @@ export default function Registros() {
         )}
 
         {/* 3. Filtros */}
-        <Surface elevacao={1} comBorda padding="lg" className="flex flex-col sm:flex-row gap-4">
+        <Surface elevacao={1} comBorda padding="lg" className="flex flex-col sm:flex-row gap-lg">
           {/* Projeto */}
           <div className="flex-1">
             <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
@@ -517,7 +517,7 @@ export default function Registros() {
             <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
               Semana
             </label>
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-sm w-full">
               <button
                 type="button"
                 onClick={handleSemanaAnterior}
@@ -560,7 +560,7 @@ export default function Registros() {
             <label className="block text-[11.5px] font-bold text-ink-500 uppercase tracking-wider mb-2 font-ui">
               Dia Específico
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-sm">
               <input
                 type="date"
                 value={filtroDiaEspecifico}
@@ -572,7 +572,7 @@ export default function Registros() {
                 <button
                   type="button"
                   onClick={() => setFiltroDiaEspecifico('')}
-                  className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer whitespace-nowrap px-2 min-h-[44px] inline-flex items-center gap-1 shrink-0 font-medium"
+                  className="text-xs text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer whitespace-nowrap px-2 min-h-[44px] inline-flex items-center gap-2xs shrink-0 font-medium"
                   title="Limpar data"
                 >
                   <X className="w-icon-xs h-icon-xs" />
@@ -584,12 +584,12 @@ export default function Registros() {
         </Surface>
 
         {/* Toggle de Visualização */}
-        <div className="flex justify-end items-center gap-2">
+        <div className="flex justify-end items-center gap-sm">
           <span className="text-xs font-semibold text-ink-500 px-2.5 hidden sm:inline font-ui">Visualização:</span>
           <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+              className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                 viewMode === 'lista'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
@@ -601,7 +601,7 @@ export default function Registros() {
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
+              className={`flex items-center gap-xs px-3 py-2 min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
                 viewMode === 'projeto'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
@@ -616,11 +616,11 @@ export default function Registros() {
 
         {/* 4. Lista de Registros Agrupados por Dia */}
         {loading ? (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-xl">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col gap-4">
+              <div key={i} className="flex flex-col gap-lg">
                 <Skeleton className="h-[68px] w-full rounded-card" />
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-sm">
                   <Skeleton className="h-[52px] w-full rounded-card" />
                   <Skeleton className="h-[52px] w-full rounded-card" />
                 </div>
@@ -648,7 +648,7 @@ export default function Registros() {
             </div>
           </Surface>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-xl">
             {registrosAgrupadosPorData.map((grupo) => {
               const isExpanded = diasExpandidos[grupo.data] === true
 
@@ -656,22 +656,22 @@ export default function Registros() {
                 <div key={grupo.data} className="relative">
                   {/* Cabeçalho do Grupo de Dia */}
                   <div
-                    className="bg-surface-2 border-l-[3px] border-l-accent rounded-card px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-4 cursor-pointer hover:bg-surface-3 transition-colors duration-d1 ease-ez relative z-10 shadow-e1"
+                    className="bg-surface-2 border-l-[3px] border-l-accent rounded-card px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-md sm:gap-lg cursor-pointer hover:bg-surface-3 transition-colors duration-d1 ease-ez relative z-10 shadow-e1"
                     onClick={() => toggleDia(grupo.data)}
                   >
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-sm sm:gap-md">
                       <ChevronDown className={`w-icon-sm h-icon-sm sm:w-icon-md sm:h-icon-md text-ink-500 transition-transform duration-d2 ease-ez shrink-0 ${isExpanded ? 'rotate-0' : '-rotate-90'}`} />
                       <div>
-                        <h3 className="text-xs sm:text-sm font-bold text-ink-900 tracking-wide uppercase flex items-center gap-2 font-display">
+                        <h3 className="text-xs sm:text-sm font-bold text-ink-900 tracking-wide uppercase flex items-center gap-sm font-display">
                           <span className="capitalize normal-case">{grupo.titulo}</span>
                         </h3>
-                        <p className="text-[10px] sm:text-xs text-ink-500 mt-1 flex items-center gap-1.5 font-ui">
+                        <p className="text-[10px] sm:text-xs text-ink-500 mt-1 flex items-center gap-xs font-ui">
                           Jornada: <span className="font-mono text-ink-700">{grupo.limites.inicio.slice(0, 5)} às {grupo.limites.fim.slice(0, 5)}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-lg justify-between sm:justify-end" onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-col items-end">
                         <span className="text-[10px] sm:text-xs text-ink-500 font-semibold uppercase tracking-wider font-ui">Total Lançado</span>
                         <span className="text-sm sm:text-lg font-mono font-bold text-ok">
@@ -695,7 +695,7 @@ export default function Registros() {
                   </div>
 
                   {/* Lançamentos e Gaps */}
-                  <div className={`flex flex-col gap-1.5 transition-all duration-d2 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                  <div className={`flex flex-col gap-xs transition-all duration-d2 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                     {viewMode === 'projeto' ? (
                       // Agrupar registros do dia por projeto
                       (() => {
@@ -733,14 +733,14 @@ export default function Registros() {
                           const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
                           return (
-                            <div key={projId} className="bg-surface-1 border border-hair rounded-card p-3 mb-2 flex flex-col gap-2">
+                            <div key={projId} className="bg-surface-1 border border-hair rounded-card p-3 mb-2 flex flex-col gap-sm">
                               {/* Header do Projeto */}
                               <div className="flex justify-between items-center border-b border-hair pb-2">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-sm">
                                   {itemProj.projeto?.tipo === 'rotina' ? (
                                     <span
                                       title={projNome}
-                                      className={`inline-flex shrink-0 items-center gap-1 py-0.5 px-2 rounded-chip text-[11px] font-semibold border max-w-full md:max-w-[240px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      className={`inline-flex shrink-0 items-center gap-2xs py-0.5 px-2 rounded-chip text-[11px] font-semibold border max-w-full md:max-w-[240px] bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{
                                         borderColor: projCor,
                                         color: projCor
@@ -753,7 +753,7 @@ export default function Registros() {
                                   ) : (
                                     <span
                                       title={projNome}
-                                      className={`inline-flex shrink-0 items-center gap-1.5 py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full md:max-w-[240px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                      className={`inline-flex shrink-0 items-center gap-xs py-0.5 px-2.5 rounded-full text-[11px] font-semibold border max-w-full md:max-w-[240px] ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                       style={{
                                         backgroundColor: `${projCor}12`,
                                         borderColor: `${projCor}44`,
@@ -773,9 +773,9 @@ export default function Registros() {
                               </div>
 
                               {/* Registros deste projeto */}
-                              <div className="flex flex-col gap-1">
+                              <div className="flex flex-col gap-2xs">
                                 {itemProj.records.map((reg) => (
-                                  <div key={reg.id} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
+                                  <div key={reg.id} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
                                     {/* Linha 1 no Mobile: [horário] */}
                                     <div className="flex items-center justify-between md:contents w-full">
                                       {/* Horários */}
@@ -787,11 +787,11 @@ export default function Registros() {
                                     </div>
 
                                     {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
-                                    <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                                    <div className="flex items-center justify-between md:contents w-full gap-lg mt-1.5 md:mt-0">
                                       {/* Observação e Subcategoria / Fase */}
-                                      <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-1.5 md:flex-row md:items-center md:gap-2">
+                                      <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-xs md:flex-row md:items-center md:gap-sm">
                                         {reg.subcategoria?.nome && (
-                                          <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-2xs max-w-full font-ui">
                                             {reg.subcategoria.fase?.nome && (
                                               <>
                                                 <span className="text-ink-500 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.fase.nome}</span>
@@ -814,7 +814,7 @@ export default function Registros() {
                                       </div>
 
                                       {/* Duração + Botões */}
-                                      <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                                      <div className="flex items-center gap-md shrink-0 ml-auto md:ml-0 md:contents">
                                         {reg.observacao && (
                                           <button
                                             type="button"
@@ -837,7 +837,7 @@ export default function Registros() {
                                         </div>
 
                                         {/* Ações */}
-                                        <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
+                                        <div className="shrink-0 md:w-[60px] flex gap-2xs justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                           <button
                                             type="button"
                                             onClick={() => abrirEditarRegistroModal(reg)}
@@ -882,7 +882,7 @@ export default function Registros() {
                             <div
                               key={`gap-${index}`}
                               style={{ borderLeftColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
-                              className="flex items-center gap-3 px-4 py-1.5 text-[10px] sm:text-xs bg-bad-bg border-l-2 text-bad rounded-r-ctl font-ui"
+                              className="flex items-center gap-md px-4 py-1.5 text-[10px] sm:text-xs bg-bad-bg border-l-2 text-bad rounded-r-ctl font-ui"
                             >
                               <span className="text-[10px]">○</span>
                               <span className="font-mono text-[10px] sm:text-xs">{item.inicio.slice(0, 5)} → {item.fim.slice(0, 5)}</span>
@@ -903,7 +903,7 @@ export default function Registros() {
                         return (
                           <div
                             key={reg.id}
-                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-2 md:gap-4 hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
+                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
                           >
                             {/* Linha 1 no Mobile: [TAG] [horário] */}
                             <div className="flex items-center justify-between md:contents w-full">
@@ -912,7 +912,7 @@ export default function Registros() {
                                 {reg.projeto?.tipo === 'rotina' ? (
                                   <span
                                     title={projNome}
-                                    className={`inline-flex items-center gap-1 py-1 px-2 rounded-chip text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                    className={`inline-flex items-center gap-2xs py-1 px-2 rounded-chip text-[11px] font-semibold border max-w-full bg-transparent ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                     style={{
                                       borderColor: projCor,
                                       color: projCor
@@ -925,7 +925,7 @@ export default function Registros() {
                                 ) : (
                                   <span
                                     title={projNome}
-                                    className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
+                                    className={`inline-flex items-center gap-xs py-1 px-2.5 rounded-full text-[11px] font-semibold border max-w-full ${isEncerrado || isExcluido ? 'italic' : ''}`}
                                     style={{
                                       backgroundColor: `${projCor}12`,
                                       borderColor: `${projCor}44`,
@@ -949,11 +949,11 @@ export default function Registros() {
                             </div>
 
                             {/* Linha 2 no Mobile: [observação] [duração] [botões] */}
-                            <div className="flex items-center justify-between md:contents w-full gap-4 mt-1.5 md:mt-0">
+                            <div className="flex items-center justify-between md:contents w-full gap-lg mt-1.5 md:mt-0">
                               {/* Observação e Subcategoria / Fase */}
-                              <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-1.5 md:flex-row md:items-center md:gap-2">
+                              <div className="flex-grow min-w-0 text-left flex flex-col items-start gap-xs md:flex-row md:items-center md:gap-sm">
                                 {reg.subcategoria?.nome && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-1 max-w-full font-ui">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-0 border border-hair-strong font-medium shrink-0 inline-flex items-center gap-2xs max-w-full font-ui">
                                     {reg.subcategoria.fase?.nome && (
                                       <>
                                         <span className="text-ink-500 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{reg.subcategoria.fase.nome}</span>
@@ -976,7 +976,7 @@ export default function Registros() {
                               </div>
 
                               {/* Duração + Botões */}
-                              <div className="flex items-center gap-3 shrink-0 ml-auto md:ml-0 md:contents">
+                              <div className="flex items-center gap-md shrink-0 ml-auto md:ml-0 md:contents">
                                 {reg.observacao && (
                                   <button
                                     type="button"
@@ -999,7 +999,7 @@ export default function Registros() {
                                 </div>
 
                                 {/* Ações */}
-                                <div className="shrink-0 md:w-[60px] flex gap-1 justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
+                                <div className="shrink-0 md:w-[60px] flex gap-2xs justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                   <button
                                     type="button"
                                     onClick={() => abrirEditarRegistroModal(reg)}
