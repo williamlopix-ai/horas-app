@@ -2061,7 +2061,19 @@ export default function ProjetoDetalhe() {
                                 {grupo.registros.map((reg) => {
                                   const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
                                   return (
-                                    <div key={reg.id} onClick={() => abrirEditarRegistro(reg)} className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group">
+                                    <div
+                                      key={reg.id}
+                                      onClick={() => abrirEditarRegistro(reg)}
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault()
+                                          abrirEditarRegistro(reg)
+                                        }
+                                      }}
+                                      className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent"
+                                    >
                                       <div className="flex items-center justify-between gap-md">
                                         <div className="flex items-center gap-md flex-wrap min-w-0">
                                           <span className="font-mono text-xs text-ink-500 shrink-0">{formatarDataCurta(reg.data)}</span>
