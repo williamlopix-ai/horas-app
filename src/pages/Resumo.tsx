@@ -941,6 +941,7 @@ export default function Resumo() {
                                         elevacao={1}
                                         comBorda
                                         padding="nenhum"
+                                        interativo
                                         onClick={() => navigate(`/projeto/${proj.id}`)}
                                         className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
                                       >
@@ -1022,6 +1023,7 @@ export default function Resumo() {
                                   elevacao={1}
                                   comBorda
                                   padding="nenhum"
+                                  interativo
                                   onClick={() => navigate(`/projeto/${proj.id}`)}
                                   className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                 >
@@ -1109,6 +1111,7 @@ export default function Resumo() {
                                     elevacao={1}
                                     comBorda
                                     padding="nenhum"
+                                    interativo
                                     onClick={() => navigate(`/projeto/${proj.id}`)}
                                     className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
                                   >
