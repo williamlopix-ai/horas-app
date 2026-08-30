@@ -72,7 +72,7 @@ aside {
   input:focus-visible, 
   select:focus-visible, 
   textarea:focus-visible {
-    @apply outline-none ring-2 ring-[#03A9F4]/50 border-transparent !important;
+    @apply outline-none ring-2 ring-accent-bg border-transparent !important;
   }
 }
 
