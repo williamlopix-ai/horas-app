@@ -134,7 +134,7 @@ export function Dica({ texto, children, className = '' }: DicaProps) {
               top: posicao ? `${posicao.top}px` : '-9999px',
               left: posicao ? `${posicao.left}px` : '-9999px',
             }}
-            className={`fixed z-40 pointer-events-none max-w-[320px] break-words bg-surface-3 border border-hair-strong text-ink-900 shadow-e3 rounded-card px-3 py-2 text-sm font-ui leading-snug transition-opacity duration-d3 ease-ez ${
+            className={`fixed z-30 pointer-events-none max-w-[320px] break-words bg-surface-3 border border-hair-strong text-ink-900 shadow-e3 rounded-card px-3 py-2 text-sm font-ui leading-snug transition-opacity duration-d3 ease-ez ${
               posicao ? 'opacity-100' : 'opacity-0'
             }`}
           >
