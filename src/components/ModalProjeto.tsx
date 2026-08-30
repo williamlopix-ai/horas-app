@@ -240,15 +240,23 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
 
             {tipo === 'projeto' && codigoExterno.trim() !== '' && (
               <label
-                onClick={() => setBillable(!billable)}
+                htmlFor="modal-projeto-billable"
                 className="flex items-center justify-between p-3 bg-surface-3 border border-hair rounded-card min-h-[44px] cursor-pointer select-none"
               >
                 <div>
                   <span className="block text-sm font-semibold text-ink-900">Billable</span>
                   <span className="block text-xs text-ink-500">Projeto faturável</span>
                 </div>
+                <input
+                  type="checkbox"
+                  id="modal-projeto-billable"
+                  checked={billable}
+                  onChange={(e) => setBillable(e.target.checked)}
+                  className="sr-only peer"
+                />
                 <div
-                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-d1 shrink-0 ${
+                  aria-hidden="true"
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-d1 shrink-0 peer-focus-visible:ring-[3px] peer-focus-visible:ring-accent-bg peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface-3 ${
                     billable ? 'bg-accent' : 'bg-surface-0'
                   }`}
                 >
