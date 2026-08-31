@@ -132,7 +132,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors focus:outline-none z-10"
+          className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none z-10"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-lg h-icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -183,7 +183,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('projeto')}
-                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-colors duration-d1 ease-ez ${
                     tipo === 'projeto'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -194,7 +194,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 <button
                   type="button"
                   onClick={() => setTipo('rotina')}
-                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
+                  className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-colors duration-d1 ease-ez ${
                     tipo === 'rotina'
                       ? 'bg-accent-bg text-accent-fg border-accent'
                       : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -264,12 +264,12 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                 />
                 <div
                   aria-hidden="true"
-                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-d1 shrink-0 peer-focus-visible:ring-[3px] peer-focus-visible:ring-accent-bg peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface-3 ${
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-d1 ease-ez shrink-0 peer-focus-visible:ring-[3px] peer-focus-visible:ring-accent-bg peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface-3 ${
                     billable ? 'bg-accent' : 'bg-surface-0'
                   }`}
                 >
                   <div
-                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-d1 ${
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-d1 ease-ez ${
                       billable ? 'translate-x-6' : 'translate-x-0'
                     }`}
                   />
@@ -288,11 +288,11 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                     key={itemCor.valor}
                     type="button"
                     onClick={() => setCor(itemCor.valor)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full transition-all focus:outline-none shrink-0"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full transition-colors duration-d1 ease-ez focus:outline-none shrink-0"
                     title={itemCor.nome}
                   >
                     <span
-                      className={`h-9 w-9 rounded-full transition-all border flex items-center justify-center shrink-0 ${
+                      className={`h-9 w-9 rounded-full transition-[transform,opacity,border-color] duration-d1 ease-ez border flex items-center justify-center shrink-0 ${
                         cor === itemCor.valor ? 'border-ink-900 scale-110 shadow-e2' : 'border-transparent opacity-80 hover:opacity-100 hover:scale-105'
                       }`}
                       style={{ backgroundColor: itemCor.valor }}
@@ -318,7 +318,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('ativo')}
-                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-colors duration-d1 ease-ez ${
                       status === 'ativo'
                         ? 'bg-ok-bg text-ok border-ok'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'
@@ -329,7 +329,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
                   <button
                     type="button"
                     onClick={() => setStatus('encerrado')}
-                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-all ${
+                    className={`py-3 px-4 min-h-[44px] flex items-center justify-center rounded-ctl font-semibold text-sm border transition-colors duration-d1 ease-ez ${
                       status === 'encerrado'
                         ? 'bg-bad-bg text-bad border-bad'
                         : 'bg-transparent text-ink-500 border-hair hover:border-hair-strong'

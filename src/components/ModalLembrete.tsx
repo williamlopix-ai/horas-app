@@ -104,7 +104,7 @@ export default function ModalLembrete({ isOpen, onClose, onSave, lembrete, proje
         <button
           onClick={onClose}
           type="button"
-          className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors focus:outline-none z-10"
+          className="absolute top-4 right-4 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-700 hover:text-ink-900 transition-colors duration-d1 ease-ez focus:outline-none z-10"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-lg h-icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
