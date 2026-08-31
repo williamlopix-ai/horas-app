@@ -1,3 +1,5 @@
+import { useRef, useId } from 'react'
+import { useFocoModal } from '../hooks/useFocoModal'
 import { useFecharComEsc } from '../hooks/useFecharComEsc'
 import { Button, Surface } from './ui'
 
@@ -22,16 +24,24 @@ export default function ModalConfirmacao({
   onConfirmar,
   onCancelar
 }: ModalConfirmacaoProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tituloId = useId()
+
   useFecharComEsc(isOpen, onCancelar)
+  useFocoModal(isOpen, containerRef)
 
   if (!isOpen) return null
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onCancelar}
     >
       <Surface
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
         elevacao={2}
         padding="lg"
         comBorda
@@ -51,7 +61,7 @@ export default function ModalConfirmacao({
         </button>
 
         {/* Título do Modal */}
-        <h3 className="text-xl font-bold text-ink-900 mb-2 shrink-0">
+        <h3 id={tituloId} className="text-xl font-bold text-ink-900 mb-2 shrink-0">
           {titulo}
         </h3>
 
@@ -69,6 +79,7 @@ export default function ModalConfirmacao({
             type="button"
             variante="secundario"
             larguraTotal
+            data-foco-inicial
             className="sm:flex-1 min-h-[44px]"
             onClick={onCancelar}
           >
