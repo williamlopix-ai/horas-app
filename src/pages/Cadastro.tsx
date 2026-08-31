@@ -55,7 +55,7 @@ export default function Cadastro() {
 
   return (
     <main className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-4 selection:bg-[#03A9F4] selection:text-white">
-      <div className="w-full max-w-md bg-[#161B22] rounded-sheet border border-gray-800 shadow-2xl p-8 space-y-6 transition-all duration-d3">
+      <div className="w-full max-w-md bg-[#161B22] rounded-sheet border border-gray-800 shadow-2xl p-8 space-y-6 transition-opacity duration-d3 ease-ez">
         
         {/* Header */}
         <div className="text-center space-y-2">
@@ -103,7 +103,7 @@ export default function Cadastro() {
               placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez disabled:opacity-50"
             />
           </div>
 
@@ -119,7 +119,7 @@ export default function Cadastro() {
               placeholder="Min. 6 caracteres"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez disabled:opacity-50"
             />
           </div>
 
@@ -135,14 +135,14 @@ export default function Cadastro() {
               placeholder="Repita sua senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[#0B0E14] border border-gray-800 rounded-ctl text-white placeholder-gray-500 focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez disabled:opacity-50"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading || !!success}
-            className="w-full py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#0277BD] text-white font-semibold rounded-ctl transition-all duration-d1 transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-[#03A9F4] focus:ring-offset-2 focus:ring-offset-[#161B22] flex items-center justify-center gap-sm disabled:opacity-50 disabled:transform-none"
+            className="w-full py-3 px-4 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#0277BD] text-white font-semibold rounded-ctl transition-[background-color,transform] duration-d1 ease-ez transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-[#03A9F4] focus:ring-offset-2 focus:ring-offset-[#161B22] flex items-center justify-center gap-sm disabled:opacity-50 disabled:transform-none"
           >
             {loading ? (
               <svg className="animate-spin w-icon-md h-icon-md text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -158,7 +158,7 @@ export default function Cadastro() {
         {/* Link para Voltar ao Login */}
         <div className="text-center text-sm text-gray-400 pt-2 border-t border-gray-800/60">
           Já possui uma conta?{' '}
-          <Link to="/login" className="text-[#03A9F4] hover:text-[#0288D1] font-medium transition-colors">
+          <Link to="/login" className="text-[#03A9F4] hover:text-[#0288D1] font-medium transition-colors duration-d1 ease-ez">
             Voltar para o Login
           </Link>
         </div>
