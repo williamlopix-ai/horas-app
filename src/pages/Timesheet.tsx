@@ -396,7 +396,7 @@ export default function Timesheet() {
                   {tableData.map((row) => (
                     <tr
                       key={row.projetoId}
-                      className={`transition-colors group ${
+                      className={`transition-colors duration-d1 ease-ez group ${
                         selectedRow === row.projetoId
                           ? ''
                           : 'hover:bg-surface-2'
