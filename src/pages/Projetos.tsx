@@ -37,7 +37,7 @@ import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
 import MenuAcoes from '../components/MenuAcoes'
 import { SkeletonRow } from '../components/Skeleton'
-import { Button, Surface } from '../components/ui'
+import { Button, PageHeader, Surface } from '../components/ui'
 
 interface ProjetoRowItemProps {
   projeto: Projeto
@@ -457,25 +457,24 @@ export default function Projetos() {
       {/* 2. Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
         
-        {/* Header da Seção */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
-          <div>
-            <h2 className="text-2xl font-bold text-ink-900 tracking-tight">Projetos</h2>
-            <p className="text-sm text-ink-700">Gerencie seus projetos e clientes para associar aos seus lançamentos de horas.</p>
-          </div>
-          <Button
-            variante="primario"
-            className="min-h-[44px]"
-            onClick={abrirNovoProjetoModal}
-            iconeEsquerda={
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-            }
-          >
-            Novo Projeto
-          </Button>
-        </div>
+        <PageHeader
+          titulo="Projetos"
+          subtitulo="Gerencie seus projetos e clientes para associar aos seus lançamentos de horas."
+          acao={
+            <Button
+              variante="primario"
+              className="min-h-[44px]"
+              onClick={abrirNovoProjetoModal}
+              iconeEsquerda={
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+              }
+            >
+              Novo Projeto
+            </Button>
+          }
+        />
 
         {/* Abas Projetos / Rotina */}
         <div className="flex border-b border-hair gap-xl">

@@ -21,3 +21,6 @@ export type { TamanhoSheet, SheetProps } from './Sheet'
 
 export { Dica } from './Dica'
 export type { DicaProps } from './Dica'
+
+export { PageHeader } from './PageHeader'
+export type { PageHeaderProps } from './PageHeader'
