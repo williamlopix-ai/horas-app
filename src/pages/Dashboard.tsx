@@ -25,7 +25,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-lg">
             <Link 
               to="/projetos" 
-              className="text-sm font-semibold text-gray-400 hover:text-white px-3 py-2 rounded-ctl hover:bg-gray-800/40 transition-all"
+              className="text-sm font-semibold text-gray-400 hover:text-white px-3 py-2 rounded-ctl hover:bg-gray-800/40 transition-colors duration-d1 ease-ez"
             >
               Projetos
             </Link>
@@ -33,7 +33,7 @@ export default function Dashboard() {
             <span className="text-sm text-gray-400 font-medium hidden sm:inline">{user?.email}</span>
             <button
               onClick={handleSignOut}
-              className="py-2 px-4 bg-red-500/10 hover:bg-red-500/25 active:bg-red-500/30 text-red-400 text-sm font-semibold rounded-ctl border border-red-500/20 transition-all focus:outline-none"
+              className="py-2 px-4 bg-red-500/10 hover:bg-red-500/25 active:bg-red-500/30 text-red-400 text-sm font-semibold rounded-ctl border border-red-500/20 transition-colors duration-d1 ease-ez focus:outline-none"
             >
               Sair
             </button>
