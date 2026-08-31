@@ -86,7 +86,7 @@ function ProjetoRowItem({
     <tr
       ref={setNodeRef}
       style={style}
-      className={`hover:bg-surface-2 transition-all group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-md gap-y-2xs md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 ${
+      className={`hover:bg-surface-2 transition-colors duration-d1 ease-ez group grid grid-cols-[1fr_auto] md:table-row p-3 md:p-0 gap-x-md gap-y-2xs md:gap-0 mb-2 md:mb-0 bg-surface-1 md:bg-transparent rounded-card md:rounded-none !border-t-0 ring-1 ring-hair-strong md:ring-0 ${
         isDragging ? 'shadow-e3 ring-2 ring-accent' : ''
       }`}
     >
@@ -98,7 +98,7 @@ function ProjetoRowItem({
               {...attributes}
               {...listeners}
               onClick={(e) => e.stopPropagation()}
-              className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors touch-none shrink-0"
+              className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors duration-d1 ease-ez touch-none shrink-0"
               title="Arrastar para reordenar"
             >
               <svg className="w-icon-md h-icon-md" viewBox="0 0 24 24" fill="currentColor">
@@ -118,7 +118,7 @@ function ProjetoRowItem({
           <button
             type="button"
             onClick={() => onNavigate(projeto.id)}
-            className="font-semibold text-ink-900 text-sm md:text-base break-words whitespace-normal overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[200px] sm:max-w-xs md:max-w-none text-left bg-transparent border-none p-0 m-0 cursor-pointer hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-sm"
+            className="font-semibold text-ink-900 text-sm md:text-base break-words whitespace-normal overflow-hidden md:whitespace-nowrap md:text-ellipsis max-w-[200px] sm:max-w-xs md:max-w-none text-left bg-transparent border-none p-0 m-0 cursor-pointer hover:text-accent transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-sm"
             title={projeto.nome}
           >
             {projeto.nome}
@@ -178,7 +178,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onArquivar(projeto)
                 }}
-                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-all border border-hair-strong w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-colors duration-d1 ease-ez border border-hair-strong w-auto text-center justify-center"
               >
                 Arquivar
               </button>
@@ -190,7 +190,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onEdit(projeto)
                 }}
-                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-all border border-hair-strong w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-xs font-semibold rounded-ctl transition-colors duration-d1 ease-ez border border-hair-strong w-auto text-center justify-center"
               >
                 Editar
               </button>
@@ -199,7 +199,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onToggleStatus(projeto)
                 }}
-                className={`py-1.5 px-3 text-xs font-semibold rounded-ctl transition-all border w-auto text-center justify-center ${
+                className={`py-1.5 px-3 text-xs font-semibold rounded-ctl transition-opacity duration-d1 ease-ez border w-auto text-center justify-center ${
                   projeto.status === 'ativo'
                     ? 'bg-warn-bg text-warn border-warn hover:opacity-80'
                     : 'bg-ok-bg text-ok border-ok hover:opacity-80'
@@ -212,7 +212,7 @@ function ProjetoRowItem({
                   e.stopPropagation()
                   onExcluir(projeto)
                 }}
-                className="py-1.5 px-3 bg-bad-bg text-bad text-xs font-semibold rounded-ctl transition-all border border-bad hover:opacity-80 w-auto text-center justify-center"
+                className="py-1.5 px-3 bg-bad-bg text-bad text-xs font-semibold rounded-ctl transition-opacity duration-d1 ease-ez border border-bad hover:opacity-80 w-auto text-center justify-center"
               >
                 Excluir
               </button>
@@ -481,7 +481,7 @@ export default function Projetos() {
         <div className="flex border-b border-hair gap-xl">
           <button
             onClick={() => setAbaAtiva('projeto')}
-            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-all relative ${
+            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-colors duration-d1 ease-ez relative ${
               abaAtiva === 'projeto'
                 ? 'text-ink-900'
                 : 'text-ink-500 hover:text-ink-900'
@@ -494,7 +494,7 @@ export default function Projetos() {
           </button>
           <button
             onClick={() => setAbaAtiva('rotina')}
-            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-all relative ${
+            className={`pt-2 pb-3 min-h-[44px] flex items-center text-sm font-bold transition-colors duration-d1 ease-ez relative ${
               abaAtiva === 'rotina'
                 ? 'text-ink-900'
                 : 'text-ink-500 hover:text-ink-900'
@@ -622,7 +622,7 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-warn-bg text-warn border border-warn hover:opacity-80 text-sm font-bold rounded-ctl transition-all min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-warn-bg text-warn border border-warn hover:opacity-80 text-sm font-bold rounded-ctl transition-opacity duration-d1 ease-ez min-h-[44px]"
               >
                 Encerrar projeto
               </button>
@@ -638,14 +638,14 @@ export default function Projetos() {
                     showToast(getErrorMessage(err), 'error')
                   }
                 }}
-                className="w-full py-2.5 px-4 bg-bad-bg text-bad border border-bad hover:opacity-80 text-sm font-bold rounded-ctl transition-all min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-bad-bg text-bad border border-bad hover:opacity-80 text-sm font-bold rounded-ctl transition-opacity duration-d1 ease-ez min-h-[44px]"
               >
                 Excluir mesmo assim
               </button>
               <button
                 type="button"
                 onClick={() => setProjetoParaExcluir(null)}
-                className="w-full py-2.5 px-4 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-sm font-semibold rounded-ctl transition-all border border-hair-strong min-h-[44px]"
+                className="w-full py-2.5 px-4 bg-surface-2 hover:bg-surface-3 text-ink-700 hover:text-ink-900 text-sm font-semibold rounded-ctl transition-colors duration-d1 ease-ez border border-hair-strong min-h-[44px]"
               >
                 Cancelar
               </button>
