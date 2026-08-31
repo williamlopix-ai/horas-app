@@ -14,7 +14,7 @@ import type { Lembrete, Projeto } from '../types'
 import ModalLembrete from '../components/ModalLembrete'
 import { SkeletonCard } from '../components/Skeleton'
 import ModalConfirmacao from '../components/ModalConfirmacao'
-import { Button, PageHeader } from '../components/ui'
+import { Button, EmptyState, PageHeader } from '../components/ui'
 
 export default function Lembretes() {
   const { user } = useAuth()
@@ -234,22 +234,26 @@ export default function Lembretes() {
               </div>
             ) : pendentes.length === 0 ? (
               <div className="bg-surface-2 border border-hair rounded-card p-12 text-center max-w-md mx-auto space-y-4">
-                <div className="inline-flex p-4 rounded-full bg-surface-3 text-ink-700 mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-ink-900">Nenhum lembrete pendente</h3>
-                <p className="text-sm text-ink-700">
-                  Tudo em dia! Você não tem nenhum lembrete pendente no momento.
-                </p>
-                <Button
-                  variante="secundario"
-                  className="min-h-[44px]"
-                  onClick={abrirNovoLembreteModal}
-                >
-                  Criar Lembrete
-                </Button>
+                <EmptyState
+                  icone={
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  }
+                  corIcone="text-ink-700"
+                  corFundoIcone="bg-surface-3"
+                  titulo="Nenhum lembrete pendente"
+                  descricao="Tudo em dia! Você não tem nenhum lembrete pendente no momento."
+                  acao={
+                    <Button
+                      variante="secundario"
+                      className="min-h-[44px]"
+                      onClick={abrirNovoLembreteModal}
+                    >
+                      Criar Lembrete
+                    </Button>
+                  }
+                />
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">

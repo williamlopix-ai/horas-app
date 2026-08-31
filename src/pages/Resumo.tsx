@@ -31,7 +31,7 @@ import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChartNoAxesColumn, ChevronDown, GripVertical, LayoutGrid, List, Table2 } from 'lucide-react'
-import { Button, Chip, Surface } from '../components/ui'
+import { Button, Chip, EmptyState, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -581,19 +581,22 @@ export default function Resumo() {
           </div>
         ) : registros.length === 0 ? (
           <Surface elevacao={1} comBorda padding="nenhum" className="p-12 text-center max-w-lg mx-auto space-y-4">
-            <div className="inline-flex p-4 rounded-full bg-surface-2 text-accent mb-2">
-              <ChartNoAxesColumn className="w-icon-xl h-icon-xl" />
-            </div>
-            <h3 className="text-lg font-display font-bold text-ink-900">Nenhum histórico encontrado</h3>
-            <p className="text-sm text-ink-500 leading-relaxed">
-              Você ainda não registrou nenhuma hora. Seus dados consolidados aparecerão aqui assim que fizer seus primeiros lançamentos.
-            </p>
-            <Link
-              to="/registros"
-              className="inline-block py-2.5 px-4 bg-surface-2 hover:bg-surface-3 border border-hair-strong text-ink-900 text-xs font-semibold rounded-ctl transition-colors duration-d1 ease-ez"
-            >
-              Ir para Lançamentos
-            </Link>
+            <EmptyState
+              icone={<ChartNoAxesColumn className="w-icon-xl h-icon-xl" />}
+              corIcone="text-accent"
+              corFundoIcone="bg-surface-2"
+              titulo="Nenhum histórico encontrado"
+              descricao="Você ainda não registrou nenhuma hora. Seus dados consolidados aparecerão aqui assim que fizer seus primeiros lançamentos."
+              variante="display"
+              acao={
+                <Link
+                  to="/registros"
+                  className="inline-block py-2.5 px-4 bg-surface-2 hover:bg-surface-3 border border-hair-strong text-ink-900 text-xs font-semibold rounded-ctl transition-colors duration-d1 ease-ez"
+                >
+                  Ir para Lançamentos
+                </Link>
+              }
+            />
           </Surface>
         ) : (
           <div className="space-y-6">

@@ -37,7 +37,7 @@ import type { Projeto } from '../types'
 import ModalProjeto from '../components/ModalProjeto'
 import MenuAcoes from '../components/MenuAcoes'
 import { SkeletonRow } from '../components/Skeleton'
-import { Button, PageHeader, Surface } from '../components/ui'
+import { Button, EmptyState, PageHeader, Surface } from '../components/ui'
 
 interface ProjetoRowItemProps {
   projeto: Projeto
@@ -526,22 +526,26 @@ export default function Projetos() {
             </div>
           ) : projetosFiltrados.length === 0 ? (
             <div className="p-12 text-center max-w-md mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-surface-2 text-ink-700 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-ink-900">Nenhum item encontrado</h3>
-              <p className="text-sm text-ink-700">
-                Você ainda não cadastrou nenhum{abaAtiva === 'projeto' ? 'o projeto' : 'a rotina'}. Comece criando um para organizar seus lançamentos de horas de forma profissional.
-              </p>
-              <Button
-                variante="secundario"
-                className="min-h-[44px]"
-                onClick={abrirNovoProjetoModal}
-              >
-                Cadastrar Primeir{abaAtiva === 'projeto' ? 'o Projeto' : 'a Rotina'}
-              </Button>
+              <EmptyState
+                icone={
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-xl h-icon-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                }
+                corIcone="text-ink-700"
+                corFundoIcone="bg-surface-2"
+                titulo="Nenhum item encontrado"
+                descricao={`Você ainda não cadastrou nenhum${abaAtiva === 'projeto' ? 'o projeto' : 'a rotina'}. Comece criando um para organizar seus lançamentos de horas de forma profissional.`}
+                acao={
+                  <Button
+                    variante="secundario"
+                    className="min-h-[44px]"
+                    onClick={abrirNovoProjetoModal}
+                  >
+                    Cadastrar Primeir{abaAtiva === 'projeto' ? 'o Projeto' : 'a Rotina'}
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <div className="overflow-x-auto">

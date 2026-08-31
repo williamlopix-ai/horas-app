@@ -24,3 +24,6 @@ export type { DicaProps } from './Dica'
 
 export { PageHeader } from './PageHeader'
 export type { PageHeaderProps } from './PageHeader'
+
+export { EmptyState } from './EmptyState'
+export type { VarianteEmptyState, EmptyStateProps } from './EmptyState'

@@ -17,7 +17,7 @@ import {
   Trash2,
   X
 } from 'lucide-react'
-import { Button, Dica, Sheet, Surface, classeCampo } from '../components/ui'
+import { Button, Dica, EmptyState, Sheet, Surface, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -629,23 +629,26 @@ export default function Registros() {
           </div>
         ) : registrosAgrupadosPorData.length === 0 ? (
           <Surface elevacao={1} comBorda padding="lg" className="text-center max-w-lg mx-auto space-y-4">
-            <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-              <Clock className="w-icon-xl h-icon-xl shrink-0" />
-            </div>
-            <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum lançamento encontrado</h3>
-            <p className="text-sm text-ink-500 leading-relaxed font-ui">
-              Não encontramos nenhum registro de horas para os filtros selecionados.
-            </p>
-            <div className="pt-2">
-              <Button
-                variante="primario"
-                onClick={abrirNovoRegistroModal}
-                className="min-h-[44px] px-4"
-                iconeEsquerda={<Plus className="w-icon-sm h-icon-sm shrink-0" />}
-              >
-                Lançar horas
-              </Button>
-            </div>
+            <EmptyState
+              icone={<Clock className="w-icon-xl h-icon-xl shrink-0" />}
+              corIcone="text-accent"
+              corFundoIcone="bg-accent-bg"
+              titulo="Nenhum lançamento encontrado"
+              descricao="Não encontramos nenhum registro de horas para os filtros selecionados."
+              variante="display"
+              acao={
+                <div className="pt-2">
+                  <Button
+                    variante="primario"
+                    onClick={abrirNovoRegistroModal}
+                    className="min-h-[44px] px-4"
+                    iconeEsquerda={<Plus className="w-icon-sm h-icon-sm shrink-0" />}
+                  >
+                    Lançar horas
+                  </Button>
+                </div>
+              }
+            />
           </Surface>
         ) : (
           <div className="flex flex-col gap-xl">

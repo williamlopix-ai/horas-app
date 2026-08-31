@@ -12,7 +12,7 @@ import type { Projeto, Registro } from '../types'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 import { Copy, AlertTriangle, ChevronLeft, ChevronRight, X, FileChartColumn, Search } from 'lucide-react'
-import { Button, Surface, classeCampo } from '../components/ui'
+import { Button, EmptyState, Surface, classeCampo } from '../components/ui'
 
 // Funções auxiliares de data
 function getInicioSemana(d: Date, inicio: InicioSemana) {
@@ -338,42 +338,52 @@ export default function Timesheet() {
             </div>
           ) : projetos.length === 0 ? (
             <div className="p-6 text-center max-w-lg mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                <FileChartColumn className="w-icon-xl h-icon-xl" />
-              </div>
-              <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum projeto apto para timesheet</h3>
-              <p className="text-sm text-ink-500 leading-relaxed font-ui">
-                Para um projeto aparecer aqui, ele deve estar <strong>ativo</strong> e possuir o <strong>código externo</strong> preenchido.
-              </p>
-              <div className="pt-2">
-                <Link
-                  to="/projetos"
-                  className="inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
-                >
-                  Gerenciar Projetos
-                </Link>
-              </div>
+              <EmptyState
+                icone={<FileChartColumn className="w-icon-xl h-icon-xl" />}
+                corIcone="text-accent"
+                corFundoIcone="bg-accent-bg"
+                titulo="Nenhum projeto apto para timesheet"
+                descricao={
+                  <>
+                    Para um projeto aparecer aqui, ele deve estar <strong>ativo</strong> e possuir o <strong>código externo</strong> preenchido.
+                  </>
+                }
+                variante="display"
+                acao={
+                  <div className="pt-2">
+                    <Link
+                      to="/projetos"
+                      className="inline-flex items-center justify-center gap-xs rounded-ctl font-medium whitespace-nowrap transition-colors duration-d1 ease-ez focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent active:translate-y-[0.5px] px-4 py-1.5 text-[13px] bg-pri text-pri-fg font-semibold shadow-e1 hover:bg-pri-hover min-h-[44px]"
+                    >
+                      Gerenciar Projetos
+                    </Link>
+                  </div>
+                }
+              />
             </div>
           ) : tableData.length === 0 ? (
             <div className="p-6 text-center max-w-lg mx-auto space-y-4">
-              <div className="inline-flex p-4 rounded-full bg-accent-bg text-accent mb-2">
-                <Search className="w-icon-xl h-icon-xl" />
-              </div>
-              <h3 className="text-lg font-bold text-ink-900 font-display">Nenhum resultado encontrado</h3>
-              <p className="text-sm text-ink-500 leading-relaxed font-ui">
-                Não encontramos nenhum projeto com o código "{filtroCodigo}".
-              </p>
-              <div className="pt-2">
-                <Button
-                  variante="secundario"
-                  tamanho="md"
-                  type="button"
-                  className="min-h-[44px]"
-                  onClick={() => setFiltroCodigo('')}
-                >
-                  Limpar Filtro
-                </Button>
-              </div>
+              <EmptyState
+                icone={<Search className="w-icon-xl h-icon-xl" />}
+                corIcone="text-accent"
+                corFundoIcone="bg-accent-bg"
+                titulo="Nenhum resultado encontrado"
+                descricao={`Não encontramos nenhum projeto com o código "${filtroCodigo}".`}
+                variante="display"
+                acao={
+                  <div className="pt-2">
+                    <Button
+                      variante="secundario"
+                      tamanho="md"
+                      type="button"
+                      className="min-h-[44px]"
+                      onClick={() => setFiltroCodigo('')}
+                    >
+                      Limpar Filtro
+                    </Button>
+                  </div>
+                }
+              />
             </div>
           ) : (
             <div className="overflow-auto max-h-[62vh]">
