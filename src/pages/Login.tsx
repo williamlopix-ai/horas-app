@@ -32,7 +32,7 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-4 selection:bg-[#03A9F4] selection:text-white">
-      <div className="w-full max-w-md bg-[#161B22] rounded-sheet border border-gray-800 shadow-2xl p-8 space-y-6 transition-opacity duration-d3">
+      <div className="w-full max-w-md bg-[#161B22] rounded-sheet border border-gray-800 shadow-2xl p-8 space-y-6 transition-opacity duration-d3 ease-ez">
         
         {/* Header */}
         <div className="text-center space-y-2">
