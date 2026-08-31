@@ -71,7 +71,7 @@ export default function BreakdownSubcategorias({ subcategorias }: BreakdownSubca
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex-1 bg-surface-0 h-1 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-d2 ease-ez"
+                      className="h-full rounded-full transition-[width,background-color] duration-d2 ease-ez"
                       style={{
                         width: `${larguraBarra}%`,
                         backgroundColor: excedeu ? 'var(--bad)' : 'var(--accent)'

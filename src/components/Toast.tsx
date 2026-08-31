@@ -64,7 +64,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
       className={`
         flex items-center gap-md px-4 py-3 rounded-card shadow-e2
         text-sm font-medium max-w-[360px] w-full pointer-events-auto
-        transition-all duration-d3 ease-out
+        transition-[transform,opacity] duration-d3 ease-out
         ${STYLES[toast.type]}
         ${visible && !leaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
       `}
@@ -76,7 +76,7 @@ function ToastSingle({ toast, onRemove }: ToastProps) {
           setLeaving(true)
           setTimeout(() => onRemove(toast.id), 300)
         }}
-        className="min-h-[44px] min-w-[44px] flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity focus:outline-none shrink-0"
+        className="min-h-[44px] min-w-[44px] flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-d1 ease-ez focus:outline-none shrink-0"
         aria-label="Fechar notificação"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm" viewBox="0 0 20 20" fill="currentColor">

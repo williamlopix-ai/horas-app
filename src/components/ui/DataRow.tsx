@@ -35,7 +35,7 @@ export function DataRow({
     if (realizado > teto) {
       return (
         <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden mt-1.5">
-          <div className="h-full w-full bg-bad transition-all duration-d2 ease-ez" />
+          <div className="h-full w-full bg-bad transition-[width] duration-d2 ease-ez" />
         </div>
       )
     }
@@ -51,13 +51,13 @@ export function DataRow({
       <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden flex mt-1.5">
         {pctRealizado > 0 && (
           <div
-            className="h-full bg-ok transition-all duration-d2 ease-ez"
+            className="h-full bg-ok transition-[width] duration-d2 ease-ez"
             style={{ width: `${pctRealizado}%` }}
           />
         )}
         {pctReservado > 0 && (
           <div
-            className="h-full bg-accent transition-all duration-d2 ease-ez"
+            className="h-full bg-accent transition-[width] duration-d2 ease-ez"
             style={{ width: `${pctReservado}%` }}
           />
         )}
