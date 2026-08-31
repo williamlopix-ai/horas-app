@@ -30,3 +30,6 @@ export type { VarianteEmptyState, EmptyStateProps } from './EmptyState'
 
 export { SecaoColapsavel } from './SecaoColapsavel'
 export type { SecaoColapsavelProps } from './SecaoColapsavel'
+
+export { Secao } from './Secao'
+export type { SecaoProps } from './Secao'

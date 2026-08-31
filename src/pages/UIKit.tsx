@@ -9,6 +9,10 @@ import {
   DataRow,
   Sheet,
   Dica,
+  PageHeader,
+  Secao,
+  EmptyState,
+  SecaoColapsavel,
 } from '../components/ui'
 import {
   Sun,
@@ -18,12 +22,14 @@ import {
   AlertCircle,
   MoreVertical,
   Plus,
+  Inbox,
 } from 'lucide-react'
 
 export default function UIKit() {
   const [tema, setTema] = useState<'dark' | 'light'>('dark')
   const [sheetAberto, setSheetAberto] = useState(false)
   const [textoInput, setTextoInput] = useState('')
+  const [colapsavelAberta, setColapsavelAberta] = useState(true)
 
   useEffect(() => {
     const temaAtual = document.documentElement.getAttribute('data-theme')
@@ -47,7 +53,7 @@ export default function UIKit() {
             UI Kit & Design Primitives
           </h1>
           <p className="text-[13px] text-ink-500 mt-1">
-            Galeria de testes das 8 primitivas de interface (Fase 2)
+            Galeria de testes das 12 primitivas de interface
           </p>
         </div>
         <Button
@@ -386,6 +392,87 @@ export default function UIKit() {
               </Dica>
             </div>
           </Surface>
+        </div>
+      </section>
+
+      {/* 9. PageHeader */}
+      <section className="space-y-4">
+        <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
+          9. PageHeader
+        </h2>
+        <Surface elevacao={1} padding="md" comBorda>
+          <PageHeader
+            titulo="Título de Página"
+            subtitulo="Subtítulo descritivo de apoio."
+            acao={<Button variante="primario">Nova Ação</Button>}
+          />
+        </Surface>
+        <Surface elevacao={1} padding="md" comBorda>
+          <PageHeader titulo="Somente Título" />
+        </Surface>
+      </section>
+
+      {/* 10. Secao */}
+      <section className="space-y-4">
+        <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
+          10. Secao
+        </h2>
+        <Surface elevacao={1} padding="md" comBorda>
+          <Secao titulo="Título de Seção" />
+          <p className="text-sm text-ink-700">Conteúdo de exemplo abaixo do título da seção.</p>
+        </Surface>
+      </section>
+
+      {/* 11. EmptyState */}
+      <section className="space-y-4">
+        <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
+          11. EmptyState
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-xl items-start">
+          <Surface elevacao={1} padding="lg" comBorda className="text-center space-y-4">
+            <EmptyState
+              icone={<Inbox className="w-icon-xl h-icon-xl" />}
+              corIcone="text-accent"
+              corFundoIcone="bg-surface-2"
+              titulo="Nenhum item encontrado"
+              descricao="Variante padrão, usada dentro de listas e páginas internas."
+              variante="padrao"
+              acao={<Button variante="secundario" tamanho="sm">Adicionar Item</Button>}
+            />
+          </Surface>
+          <Surface elevacao={1} padding="lg" comBorda className="text-center space-y-4">
+            <EmptyState
+              icone={<Inbox className="w-icon-xl h-icon-xl" />}
+              corIcone="text-accent"
+              corFundoIcone="bg-surface-2"
+              titulo="Nenhum histórico encontrado"
+              descricao="Variante display, usada em telas vazias de destaque."
+              variante="display"
+              acao={<Button variante="primario" tamanho="sm">Começar Agora</Button>}
+            />
+          </Surface>
+        </div>
+      </section>
+
+      {/* 12. SecaoColapsavel */}
+      <section className="space-y-4">
+        <h2 className="font-display font-semibold text-lg text-ink-900 border-b border-hair pb-2">
+          12. SecaoColapsavel
+        </h2>
+        <div>
+          <SecaoColapsavel
+            titulo="Seção de Exemplo"
+            aberto={colapsavelAberta}
+            onToggle={() => setColapsavelAberta(!colapsavelAberta)}
+            contador="3 itens"
+            descricao="Texto descritivo que só aparece quando a seção está aberta."
+            acao={<Button variante="secundario" tamanho="sm">Ação</Button>}
+          />
+          {colapsavelAberta && (
+            <Surface padding="md" comBorda className="mt-4">
+              <p className="text-sm text-ink-700">Conteúdo da seção, visível apenas quando aberta.</p>
+            </Surface>
+          )}
         </div>
       </section>
     </div>

@@ -31,7 +31,7 @@ import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
 import { inicioDaSemana, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChartNoAxesColumn, ChevronDown, GripVertical, LayoutGrid, List, Table2 } from 'lucide-react'
-import { Button, Chip, EmptyState, Surface } from '../components/ui'
+import { Button, Chip, EmptyState, Secao, Surface } from '../components/ui'
 
 type Aba = 'semanal' | 'diario' | 'projetos'
 
@@ -919,7 +919,7 @@ export default function Resumo() {
                 </div>
                 {/* Seção Projetos */}
                 <div>
-                  <h2 className="text-xl font-display font-bold text-ink-900 mb-4">Projetos</h2>
+                  <Secao titulo="Projetos" />
                   {projetosVisiveis.length === 0 ? (
                     <Surface elevacao={1} comBorda padding="nenhum" className="p-4 text-sm text-ink-500">Nenhum projeto registrado.</Surface>
                   ) : (
@@ -1188,7 +1188,7 @@ export default function Resumo() {
                 {/* Seção Rotina */}
                 {resumoProjetos.rotinas.length > 0 && (
                   <div>
-                    <h2 className="text-xl font-display font-bold text-ink-900 mb-4">Rotina</h2>
+                    <Secao titulo="Rotina" />
                     <Surface elevacao={1} comBorda padding="nenhum" className="overflow-hidden">
                       <div className="divide-y divide-hair">
                         {resumoProjetos.rotinas.map((rotina) => {
