@@ -3,6 +3,16 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export type TamanhoSheet = 'sm' | 'md' | 'lg'
+ 
+const SELETOR_FOCAVEIS =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+function obterElementosFocaveis(container: HTMLElement): HTMLElement[] {
+  const elementos = Array.from(
+    container.querySelectorAll<HTMLElement>(SELETOR_FOCAVEIS)
+  )
+  return elementos.filter((el) => el.getClientRects().length > 0)
+}
 
 export interface SheetProps {
   aberto: boolean
@@ -27,20 +37,34 @@ export function Sheet({
 }: SheetProps) {
   const titleId = useId()
   const painelRef = useRef<HTMLDivElement>(null)
+  const elementoAnteriorRef = useRef<HTMLElement | null>(null)
   const aoFecharRef = useRef(aoFechar)
 
   useEffect(() => {
     aoFecharRef.current = aoFechar
   })
 
-  // efeito 1 — trava de scroll e foco inicial
+  // efeito 1 — trava de scroll, foco inicial e restauração de foco
   useEffect(() => {
     if (!aberto) return
     const overflowOriginal = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
+    if (
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement !== document.body
+    ) {
+      elementoAnteriorRef.current = document.activeElement
+    }
+
     painelRef.current?.focus()
     return () => {
       document.body.style.overflow = overflowOriginal
+      const elementoAnterior = elementoAnteriorRef.current
+      if (elementoAnterior && document.body.contains(elementoAnterior)) {
+        elementoAnterior.focus()
+      }
+      elementoAnteriorRef.current = null
     }
   }, [aberto])
 
@@ -50,6 +74,54 @@ export function Sheet({
     const aoTeclar = (e: KeyboardEvent) => {
       if (e.key === 'Escape') aoFecharRef.current()
     }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [aberto])
+
+  // efeito 3 — focus trap (Tab / Shift+Tab)
+  useEffect(() => {
+    if (!aberto) return
+
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      const painel = painelRef.current
+      if (!painel) return
+
+      const focaveis = obterElementosFocaveis(painel)
+      if (focaveis.length === 0) {
+        e.preventDefault()
+        painel.focus()
+        return
+      }
+
+      const primeiroFocavel = focaveis[0]
+      const ultimoFocavel = focaveis[focaveis.length - 1]
+      const elementoAtivo = document.activeElement
+
+      if (!painel.contains(elementoAtivo)) {
+        e.preventDefault()
+        if (e.shiftKey) {
+          ultimoFocavel.focus()
+        } else {
+          primeiroFocavel.focus()
+        }
+        return
+      }
+
+      if (e.shiftKey) {
+        if (elementoAtivo === primeiroFocavel) {
+          e.preventDefault()
+          ultimoFocavel.focus()
+        }
+      } else {
+        if (elementoAtivo === ultimoFocavel) {
+          e.preventDefault()
+          primeiroFocavel.focus()
+        }
+      }
+    }
+
     window.addEventListener('keydown', aoTeclar)
     return () => window.removeEventListener('keydown', aoTeclar)
   }, [aberto])

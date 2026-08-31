@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useId } from 'react'
 import type { Lembrete, Projeto } from '../types'
 import { getErrorMessage } from '../utils/errors'
+import { useModal } from '../hooks/useModal'
 import { Surface, Button, classeCampo } from './ui'
 
 interface ModalLembreteProps {
@@ -17,6 +18,8 @@ interface ModalLembreteProps {
 }
 
 export default function ModalLembrete({ isOpen, onClose, onSave, lembrete, projetos }: ModalLembreteProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tituloId = useId()
   const [titulo, setTitulo] = useState('')
   const [descricao, setDescricao] = useState('')
   const [dataAlvo, setDataAlvo] = useState('')
@@ -46,6 +49,8 @@ export default function ModalLembrete({ isOpen, onClose, onSave, lembrete, proje
       setError(null)
     }
   }, [isOpen, lembrete])
+
+  useModal(isOpen, containerRef, onClose)
 
   if (!isOpen) return null
 
@@ -80,8 +85,14 @@ export default function ModalLembrete({ isOpen, onClose, onSave, lembrete, proje
   }
 
   return (
-    <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
       <Surface
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
         elevacao={2}
         padding="lg"
         comBorda
@@ -101,7 +112,7 @@ export default function ModalLembrete({ isOpen, onClose, onSave, lembrete, proje
         </button>
 
         {/* Título do Modal */}
-        <h3 className="text-xl font-bold text-ink-900 mb-4 shrink-0">
+        <h3 id={tituloId} className="text-xl font-bold text-ink-900 mb-4 shrink-0">
           {lembrete ? 'Editar Lembrete' : 'Novo Lembrete'}
         </h3>
 

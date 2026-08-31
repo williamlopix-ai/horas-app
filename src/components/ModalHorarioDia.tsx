@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useId } from 'react'
 import { getErrorMessage } from '../utils/errors'
+import { useModal } from '../hooks/useModal'
 
 interface ModalHorarioDiaProps {
   isOpen: boolean
@@ -18,6 +19,8 @@ export default function ModalHorarioDia({
   inicioAtual,
   fimAtual
 }: ModalHorarioDiaProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tituloId = useId()
   const [inicio, setInicio] = useState(inicioAtual)
   const [fim, setFim] = useState(fimAtual)
   const [saving, setSaving] = useState(false)
@@ -32,6 +35,8 @@ export default function ModalHorarioDia({
       setSaving(false)
     }
   }, [isOpen, inicioAtual, fimAtual])
+
+  useModal(isOpen, containerRef, onClose)
 
   if (!isOpen) return null
 
@@ -65,13 +70,21 @@ export default function ModalHorarioDia({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-d3">
-      <div className="bg-[#161B22] border border-gray-800 rounded-sheet w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-d3">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-d3"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
+        className="bg-[#161B22] border border-gray-800 rounded-sheet w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-d3"
+      >
         
         {/* Cabeçalho */}
         <div className="px-6 py-5 border-b border-gray-800 flex items-center justify-between bg-[#0B0E14]/50">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Horário do Dia</h2>
+            <h2 id={tituloId} className="text-lg font-bold text-white tracking-tight">Horário do Dia</h2>
             <p className="text-xs text-gray-400 capitalize">{dataFormatada}</p>
           </div>
           <button
