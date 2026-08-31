@@ -89,7 +89,7 @@ export default function ModalHorarioDia({
           </div>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors focus:outline-none"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
             title="Fechar"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -120,7 +120,7 @@ export default function ModalHorarioDia({
                   type="time"
                   value={inicio}
                   onChange={(e) => setInicio(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
+                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez font-mono"
                   required
                 />
               </div>
@@ -133,7 +133,7 @@ export default function ModalHorarioDia({
                   type="time"
                   value={fim}
                   onChange={(e) => setFim(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-all font-mono"
+                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez font-mono"
                   required
                 />
               </div>
@@ -150,14 +150,14 @@ export default function ModalHorarioDia({
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors focus:outline-none"
+              className="py-2.5 px-5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-all shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-sm"
+              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-colors duration-d1 ease-ez shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-sm"
             >
               {saving ? (
                 <>
