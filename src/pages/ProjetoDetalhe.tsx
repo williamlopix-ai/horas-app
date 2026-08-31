@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Trash2, X } from 'lucide-react'
-import { Button, Surface, classeCampo } from '../components/ui'
+import { Button, Surface, classeCampo, SecaoColapsavel } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -1308,49 +1308,42 @@ export default function ProjetoDetalhe() {
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => toggleSecao('fases')}
-                  className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
-                >
-                  <ChevronDown
-                    className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['fases'] ? 'rotate-180' : ''}`}
-                  />
-                  <h2 className="text-xl font-display font-bold text-ink-900">Fases & Subcategorias</h2>
-                  {!secoesExpandidas['fases'] && (
-                    <span className="text-xs text-ink-500 font-ui font-normal">
-                      {fases.length === 0
-                        ? `${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`
-                        : `${fases.length} ${fases.length === 1 ? 'fase' : 'fases'} · ${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`}
-                    </span>
-                  )}
-                </button>
-                <div className="flex items-center gap-md">
-                  <Button
-                    variante="primario"
-                    tamanho="sm"
-                    onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
-                    disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
-                    className="min-h-[44px] sm:min-h-0"
-                  >
-                    {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
-                  </Button>
-                  {fases.length > 0 && (
-                    <MenuAcoes
-                      itens={[
-                        {
-                          label: 'Remover todas as fases',
-                          perigo: true,
-                          onClick: () => setConfirmandoRemoverDivisao(true)
-                        }
-                      ]}
-                      rotulo="Opções das fases"
-                      desabilitado={salvandoFase || salvandoSub}
-                    />
-                  )}
-                </div>
-              </div>
+              <SecaoColapsavel
+                titulo="Fases & Subcategorias"
+                aberto={secoesExpandidas['fases']}
+                onToggle={() => toggleSecao('fases')}
+                contador={
+                  fases.length === 0
+                    ? `${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`
+                    : `${fases.length} ${fases.length === 1 ? 'fase' : 'fases'} · ${subcategorias.length} ${subcategorias.length === 1 ? 'subcategoria' : 'subcategorias'}`
+                }
+                acao={
+                  <div className="flex items-center gap-md">
+                    <Button
+                      variante="primario"
+                      tamanho="sm"
+                      onClick={fases.length === 0 ? handleDividirEmFases : handleAddFase}
+                      disabled={salvandoFase || (fases.length > 0 && salvandoSub)}
+                      className="min-h-[44px] sm:min-h-0"
+                    >
+                      {fases.length === 0 ? 'Dividir em fases' : '+ Nova fase'}
+                    </Button>
+                    {fases.length > 0 && (
+                      <MenuAcoes
+                        itens={[
+                          {
+                            label: 'Remover todas as fases',
+                            perigo: true,
+                            onClick: () => setConfirmandoRemoverDivisao(true)
+                          }
+                        ]}
+                        rotulo="Opções das fases"
+                        desabilitado={salvandoFase || salvandoSub}
+                      />
+                    )}
+                  </div>
+                }
+              />
               {secoesExpandidas['fases'] && fases.length > 0 && (
                 <div className="space-y-4">
                   {fases.map((fase) => {
@@ -1823,28 +1816,13 @@ export default function ProjetoDetalhe() {
 
             {/* Seção Plano Semanal */}
             <div className="space-y-lg">
-              <div>
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => toggleSecao('plano')}
-                    className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
-                  >
-                    <ChevronDown
-                      className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['plano'] ? 'rotate-180' : ''}`}
-                    />
-                    <h2 className="text-xl font-display font-bold text-ink-900">Plano semanal</h2>
-                    {!secoesExpandidas['plano'] && (
-                      <span className="text-xs text-ink-500 font-ui font-normal">
-                        {planosSemanais.length === 1 ? '1 semana planejada' : `${planosSemanais.length} semanas planejadas`}
-                      </span>
-                    )}
-                  </button>
-                </div>
-                {secoesExpandidas['plano'] && (
-                  <p className="text-xs text-ink-500 mt-xs ml-lg">Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado.</p>
-                )}
-              </div>
+              <SecaoColapsavel
+                titulo="Plano semanal"
+                aberto={secoesExpandidas['plano']}
+                onToggle={() => toggleSecao('plano')}
+                contador={planosSemanais.length === 1 ? '1 semana planejada' : `${planosSemanais.length} semanas planejadas`}
+                descricao="Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado."
+              />
 
               {secoesExpandidas['plano'] && (
                 <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-md">
@@ -2016,26 +1994,13 @@ export default function ProjetoDetalhe() {
             </div>
 
             <div className="space-y-lg">
-              <div>
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => toggleSecao('lancamentos')}
-                    className="flex items-center gap-sm group focus:outline-none py-2 min-h-[44px]"
-                  >
-                    <ChevronDown className={`w-icon-sm h-icon-sm text-ink-500 transition-transform duration-d2 ease-ez ${secoesExpandidas['lancamentos'] ? 'rotate-180' : ''}`} />
-                    <h2 className="text-xl font-display font-bold text-ink-900">Lançamentos</h2>
-                    {!secoesExpandidas['lancamentos'] && (
-                      <span className="text-xs text-ink-500 font-ui font-normal">
-                        {registros.length === 1 ? '1 lançamento' : `${registros.length} lançamentos`}
-                      </span>
-                    )}
-                  </button>
-                </div>
-                {secoesExpandidas['lancamentos'] && (
-                  <p className="text-xs text-ink-500 mt-xs ml-lg">Clique para editar · use o olho para ver o dia completo em Registros</p>
-                )}
-              </div>
+              <SecaoColapsavel
+                titulo="Lançamentos"
+                aberto={secoesExpandidas['lancamentos']}
+                onToggle={() => toggleSecao('lancamentos')}
+                contador={registros.length === 1 ? '1 lançamento' : `${registros.length} lançamentos`}
+                descricao="Clique para editar · use o olho para ver o dia completo em Registros"
+              />
 
               {secoesExpandidas['lancamentos'] && (
                 <>

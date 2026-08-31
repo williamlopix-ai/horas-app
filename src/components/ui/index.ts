@@ -27,3 +27,6 @@ export type { PageHeaderProps } from './PageHeader'
 
 export { EmptyState } from './EmptyState'
 export type { VarianteEmptyState, EmptyStateProps } from './EmptyState'
+
+export { SecaoColapsavel } from './SecaoColapsavel'
+export type { SecaoColapsavelProps } from './SecaoColapsavel'
