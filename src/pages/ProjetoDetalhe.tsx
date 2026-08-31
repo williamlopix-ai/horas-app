@@ -702,7 +702,7 @@ export default function ProjetoDetalhe() {
                           key={r.id}
                           type="button"
                           onClick={() => abrirEditarRegistro(r)}
-                          className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                          className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors duration-d1 ease-ez text-left focus:outline-none"
                         >
                           <div className="flex items-center gap-sm min-w-0 flex-1">
                             <span className="font-mono text-ink-500 shrink-0">{formatarDataCurta(r.data)}</span>
@@ -764,7 +764,7 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={() => handleSaveEditSub(sub.id!)}
                       disabled={!nomeSubEditando.trim() || salvandoSub}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors duration-d1 ease-ez"
                       title="Confirmar"
                     >
                       <Check className="w-icon-sm h-icon-sm" />
@@ -773,7 +773,7 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={handleCancelEditSub}
                       disabled={salvandoSub}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                       title="Cancelar"
                     >
                       <X className="w-icon-sm h-icon-sm" />
@@ -880,7 +880,7 @@ export default function ProjetoDetalhe() {
                             type="button"
                             onClick={() => handleSaveEditReserva(sub.id!, sub.nome)}
                             disabled={salvandoSub}
-                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
+                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors duration-d1 ease-ez"
                             title="Confirmar"
                           >
                             <Check className="w-icon-sm h-icon-sm" />
@@ -889,7 +889,7 @@ export default function ProjetoDetalhe() {
                             type="button"
                             onClick={handleCancelEditReserva}
                             disabled={salvandoSub}
-                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
+                            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                             title="Cancelar"
                           >
                             <X className="w-icon-sm h-icon-sm" />
@@ -925,7 +925,7 @@ export default function ProjetoDetalhe() {
                   <div className="flex items-center gap-sm mt-1">
                     <div className="flex-1 bg-surface-2 h-1 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-d3 ease-ez ${excedeu ? 'bg-bad' : 'bg-accent'}`}
+                        className={`h-full rounded-full transition-[width,background-color] duration-d2 ease-ez ${excedeu ? 'bg-bad' : 'bg-accent'}`}
                         style={{
                           width: `${larguraBarra}%`
                         }}
@@ -946,7 +946,7 @@ export default function ProjetoDetalhe() {
                         key={dia.data}
                         type="button"
                         onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
-                        className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors text-left focus:outline-none"
+                        className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors duration-d1 ease-ez text-left focus:outline-none"
                       >
                         <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
                         <span className="font-mono font-semibold text-ink-900">{dia.total.toFixed(2).replace('.', ',')}h</span>
@@ -1210,7 +1210,7 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={handleSaveEditContratadas}
                       disabled={salvandoContratadas}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors duration-d1 ease-ez"
                       title="Confirmar"
                     >
                       <Check className="w-icon-sm h-icon-sm" />
@@ -1219,7 +1219,7 @@ export default function ProjetoDetalhe() {
                       type="button"
                       onClick={handleCancelEditContratadas}
                       disabled={salvandoContratadas}
-                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors"
+                      className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center p-1 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez"
                       title="Cancelar"
                     >
                       <X className="w-icon-sm h-icon-sm" />
@@ -1229,7 +1229,7 @@ export default function ProjetoDetalhe() {
                   <button
                     type="button"
                     onClick={handleStartEditContratadas}
-                    className="text-ink-500 hover:text-ink-900 text-sm text-left transition-colors"
+                    className="text-ink-500 hover:text-ink-900 text-sm text-left transition-colors duration-d1 ease-ez"
                   >
                     <span className="text-ink-900 font-bold">{totalLancado.toFixed(2).replace('.', ',')}h</span> lançadas de {totalContratado!.toFixed(2).replace('.', ',')}h contratadas
                   </button>
@@ -1242,7 +1242,7 @@ export default function ProjetoDetalhe() {
                         handleStartEditContratadas()
                         setPulsoAtivo(false)
                       }}
-                      className="text-ink-500 hover:text-ink-900 text-sm transition-colors py-2 px-2.5 min-h-[44px] inline-flex items-center"
+                      className="text-ink-500 hover:text-ink-900 text-sm transition-colors duration-d1 ease-ez py-2 px-2.5 min-h-[44px] inline-flex items-center"
                     >
                       definir horas contratadas
                     </button>
@@ -1257,7 +1257,7 @@ export default function ProjetoDetalhe() {
               {temContratado && (
                 <div className="w-full bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
                   <div
-                    className="h-full transition-all duration-d4"
+                    className="h-full transition-[width,background-color] duration-d4"
                     style={{
                       width: `${percentualGeral}%`,
                       backgroundColor: excedeuContratado ? 'var(--bad)' : 'var(--ok)'
@@ -1420,7 +1420,7 @@ export default function ProjetoDetalhe() {
                                 type="button"
                                 onClick={() => handleSaveEditFase(fase.id)}
                                 disabled={!nomeFaseEditando.trim() || salvandoFase}
-                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors flex items-center justify-center"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ok hover:text-ink-900 disabled:opacity-50 transition-colors duration-d1 ease-ez flex items-center justify-center"
                                 title="Confirmar"
                               >
                                 <Check className="w-icon-md h-icon-md" />
@@ -1429,7 +1429,7 @@ export default function ProjetoDetalhe() {
                                 type="button"
                                 onClick={handleCancelEditFase}
                                 disabled={salvandoFase}
-                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ink-500 hover:text-ink-900 transition-colors flex items-center justify-center"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-1.5 text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez flex items-center justify-center"
                                 title="Cancelar"
                               >
                                 <X className="w-icon-md h-icon-md" />
@@ -1489,7 +1489,7 @@ export default function ProjetoDetalhe() {
                             </div>
                           </div>
                         )}
-                        <div className={`overflow-hidden transition-all duration-d2 ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
+                        <div className={`overflow-hidden transition-[max-height,opacity,padding] duration-d2 ease-ez ${isExpanded ? 'max-h-[1000px] opacity-100 p-5 pt-0' : 'max-h-0 opacity-0'}`}>
                           {temPrevisto && (() => {
                             const teto = fase.horas_contratadas!
                             const usadoClamp = Math.min(usadoFase, teto)
@@ -1503,12 +1503,12 @@ export default function ProjetoDetalhe() {
                                 <div className="w-full bg-surface-0 h-[8px] rounded-full overflow-hidden border border-hair flex">
                                   {estourou ? (
                                     <div
-                                      className="h-full transition-all duration-d4"
+                                      className="h-full transition-[width] duration-d4"
                                       style={{ width: '100%', backgroundColor: 'var(--bad)' }}
                                     />
                                   ) : (
                                     <div
-                                      className="h-full transition-all duration-d4"
+                                      className="h-full transition-[width] duration-d4"
                                       style={{ width: `${pctUsado}%`, backgroundColor: 'var(--ok)' }}
                                     />
                                   )}
@@ -1565,7 +1565,7 @@ export default function ProjetoDetalhe() {
                                   setNovaSubNome('')
                                 }}
                                 disabled={salvandoSub}
-                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
+                                className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors duration-d1 ease-ez flex items-center justify-center"
                                 title="Cancelar"
                               >
                                 <X className="w-icon-sm h-icon-sm" />
@@ -1763,7 +1763,7 @@ export default function ProjetoDetalhe() {
                           setNovaSubNome('')
                         }}
                         disabled={salvandoSub}
-                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors flex items-center justify-center"
+                        className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-ink-500 hover:text-ink-900 p-1 text-xs transition-colors duration-d1 ease-ez flex items-center justify-center"
                         title="Cancelar"
                       >
                         <X className="w-icon-sm h-icon-sm" />
@@ -1980,7 +1980,7 @@ export default function ProjetoDetalhe() {
                                       e.stopPropagation()
                                       setPlanoExcluindo(item)
                                     }}
-                                    className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                    className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors duration-d1 ease-ez opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                     title="Excluir plano semanal"
                                   >
                                     <Trash2 className="w-icon-sm h-icon-sm" />
@@ -2056,7 +2056,7 @@ export default function ProjetoDetalhe() {
                               </div>
                               <div className="font-mono text-sm font-semibold text-ink-900">{grupo.totalHoras.toFixed(2).replace('.', ',')}h</div>
                             </button>
-                            <div className={`overflow-hidden transition-all duration-d3 ease-ez ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-hair' : 'max-h-0 opacity-0'}`}>
+                            <div className={`overflow-hidden transition-[max-height,opacity,padding] duration-d3 ease-ez ${isExpanded ? 'max-h-[3000px] opacity-100 p-5 pt-0 border-t border-hair' : 'max-h-0 opacity-0'}`}>
                               <div className="flex flex-col gap-sm pt-3">
                                 {grupo.registros.map((reg) => {
                                   const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
@@ -2093,12 +2093,12 @@ export default function ProjetoDetalhe() {
                                                 : `/registros?data=${reg.data}`
                                               navigate(targetUrl)
                                             }}
-                                            className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors focus:outline-none"
+                                            className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez focus:outline-none"
                                             title="Ver no dia"
                                           >
                                             <Eye className="w-icon-sm h-icon-sm" />
                                           </button>
-                                          <Pencil className="w-icon-sm h-icon-sm text-ink-500 hover:text-accent transition-colors" />
+                                          <Pencil className="w-icon-sm h-icon-sm text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez" />
                                         </div>
                                       </div>
                                       {reg.observacao && <p className="text-xs text-ink-500 break-words leading-relaxed">{reg.observacao}</p>}
@@ -2194,7 +2194,7 @@ export default function ProjetoDetalhe() {
                       onClick={() => setFaseComSubsExcluindo(null)}
                       disabled={salvandoFase}
                       type="button"
-                      className="absolute top-4 right-4 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors z-10 disabled:opacity-50"
+                      className="absolute top-4 right-4 min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez z-10 disabled:opacity-50"
                     >
                       <X className="w-icon-lg h-icon-lg" />
                     </button>

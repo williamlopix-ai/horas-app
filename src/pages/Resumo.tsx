@@ -655,7 +655,7 @@ export default function Resumo() {
                             </div>
                             <div className="w-full bg-surface-0 h-3 rounded-full overflow-hidden border border-hair">
                               <div
-                                className="h-full rounded-full transition-all duration-d2 ease-ez"
+                                className="h-full rounded-full transition-[width,background-color] duration-d2 ease-ez"
                                 style={{ width: `${semana.percentual}%`, backgroundColor: semana.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}
                               />
                             </div>
@@ -710,7 +710,7 @@ export default function Resumo() {
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={semana.semana_inicio} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors">
+                              <tr key={semana.semana_inicio} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors duration-d1 ease-ez">
                                 <td className="block md:table-cell pb-2 md:py-4 md:px-6 text-base md:text-sm font-bold md:font-semibold text-ink-900">{semana.titulo}</td>
                                 <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-semibold text-ink-900 tabular-nums">
                                   <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Trabalhado</span>
@@ -799,7 +799,7 @@ export default function Resumo() {
                             </div>
                             <div className="w-full bg-surface-0 h-2 rounded-full overflow-hidden border border-hair">
                               <div
-                                className="h-full rounded-full transition-all duration-d2 ease-ez"
+                                className="h-full rounded-full transition-[width,background-color] duration-d2 ease-ez"
                                 style={{ width: `${dia.percentual}%`, backgroundColor: dia.atingiuMeta ? 'var(--ok)' : 'var(--bad)' }}
                               />
                             </div>
@@ -854,7 +854,7 @@ export default function Resumo() {
                             const isPositivoOuZero = valorDiferenca >= 0
                             const diferencaTexto = `${isPositivoOuZero ? '+' : ''}${valorDiferenca.toFixed(2).replace('.', ',')}h`
                             return (
-                              <tr key={dia.data} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors">
+                              <tr key={dia.data} className="block md:table-row p-4 md:p-0 hover:bg-surface-2 transition-colors duration-d1 ease-ez">
                                 <td className="block md:table-cell pb-2 md:py-4 md:px-6 text-base md:text-sm font-bold md:font-semibold text-ink-900">{dia.titulo}</td>
                                 <td className="flex justify-between items-center py-1 md:py-4 md:px-6 md:table-cell md:text-right font-mono font-semibold text-ink-900 tabular-nums">
                                   <span className="md:hidden text-xs font-bold text-ink-500 uppercase tracking-wider">Trabalhado</span>
@@ -967,7 +967,7 @@ export default function Resumo() {
                                             <div className="space-y-2">
                                               <div className="flex items-center gap-md">
                                                 <div className="flex-1 bg-surface-0 h-[6px] rounded-full overflow-hidden border border-hair">
-                                                  <div className="h-full transition-all duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
+                                                  <div className="h-full transition-[width,background-color] duration-d2 ease-ez" style={{ width: `${percentual}%`, backgroundColor: passou ? 'var(--bad)' : 'var(--ok)' }} />
                                                 </div>
                                                 <span className="text-sm font-bold font-mono tabular-nums" style={{ color: passou ? 'var(--bad)' : 'var(--ok)' }}>{percentual}%</span>
                                               </div>
@@ -988,7 +988,7 @@ export default function Resumo() {
                                               <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                               <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                             </button>
-                                            <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                            <div className={`overflow-hidden transition-[max-height,opacity,margin] duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                               <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                             </div>
                                           </div>
@@ -1025,7 +1025,7 @@ export default function Resumo() {
                                   padding="nenhum"
                                   interativo
                                   onClick={() => navigate(`/projeto/${proj.id}`)}
-                                  className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
+                                  className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-[opacity,border-color] duration-d1 ease-ez"
                                 >
                                   <div className="flex items-start justify-between gap-md">
                                     <div className="flex items-center gap-md min-w-0">
@@ -1059,7 +1059,7 @@ export default function Resumo() {
                                         <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                         <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                       </button>
-                                      <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                      <div className={`overflow-hidden transition-[max-height,opacity,margin] duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                         <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                       </div>
                                     </div>
@@ -1113,7 +1113,7 @@ export default function Resumo() {
                                     padding="nenhum"
                                     interativo
                                     onClick={() => navigate(`/projeto/${proj.id}`)}
-                                    className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-all duration-d1 ease-ez"
+                                    className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-[opacity,border-color] duration-d1 ease-ez"
                                   >
                                     <div className="flex items-start justify-between gap-md">
                                       <div className="flex items-center gap-md min-w-0">
@@ -1144,7 +1144,7 @@ export default function Resumo() {
                                           <span>{isExpanded ? 'Ocultar detalhes' : 'Ver detalhes'}</span>
                                           <ChevronDown className={`w-icon-sm h-icon-sm transition-transform duration-d2 ease-ez ${isExpanded ? 'rotate-180' : ''}`} />
                                         </button>
-                                        <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                                        <div className={`overflow-hidden transition-[max-height,opacity,margin] duration-d2 ease-ez ${isExpanded ? 'max-h-[32rem] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
                                           <BreakdownSubcategorias subcategorias={proj.subcategorias} />
                                         </div>
                                       </div>
@@ -1207,7 +1207,7 @@ export default function Resumo() {
                                 </div>
                               </div>
 
-                              <div className={`overflow-hidden transition-all duration-d2 ease-ez ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
+                              <div className={`overflow-hidden transition-[max-height,opacity,margin] duration-d2 ease-ez ${isExpanded ? 'max-h-[1000px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
                                 <div className="flex flex-col gap-2xs px-4 ml-[22px] border-l-2 border-hair pl-3">
                                   {rotina.registros.map((reg: any) => (
                                     <div key={reg.id} className="flex items-center gap-md py-1">
