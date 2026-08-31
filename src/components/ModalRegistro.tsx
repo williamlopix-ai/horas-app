@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useId } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useConfig } from '../contexts/ConfigContext'
 import { listarProjetos } from '../services/projetos'
@@ -9,7 +9,7 @@ import { buscarHorarioDia } from '../services/horarios'
 import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria, Fase } from '../types'
-import { useFecharComEsc } from '../hooks/useFecharComEsc'
+import { useModal } from '../hooks/useModal'
 import { Button, Surface, classeCampo } from './ui'
 
 interface ModalRegistroProps {
@@ -58,6 +58,8 @@ function formatarDuracaoHumana(horaInicio: string, horaFim: string): string {
 
 
 export default function ModalRegistro({ isOpen, onClose, onSave, registro, registrosExistentes = [] }: ModalRegistroProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tituloId = useId()
   const { user } = useAuth()
   const { config } = useConfig()
   
@@ -244,7 +246,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
     return null
   }, [horaInicio, horaFim, data, registro, registrosExistentes])
 
-  useFecharComEsc(isOpen, onClose)
+  useModal(isOpen, containerRef, onClose)
 
   if (!isOpen) return null
 
@@ -288,8 +290,14 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
   }
 
   return (
-    <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+    >
       <Surface
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
         elevacao={2}
         padding="lg"
         comBorda
@@ -309,7 +317,7 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
         </button>
 
         {/* Cabeçalho */}
-        <h3 className="text-xl font-bold text-white mb-6">
+        <h3 id={tituloId} className="text-xl font-bold text-white mb-6">
           {registro ? 'Editar Lançamento' : 'Novo Lançamento de Horas'}
         </h3>
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 
-// Gerencia o foco do teclado dentro do modal (foco inicial, focus trap e restauração ao fechar)
-// Suporta modais empilhados garantindo que apenas o modal no topo da pilha capture o Tab.
+// Gerencia o foco do teclado (foco inicial, focus trap e restauração ao fechar) e fechamento por Escape.
+// Suporta modais empilhados garantindo que apenas o modal no topo da pilha responda ao teclado (Tab e Escape).
 
 const SELETOR_FOCAVEIS =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -23,12 +23,18 @@ function focarContainer(container: HTMLElement): void {
 // Pilha em nível de módulo para gerenciar modais sobrepostos
 const pilhaModais: symbol[] = []
 
-export function useFocoModal(
+export function useModal(
   aberto: boolean,
-  containerRef: RefObject<HTMLElement | null>
+  containerRef: RefObject<HTMLElement | null>,
+  aoFechar: () => void
 ): void {
   const elementoAnteriorRef = useRef<HTMLElement | null>(null)
   const idInstanciaRef = useRef<symbol>(Symbol())
+  const aoFecharRef = useRef(aoFechar)
+
+  useEffect(() => {
+    aoFecharRef.current = aoFechar
+  })
 
   useEffect(() => {
     if (!aberto) return
@@ -58,11 +64,17 @@ export function useFocoModal(
       }
     }
 
-    // b) Prender o Tab enquanto aberto (apenas se estiver no topo da pilha)
+    // b) Tratar Tab e Escape enquanto aberto (apenas se estiver no topo da pilha)
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
+      if (e.key !== 'Tab' && e.key !== 'Escape') return
       if (pilhaModais[pilhaModais.length - 1] !== idInstancia) return
 
+      if (e.key === 'Escape') {
+        aoFecharRef.current()
+        return
+      }
+
+      // Tab trap
       const containerAtual = containerRef.current
       if (!containerAtual) return
 

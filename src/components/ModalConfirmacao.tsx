@@ -1,6 +1,5 @@
 import { useRef, useId } from 'react'
-import { useFocoModal } from '../hooks/useFocoModal'
-import { useFecharComEsc } from '../hooks/useFecharComEsc'
+import { useModal } from '../hooks/useModal'
 import { Button, Surface } from './ui'
 
 interface ModalConfirmacaoProps {
@@ -27,8 +26,7 @@ export default function ModalConfirmacao({
   const containerRef = useRef<HTMLDivElement>(null)
   const tituloId = useId()
 
-  useFecharComEsc(isOpen, onCancelar)
-  useFocoModal(isOpen, containerRef)
+  useModal(isOpen, containerRef, onCancelar)
 
   if (!isOpen) return null
 

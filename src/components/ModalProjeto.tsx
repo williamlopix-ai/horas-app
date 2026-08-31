@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useId } from 'react'
 import type { Projeto } from '../types'
 import { getErrorMessage } from '../utils/errors'
-import { useFecharComEsc } from '../hooks/useFecharComEsc'
+import { useModal } from '../hooks/useModal'
 import { Button, Surface, classeCampo } from './ui'
 
 interface ModalProjetoProps {
@@ -28,6 +28,8 @@ const PALETA_CORES = [
 ]
 
 export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFases }: ModalProjetoProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tituloId = useId()
   const [nome, setNome] = useState('')
   const [cor, setCor] = useState(PALETA_CORES[0].valor)
   const [status, setStatus] = useState<'ativo' | 'encerrado' | 'excluido'>('ativo')
@@ -106,13 +108,19 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
     }
   }
 
-  useFecharComEsc(isOpen, onClose)
+  useModal(isOpen, containerRef, onClose)
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-[var(--scrim)] backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
       <Surface
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
         elevacao={2}
         padding="lg"
         comBorda
@@ -132,7 +140,7 @@ export default function ModalProjeto({ isOpen, onClose, onSave, projeto, temFase
         </button>
 
         {/* Título do Modal */}
-        <h3 className="text-xl font-bold text-ink-900 mb-4 shrink-0">
+        <h3 id={tituloId} className="text-xl font-bold text-ink-900 mb-4 shrink-0">
           {projeto ? 'Editar Projeto' : 'Novo Projeto'}
         </h3>
 
