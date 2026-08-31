@@ -580,7 +580,7 @@ export default function Billable() {
           >
             Semanal
             {activeTab === 'semanal' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-all duration-d1" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-opacity duration-d1" />
             )}
           </button>
           <button
@@ -592,7 +592,7 @@ export default function Billable() {
           >
             Mensal
             {activeTab === 'mensal' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-all duration-d1" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-opacity duration-d1" />
             )}
           </button>
         </div>
@@ -750,7 +750,7 @@ export default function Billable() {
                 <div className="relative w-full mt-6 mb-1">
 
                   <div
-                    className="absolute bottom-[calc(100%+6px)] text-xs font-bold transition-all duration-d4"
+                    className="absolute bottom-[calc(100%+6px)] text-xs font-bold transition-[left,color] duration-d4"
                     style={{
                       left: `${Math.min(pctMeta, 100)}%`,
                       transform: 'translateX(-50%)',
@@ -765,7 +765,7 @@ export default function Billable() {
 
                     {/* Preenchimento */}
                     <div
-                      className="absolute left-0 top-0 h-3 rounded-full transition-all duration-d4"
+                      className="absolute left-0 top-0 h-3 rounded-full transition-[width,background-color] duration-d4"
                       style={{
                         width: `${Math.min(pctMeta, 100)}%`,
                         backgroundColor: pctMeta < 100 ? 'var(--warn)' : 'var(--ok)'
@@ -866,7 +866,7 @@ export default function Billable() {
                           return (
                             <tr
                               key={row.projetoId}
-                              className={`transition-colors group ${
+                              className={`transition-colors duration-d1 ease-ez group ${
                                 selectedRow === row.projetoId
                                   ? ''
                                   : `${rowBg} hover:bg-surface-2`
@@ -1069,7 +1069,7 @@ export default function Billable() {
 
                 <div className="relative w-full mt-6 mb-1">
                   <div
-                    className="absolute bottom-[calc(100%+6px)] text-xs font-bold transition-all duration-d4"
+                    className="absolute bottom-[calc(100%+6px)] text-xs font-bold transition-[left,color] duration-d4"
                     style={{
                       left: `${Math.min(pctMetaMensal, 100)}%`,
                       transform: 'translateX(-50%)',
@@ -1082,7 +1082,7 @@ export default function Billable() {
                   {/* Barra */}
                   <div className="relative w-full h-3 bg-surface-0 rounded-full overflow-visible">
                     <div
-                      className="absolute left-0 top-0 h-3 rounded-full transition-all duration-d4"
+                      className="absolute left-0 top-0 h-3 rounded-full transition-[width,background-color] duration-d4"
                       style={{
                         width: `${Math.min(pctMetaMensal, 100)}%`,
                         backgroundColor: pctMetaMensal < 100 ? 'var(--warn)' : 'var(--ok)'
@@ -1181,7 +1181,7 @@ export default function Billable() {
                           return (
                             <tr
                               key={row.projetoId}
-                              className={`transition-colors group ${
+                              className={`transition-colors duration-d1 ease-ez group ${
                                 selectedRow === row.projetoId
                                   ? ''
                                   : `${rowBg} hover:bg-surface-2`
