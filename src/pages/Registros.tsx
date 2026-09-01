@@ -589,11 +589,10 @@ export default function Registros() {
           <div className="flex bg-surface-1 p-1 rounded-ctl border border-hair">
             <button
               onClick={() => changeViewMode('lista')}
-              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
-                viewMode === 'lista'
+              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'lista'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-              }`}
+                }`}
               title="Lista detalhada com gaps"
             >
               <List className="w-icon-sm h-icon-sm shrink-0" />
@@ -601,11 +600,10 @@ export default function Registros() {
             </button>
             <button
               onClick={() => changeViewMode('projeto')}
-              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${
-                viewMode === 'projeto'
+              className={`flex items-center gap-xs px-ctl-aba-x py-ctl-aba-y min-h-[44px] rounded-ctl text-xs font-semibold transition-colors duration-d1 ease-ez ${viewMode === 'projeto'
                   ? 'bg-accent-bg text-accent-fg'
                   : 'text-ink-500 hover:text-ink-900 hover:bg-surface-2'
-              }`}
+                }`}
               title="Agrupado por projeto"
             >
               <FolderKanban className="w-icon-sm h-icon-sm shrink-0" />
@@ -698,7 +696,7 @@ export default function Registros() {
                   </div>
 
                   {/* Lançamentos e Gaps */}
-                  <div className={`flex flex-col gap-xs transition-all duration-d2 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                  <div className={`flex flex-col gap-xs transition-[max-height,opacity,margin-top] duration-d2 ease-ez overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
                     {viewMode === 'projeto' ? (
                       // Agrupar registros do dia por projeto
                       (() => {
