@@ -251,11 +251,57 @@ async function calcularSaldoAcumuladoMensal(
   return Math.round(soma * 100) / 100
 }
 
+interface DadosMesAnual {
+  mes: number // 0-11
+  total: number
+  metaReal: number
+}
+
+async function buscarDadosAnuais(userId: string, ano: number): Promise<DadosMesAnual[]> {
+  const anoInicio = `${ano}-01-01`
+  const anoFim = `${ano}-12-31`
+
+  const [registros, vigenciasHorasBaseMensal, vigenciasHorasBaseSemanal, vigenciasMargemMensal, config] = await Promise.all([
+    buscarRegistrosBillableNoIntervalo(anoInicio, anoFim),
+    listarTodasHorasBaseMensalDoUsuario(userId),
+    listarTodasHorasBaseSemanalDoUsuario(userId),
+    listarTodasMargensMensal(),
+    buscarConfiguracoes(userId)
+  ])
+
+  const fallbackMetaSemanal = config.meta_semanal ?? 42.5
+
+  const resultado: DadosMesAnual[] = []
+
+  for (let mes = 0; mes < 12; mes++) {
+    const { mesInicio: startStr, mesFim: endStr } = getMonthRange(new Date(ano, mes, 1))
+
+    const totalBruto = registros
+      .filter(r => r.data >= startStr && r.data <= endStr)
+      .reduce((acc, r) => acc + r.duracao, 0)
+    const total = Math.round(totalBruto * 100) / 100
+
+    // Fallback (sem vigência mensal própria): usa a semanal vigente na mesma
+    // data-referência do mês, x4 — mesma regra de buscarHorasBaseMensal.
+    const horasBaseDireta = resolverHorasBaseVigente(vigenciasHorasBaseMensal, startStr)
+    const horasBaseMensal = horasBaseDireta !== null
+      ? horasBaseDireta
+      : (resolverHorasBaseVigente(vigenciasHorasBaseSemanal, startStr) ?? fallbackMetaSemanal) * 4
+
+    const margemMensal = resolverMargemVigente(vigenciasMargemMensal, startStr) ?? 92.00
+    const metaReal = Math.round(horasBaseMensal * (margemMensal / 100) * 100) / 100
+
+    resultado.push({ mes, total, metaReal })
+  }
+
+  return resultado
+}
+
 export default function Billable() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
-  const [activeTab, setActiveTab] = useState<'semanal' | 'mensal'>('semanal')
+  const [activeTab, setActiveTab] = useState<'semanal' | 'mensal' | 'anual'>('semanal')
   const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
 
   useEffect(() => {
@@ -301,6 +347,14 @@ export default function Billable() {
   const [metaRealMensal, setMetaRealMensal] = useState(0)
   const [saldoMensal, setSaldoMensal] = useState(0)
   const [saldoAcumuladoMensal, setSaldoAcumuladoMensal] = useState(0)
+
+  // Slide state for year selector
+  const [animationClassAno, setAnimationClassAno] = useState('')
+  const [animKeyAno, setAnimKeyAno] = useState(0)
+
+  const [loadingAnual, setLoadingAnual] = useState(true)
+  const [anoSelecionado, setAnoSelecionado] = useState<number>(() => new Date().getFullYear())
+  const [dadosAnual, setDadosAnual] = useState<DadosMesAnual[]>([])
 
   const carregarDados = async () => {
     if (!user) return
@@ -395,6 +449,24 @@ export default function Billable() {
     }
   }
 
+  const carregarDadosAnual = async () => {
+    if (!user) return
+    try {
+      setLoadingAnual(true)
+      setError(null)
+
+      const dados = await buscarDadosAnuais(user.id, anoSelecionado)
+      setDadosAnual(dados)
+    } catch (err: any) {
+      console.error('Erro ao carregar dados anuais do billable:', err)
+      const msg = getErrorMessage(err)
+      setError(msg)
+      showToast(msg, 'error')
+    } finally {
+      setLoadingAnual(false)
+    }
+  }
+
   useEffect(() => {
     carregarDados()
   }, [user, currentDate, config.inicio_semana])
@@ -404,6 +476,12 @@ export default function Billable() {
       carregarDadosMensal()
     }
   }, [user, currentMonth, activeTab, config.inicio_semana])
+
+  useEffect(() => {
+    if (activeTab === 'anual') {
+      carregarDadosAnual()
+    }
+  }, [user, anoSelecionado, activeTab])
 
   const prevWeek = () => {
     setAnimationClass('animate-slide-left')
@@ -443,6 +521,18 @@ export default function Billable() {
       d.setMonth(d.getMonth() + 1)
       return d
     })
+  }
+
+  const prevYear = () => {
+    setAnimationClassAno('animate-slide-left')
+    setAnimKeyAno(prev => prev + 1)
+    setAnoSelecionado(prev => prev - 1)
+  }
+
+  const nextYear = () => {
+    setAnimationClassAno('animate-slide-right')
+    setAnimKeyAno(prev => prev + 1)
+    setAnoSelecionado(prev => prev + 1)
   }
 
   const days = useMemo(() => {
@@ -535,6 +625,28 @@ export default function Billable() {
   const pctMeta = metaReal > 0 ? Math.round((totalBillable / metaReal) * 100) : 0
 
   const pctMetaMensal = metaRealMensal > 0 ? Math.round((totalBillableMensal / metaRealMensal) * 100) : 0
+
+  // Meses com registro billable E meta configurada — únicos que entram nas
+  // métricas do topo. Mês com total > 0 mas metaReal <= 0 (caso de borda:
+  // sem horas_base/margem vigente) fica de fora de ambas, mas aparece na
+  // lista com o total lançado.
+  const mesesValidosAnual = useMemo(() => {
+    return dadosAnual.filter(m => m.total > 0 && m.metaReal > 0)
+  }, [dadosAnual])
+
+  const mediaMensalAnual = useMemo(() => {
+    if (mesesValidosAnual.length === 0) return null
+    const soma = mesesValidosAnual.reduce((acc, m) => acc + (m.total / m.metaReal) * 100, 0)
+    return Math.round(soma / mesesValidosAnual.length)
+  }, [mesesValidosAnual])
+
+  const consolidadoAnual = useMemo(() => {
+    if (mesesValidosAnual.length === 0) return null
+    const somaTotal = mesesValidosAnual.reduce((acc, m) => acc + m.total, 0)
+    const somaMetaReal = mesesValidosAnual.reduce((acc, m) => acc + m.metaReal, 0)
+    if (somaMetaReal <= 0) return null
+    return Math.round((somaTotal / somaMetaReal) * 100)
+  }, [mesesValidosAnual])
 
   const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
     if (duracao === 0) {
@@ -654,6 +766,18 @@ export default function Billable() {
           >
             Mensal
             {activeTab === 'mensal' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-opacity duration-d1" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('anual')}
+            className={`pb-3 text-sm font-semibold relative transition-colors duration-d1 ease-ez min-h-[44px] ${
+              activeTab === 'anual' ? 'text-ink-900 font-bold' : 'text-ink-500 hover:text-ink-900'
+            }`}
+          >
+            Anual
+            {activeTab === 'anual' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent transition-opacity duration-d1" />
             )}
           </button>
@@ -991,7 +1115,7 @@ export default function Billable() {
                 )}
               </Surface>
             </div>
-          ) : (
+          ) : activeTab === 'mensal' ? (
             <div className="space-y-6 animate-fade-in">
               {/* Seção A: Cards de resumo */}
               {loadingMensal ? (
@@ -1301,6 +1425,150 @@ export default function Billable() {
                         </tr>
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </Surface>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-fade-in">
+              {/* Navegador de ano */}
+              <div className="flex items-center justify-center gap-lg py-2">
+                <button
+                  type="button"
+                  onClick={prevYear}
+                  className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                  title="Ano anterior"
+                  aria-label="Ano anterior"
+                >
+                  <ChevronLeft className="w-icon-sm h-icon-sm" />
+                </button>
+                <div className="overflow-hidden h-6 flex items-center justify-center min-w-[260px]">
+                  <span
+                    key={animKeyAno}
+                    className={`text-base font-bold text-ink-900 select-none ${animationClassAno}`}
+                  >
+                    {anoSelecionado}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={nextYear}
+                  className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                  title="Próximo ano"
+                  aria-label="Próximo ano"
+                >
+                  <ChevronRight className="w-icon-sm h-icon-sm" />
+                </button>
+              </div>
+
+              {/* Cards de métrica */}
+              {loadingAnual ? (
+                <div className="grid grid-cols-2 gap-lg">
+                  {[1, 2].map((i) => (
+                    <Surface key={i} elevacao={1} comBorda padding="nenhum" className="animate-pulse p-6 h-32 flex flex-col justify-between">
+                      <div className="h-3 bg-surface-3 rounded w-2/3" />
+                      <div className="h-8 bg-surface-3 rounded w-1/2 mt-4" />
+                    </Surface>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-lg" key={anoSelecionado}>
+                  {/* Card 1 — MÉDIA MENSAL */}
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '0ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
+                      MÉDIA MENSAL
+                    </span>
+                    <span className="text-3xl font-bold text-accent tabular-nums mt-2">
+                      {mediaMensalAnual !== null ? (
+                        <AnimatedNumber
+                          value={mediaMensalAnual}
+                          formatter={(v) => `${Math.round(v)}%`}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                    <div className="h-5" />
+                  </Surface>
+
+                  {/* Card 2 — CONSOLIDADO DO ANO */}
+                  <Surface
+                    elevacao={1}
+                    comBorda
+                    padding="nenhum"
+                    className="p-6 flex flex-col justify-between h-32 animate-card-entry opacity-0"
+                    style={{ animationDelay: '60ms' }}
+                  >
+                    <span className="text-xs uppercase tracking-widest text-ink-500">
+                      CONSOLIDADO DO ANO
+                    </span>
+                    <span className="text-3xl font-bold text-accent tabular-nums mt-2">
+                      {consolidadoAnual !== null ? (
+                        <AnimatedNumber
+                          value={consolidadoAnual}
+                          formatter={(v) => `${Math.round(v)}%`}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </span>
+                    <div className="h-5" />
+                  </Surface>
+                </div>
+              )}
+
+              {/* Lista dos 12 meses */}
+              <Surface elevacao={1} comBorda padding="nenhum" className="p-4">
+                {loadingAnual ? (
+                  <div className="flex flex-col divide-y divide-hair">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="py-4 animate-pulse space-y-2">
+                        <div className="h-3 bg-surface-3 rounded w-1/4" />
+                        <div className="h-3 bg-surface-3 rounded w-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col divide-y divide-hair">
+                    {MESES_PT.map((nomeMes, idx) => {
+                      const dadosMes = dadosAnual[idx]
+                      const total = dadosMes?.total ?? 0
+                      const metaReal = dadosMes?.metaReal ?? 0
+                      const temRegistro = total > 0
+                      const metaValida = metaReal > 0
+                      const pct = temRegistro && metaValida ? Math.round((total / metaReal) * 100) : null
+
+                      return (
+                        <div key={idx} className="py-3">
+                          <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="text-ink-900">{nomeMes}</span>
+                            <span className={pct !== null ? (pct >= 100 ? 'text-ok' : 'text-warn') : 'text-ink-500'}>
+                              {pct !== null ? `${pct}%` : '—'}
+                            </span>
+                          </div>
+                          {temRegistro && !metaValida && (
+                            <div className="text-[11px] text-ink-500 mt-0.5">
+                              {total.toFixed(2).replace('.', ',')}h lançadas · meta não configurada
+                            </div>
+                          )}
+                          <div className="w-full bg-surface-0 h-3 rounded-full overflow-hidden border border-hair mt-2">
+                            <div
+                              className="h-full rounded-full transition-[width,background-color] duration-d2 ease-ez"
+                              style={{
+                                width: `${pct !== null ? Math.min(pct, 100) : 0}%`,
+                                backgroundColor: pct !== null ? (pct >= 100 ? 'var(--ok)' : 'var(--warn)') : 'transparent'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </Surface>
