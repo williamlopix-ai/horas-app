@@ -646,7 +646,7 @@ export default function ProjetoDetalhe() {
     const exibirRodape = temAlgumaAlocacao && somaSemAlocacao > 0
 
     return (
-      <div className="bg-surface-1 rounded-card p-4 border border-hair space-y-3">
+      <div className="bg-surface-2 rounded-card p-4 border border-hair space-y-3">
         <span className="text-[10px] font-bold text-ink-500 uppercase tracking-widest block font-mono">Subcategorias</span>
         <div className="space-y-2.5">
           {items.map((sub) => {
@@ -1827,9 +1827,11 @@ export default function ProjetoDetalhe() {
               {secoesExpandidas['plano'] && (
                 <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-md">
                   {planosSemanais.length === 0 && (
-                    <p className="text-xs text-ink-500">
-                      Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
-                    </p>
+                    <div className="bg-surface-2 rounded-card p-4 border border-hair">
+                      <p className="text-xs text-ink-500">
+                        Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
+                      </p>
+                    </div>
                   )}
 
                   {/* Form de adicionar/editar semana */}
@@ -2037,7 +2039,7 @@ export default function ProjetoDetalhe() {
                                           abrirEditarRegistro(reg)
                                         }
                                       }}
-                                      className="p-4 rounded-card bg-surface-0 hover:bg-surface-2 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent"
+                                      className="p-4 rounded-card bg-surface-2 hover:bg-surface-3 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent"
                                     >
                                       <div className="flex items-center justify-between gap-md">
                                         <div className="flex items-center gap-md flex-wrap min-w-0">
