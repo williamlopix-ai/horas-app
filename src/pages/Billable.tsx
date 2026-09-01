@@ -1544,6 +1544,8 @@ export default function Billable() {
                       const metaValida = metaReal > 0
                       const pct = temRegistro && metaValida ? Math.round((total / metaReal) * 100) : null
 
+                      if (!temRegistro) return null
+
                       return (
                         <div key={idx} className="py-3">
                           <div className="flex justify-between items-center text-xs font-semibold">
