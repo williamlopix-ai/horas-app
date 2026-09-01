@@ -2030,16 +2030,7 @@ export default function ProjetoDetalhe() {
                                   return (
                                     <div
                                       key={reg.id}
-                                      onClick={() => abrirEditarRegistro(reg)}
-                                      role="button"
-                                      tabIndex={0}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                          e.preventDefault()
-                                          abrirEditarRegistro(reg)
-                                        }
-                                      }}
-                                      className="p-4 rounded-card bg-surface-2 hover:bg-surface-3 border border-hair transition-colors duration-d1 ease-ez cursor-pointer flex flex-col gap-sm group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent"
+                                      className="p-4 rounded-card bg-surface-2 hover:bg-surface-3 border border-hair transition-colors duration-d1 ease-ez flex flex-col gap-sm group focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent"
                                     >
                                       <div className="flex items-center justify-between gap-md">
                                         <div className="flex items-center gap-md flex-wrap min-w-0">
@@ -2065,7 +2056,17 @@ export default function ProjetoDetalhe() {
                                           >
                                             <Eye className="w-icon-sm h-icon-sm" />
                                           </button>
-                                          <Pencil className="w-icon-sm h-icon-sm text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez" />
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              abrirEditarRegistro(reg)
+                                            }}
+                                            className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez focus:outline-none"
+                                            title="Editar lançamento"
+                                          >
+                                            <Pencil className="w-icon-sm h-icon-sm" />
+                                          </button>
                                         </div>
                                       </div>
                                       {reg.observacao && <p className="text-xs text-ink-500 break-words leading-relaxed">{reg.observacao}</p>}
