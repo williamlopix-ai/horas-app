@@ -142,6 +142,12 @@ export interface MetaBillableMargem {
   criado_em: string
 }
 
+export interface VigenciaMargem {
+  margem_minima: number
+  inicio: string
+  criado_em: string
+}
+
 export async function buscarMargemMinimaVigente(semanaRef: string): Promise<number> {
   try {
     const { data, error } = await supabase
@@ -161,6 +167,27 @@ export async function buscarMargemMinimaVigente(semanaRef: string): Promise<numb
   } catch (error) {
     console.error('Erro em buscarMargemMinimaVigente:', error)
     return 92.00
+  }
+}
+
+// Todas as vigências de margem semanal, sem filtro de data.
+// Usada para agregação em lote (evita 1 query por período).
+export async function listarTodasMargensSemanal(): Promise<VigenciaMargem[]> {
+  try {
+    const { data, error } = await supabase
+      .from('metas_billable_margem')
+      .select('margem_minima, semana_inicio, criado_em')
+
+    if (error) throw error
+
+    return (data || []).map(v => ({
+      margem_minima: Number(v.margem_minima),
+      inicio: v.semana_inicio,
+      criado_em: v.criado_em
+    }))
+  } catch (error) {
+    console.error('Erro em listarTodasMargensSemanal:', error)
+    return []
   }
 }
 
@@ -228,6 +255,27 @@ export async function buscarMargemMinimaVigenteMensal(mesRef: string): Promise<n
   } catch (error) {
     console.error('Erro em buscarMargemMinimaVigenteMensal:', error)
     return 92.00
+  }
+}
+
+// Todas as vigências de margem mensal, sem filtro de data.
+// Usada para agregação em lote (evita 1 query por período).
+export async function listarTodasMargensMensal(): Promise<VigenciaMargem[]> {
+  try {
+    const { data, error } = await supabase
+      .from('metas_billable_margem_mensal')
+      .select('margem_minima, mes_inicio, criado_em')
+
+    if (error) throw error
+
+    return (data || []).map(v => ({
+      margem_minima: Number(v.margem_minima),
+      inicio: v.mes_inicio,
+      criado_em: v.criado_em
+    }))
+  } catch (error) {
+    console.error('Erro em listarTodasMargensMensal:', error)
+    return []
   }
 }
 

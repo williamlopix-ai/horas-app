@@ -16,6 +16,12 @@ export interface HorasBaseMensal {
   criado_em: string
 }
 
+export interface VigenciaHorasBase {
+  horas_base: number
+  inicio: string
+  criado_em: string
+}
+
 // Busca horas base vigentes para uma semana
 // Lógica: semana_inicio <= semanaRef ORDER BY criado_em DESC LIMIT 1
 // Fallback: buscar configuracoes.meta_semanal do usuário
@@ -52,6 +58,28 @@ export async function buscarHorasBaseSemanal(usuarioId: string, semanaRef: strin
   }
 }
 
+// Todas as vigências de horas_base_semanal do usuário, sem filtro de data.
+// Usada para agregação em lote (evita 1 query por período).
+export async function listarTodasHorasBaseSemanalDoUsuario(usuarioId: string): Promise<VigenciaHorasBase[]> {
+  try {
+    const { data, error } = await supabase
+      .from('horas_base_semanal')
+      .select('horas_base, semana_inicio, criado_em')
+      .eq('usuario_id', usuarioId)
+
+    if (error) throw error
+
+    return (data || []).map(v => ({
+      horas_base: Number(v.horas_base),
+      inicio: v.semana_inicio,
+      criado_em: v.criado_em
+    }))
+  } catch (error) {
+    console.error('Erro em listarTodasHorasBaseSemanalDoUsuario:', error)
+    return []
+  }
+}
+
 // Busca horas base vigentes para um mês
 // Lógica: mes_inicio <= mesRef ORDER BY criado_em DESC LIMIT 1
 // Fallback: buscarHorasBaseSemanal(usuarioId, mesRef) * 4
@@ -84,6 +112,28 @@ export async function buscarHorasBaseMensal(usuarioId: string, mesRef: string): 
       console.error('Erro no fallback de buscarHorasBaseMensal:', fallbackError)
       return 42.5 * 4
     }
+  }
+}
+
+// Todas as vigências de horas_base_mensal do usuário, sem filtro de data.
+// Usada para agregação em lote (evita 1 query por período).
+export async function listarTodasHorasBaseMensalDoUsuario(usuarioId: string): Promise<VigenciaHorasBase[]> {
+  try {
+    const { data, error } = await supabase
+      .from('horas_base_mensal')
+      .select('horas_base, mes_inicio, criado_em')
+      .eq('usuario_id', usuarioId)
+
+    if (error) throw error
+
+    return (data || []).map(v => ({
+      horas_base: Number(v.horas_base),
+      inicio: v.mes_inicio,
+      criado_em: v.criado_em
+    }))
+  } catch (error) {
+    console.error('Erro em listarTodasHorasBaseMensalDoUsuario:', error)
+    return []
   }
 }
 

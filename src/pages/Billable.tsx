@@ -5,20 +5,31 @@ import { useConfig } from '../contexts/ConfigContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { getErrorMessage } from '../utils/errors'
-import { 
-  buscarHorasBillableSemanal, 
-  buscarTotalBillableSemanal, 
-  buscarHorasBillableMensal, 
-  buscarTotalBillableMensal, 
-  type BillablePorProjeto, 
-  type BillablePorProjetoMensal 
+import {
+  buscarHorasBillableSemanal,
+  buscarTotalBillableSemanal,
+  buscarHorasBillableMensal,
+  buscarTotalBillableMensal,
+  buscarRegistrosBillableNoIntervalo,
+  type BillablePorProjeto,
+  type BillablePorProjetoMensal
 } from '../services/billable'
-import { 
-  buscarMetaBillableMensal, 
+import {
+  buscarMetaBillableMensal,
   buscarMargemMinimaVigente,
-  buscarMargemMinimaVigenteMensal
+  buscarMargemMinimaVigenteMensal,
+  listarTodasMargensSemanal,
+  listarTodasMargensMensal,
+  type VigenciaMargem
 } from '../services/metas_billable'
-import { buscarHorasBaseSemanal, buscarHorasBaseMensal } from '../services/horas_base'
+import {
+  buscarHorasBaseSemanal,
+  buscarHorasBaseMensal,
+  listarTodasHorasBaseSemanalDoUsuario,
+  listarTodasHorasBaseMensalDoUsuario,
+  type VigenciaHorasBase
+} from '../services/horas_base'
+import { buscarConfiguracoes } from '../services/configuracoes'
 import { SkeletonRow } from '../components/Skeleton'
 import { inicioDaSemanaDate, diasDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChevronLeft, ChevronRight, FileChartColumn } from 'lucide-react'
@@ -112,6 +123,30 @@ function AnimatedNumber({ value, formatter, duration = 800 }: AnimatedNumberProp
   return <>{formatter(displayValue)}</>
 }
 
+// Replica a regra de horas_base_semanal/mensal: candidata com inicio <= ref,
+// desempate por inicio DESC e depois criado_em DESC (mesma ordenação do
+// buscarHorasBaseSemanal/Mensal em services/horas_base.ts).
+function resolverHorasBaseVigente(vigencias: VigenciaHorasBase[], ref: string): number | null {
+  const candidatas = vigencias.filter(v => v.inicio <= ref)
+  if (candidatas.length === 0) return null
+  candidatas.sort((a, b) => {
+    if (a.inicio !== b.inicio) return a.inicio < b.inicio ? 1 : -1
+    return a.criado_em < b.criado_em ? 1 : -1
+  })
+  return candidatas[0].horas_base
+}
+
+// Replica a regra de metas_billable_margem/mensal: candidata com inicio <= ref,
+// ordenada só por criado_em DESC (sem considerar a data de início — mesmo
+// comportamento atual de buscarMargemMinimaVigente/Mensal, preservado
+// intencionalmente nesta leva de performance).
+function resolverMargemVigente(vigencias: VigenciaMargem[], ref: string): number | null {
+  const candidatas = vigencias.filter(v => v.inicio <= ref)
+  if (candidatas.length === 0) return null
+  candidatas.sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1))
+  return candidatas[0].margem_minima
+}
+
 async function calcularSaldoAcumulado(
   userId: string,
   saldoInicio: string,
@@ -119,36 +154,46 @@ async function calcularSaldoAcumulado(
 ): Promise<number> {
   const [y, m, d] = saldoInicio.split('-').map(Number)
   let current = new Date(y, m - 1, d)
-  
+
   const [cy, cm, cd] = semanaAtual.split('-').map(Number)
   const target = new Date(cy, cm - 1, cd)
-  
+
+  const rangeFimDate = new Date(target)
+  rangeFimDate.setDate(rangeFimDate.getDate() + 6)
+
+  const [registros, vigenciasHorasBase, vigenciasMargem, config] = await Promise.all([
+    buscarRegistrosBillableNoIntervalo(formatYYYYMMDD(current), formatYYYYMMDD(rangeFimDate)),
+    listarTodasHorasBaseSemanalDoUsuario(userId),
+    listarTodasMargensSemanal(),
+    buscarConfiguracoes(userId)
+  ])
+
+  const fallbackMetaSemanal = config.meta_semanal ?? 42.5
+
   let weeksCount = 0
-  const promises = []
-  
+  let soma = 0
+
   while (current <= target && weeksCount < 52) {
     const startStr = formatYYYYMMDD(current)
     const end = new Date(current)
     end.setDate(end.getDate() + 6)
     const endStr = formatYYYYMMDD(end)
-    
-    promises.push(
-      Promise.all([
-        buscarTotalBillableSemanal(startStr, endStr),
-        buscarHorasBaseSemanal(userId, startStr),
-        buscarMargemMinimaVigente(startStr)
-      ]).then(([total, horasBaseSemana, margemSemana]) => {
-        const metaRealSemana = Math.round(horasBaseSemana * (margemSemana / 100) * 100) / 100
-        return total - metaRealSemana
-      })
-    )
-    
+
+    const totalBruto = registros
+      .filter(r => r.data >= startStr && r.data <= endStr)
+      .reduce((acc, r) => acc + r.duracao, 0)
+    const total = Math.round(totalBruto * 100) / 100
+
+    const horasBaseSemana = resolverHorasBaseVigente(vigenciasHorasBase, startStr) ?? fallbackMetaSemanal
+    const margemSemana = resolverMargemVigente(vigenciasMargem, startStr) ?? 92.00
+    const metaRealSemana = Math.round(horasBaseSemana * (margemSemana / 100) * 100) / 100
+
+    soma += total - metaRealSemana
+
     current.setDate(current.getDate() + 7)
     weeksCount++
   }
-  
-  const saldos = await Promise.all(promises)
-  const soma = saldos.reduce((acc, curr) => acc + curr, 0)
+
   return Math.round(soma * 100) / 100
 }
 
@@ -159,33 +204,50 @@ async function calcularSaldoAcumuladoMensal(
 ): Promise<number> {
   const [y, m] = saldoInicio.split('-').map(Number)
   let current = new Date(y, m - 1, 1) // do mês do início para frente
-  
+
   const [cy, cm] = mesAtual.split('-').map(Number)
   const target = new Date(cy, cm - 1, 1)
-  
+
+  const { mesInicio: rangeInicioStr } = getMonthRange(current)
+  const { mesFim: rangeFimStr } = getMonthRange(target)
+
+  const [registros, vigenciasHorasBaseMensal, vigenciasHorasBaseSemanal, vigenciasMargemMensal, config] = await Promise.all([
+    buscarRegistrosBillableNoIntervalo(rangeInicioStr, rangeFimStr),
+    listarTodasHorasBaseMensalDoUsuario(userId),
+    listarTodasHorasBaseSemanalDoUsuario(userId),
+    listarTodasMargensMensal(),
+    buscarConfiguracoes(userId)
+  ])
+
+  const fallbackMetaSemanal = config.meta_semanal ?? 42.5
+
   let monthsCount = 0
-  const promises = []
-  
+  let soma = 0
+
   while (current <= target && monthsCount < 60) { // Até 5 anos
     const { mesInicio: startStr, mesFim: endStr } = getMonthRange(current)
-    
-    promises.push(
-      Promise.all([
-        buscarTotalBillableMensal(startStr, endStr),
-        buscarHorasBaseMensal(userId, startStr),
-        buscarMargemMinimaVigenteMensal(startStr)
-      ]).then(([total, horasBaseMensal, margemMensal]) => {
-        const metaReal = Math.round(horasBaseMensal * (margemMensal / 100) * 100) / 100
-        return total - metaReal
-      })
-    )
-    
+
+    const totalBruto = registros
+      .filter(r => r.data >= startStr && r.data <= endStr)
+      .reduce((acc, r) => acc + r.duracao, 0)
+    const total = Math.round(totalBruto * 100) / 100
+
+    // Fallback (sem vigência mensal própria): usa a semanal vigente na mesma
+    // data-referência do mês, x4 — mesma regra de buscarHorasBaseMensal.
+    const horasBaseDireta = resolverHorasBaseVigente(vigenciasHorasBaseMensal, startStr)
+    const horasBaseMensal = horasBaseDireta !== null
+      ? horasBaseDireta
+      : (resolverHorasBaseVigente(vigenciasHorasBaseSemanal, startStr) ?? fallbackMetaSemanal) * 4
+
+    const margemMensal = resolverMargemVigente(vigenciasMargemMensal, startStr) ?? 92.00
+    const metaReal = Math.round(horasBaseMensal * (margemMensal / 100) * 100) / 100
+
+    soma += total - metaReal
+
     current.setMonth(current.getMonth() + 1)
     monthsCount++
   }
-  
-  const saldos = await Promise.all(promises)
-  const soma = saldos.reduce((acc, curr) => acc + curr, 0)
+
   return Math.round(soma * 100) / 100
 }
 

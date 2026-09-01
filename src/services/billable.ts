@@ -162,6 +162,46 @@ export async function buscarTotalBillableSemanal(
   }
 }
 
+export interface RegistroBillableDia {
+  data: string
+  duracao: number
+}
+
+// Todos os registros billable em um intervalo arbitrário (data, duracao), sem agregar.
+// Usada para agregação em lote (evita 1 query de total por período).
+export async function buscarRegistrosBillableNoIntervalo(
+  dataInicio: string,
+  dataFim: string
+): Promise<RegistroBillableDia[]> {
+  try {
+    const { data: projetos, error: erroProjetos } = await supabase
+      .from('projetos')
+      .select('id')
+      .eq('billable', true)
+      .neq('status', 'excluido')
+      .not('codigo_externo', 'is', null)
+
+    if (erroProjetos) throw erroProjetos
+    if (!projetos || projetos.length === 0) return []
+
+    const idsProjetos = projetos.map(p => p.id)
+
+    const { data: registros, error: erroRegistros } = await supabase
+      .from('registros')
+      .select('data, duracao')
+      .in('projeto_id', idsProjetos)
+      .gte('data', dataInicio)
+      .lte('data', dataFim)
+
+    if (erroRegistros) throw erroRegistros
+
+    return (registros || []).map(r => ({ data: r.data, duracao: r.duracao || 0 }))
+  } catch (error) {
+    console.error('Erro em buscarRegistrosBillableNoIntervalo:', error)
+    return []
+  }
+}
+
 export async function buscarTotalBillableMensal(
   mesInicio: string,
   mesFim: string
