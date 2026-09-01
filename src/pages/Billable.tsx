@@ -891,7 +891,6 @@ export default function Billable() {
                                 onClick={() => toggleRow(row.projetoId)}
                               >
                                 {row.nome}
-                                <Chip tom="acento" className="ml-2">BILLABLE</Chip>
                               </td>
                               {row.diasValores.map((dv) =>
                                 renderCell(dv.duracao, dv.dataStr, row.projetoId)
@@ -1206,7 +1205,6 @@ export default function Billable() {
                                 onClick={() => toggleRow(row.projetoId)}
                               >
                                 {row.nome}
-                                <Chip tom="acento" className="ml-2">BILLABLE</Chip>
                               </td>
                               {row.semanasValores.map((val, idx) =>
                                 renderCellMensal(val, weeksSorted[idx], row.projetoId)
