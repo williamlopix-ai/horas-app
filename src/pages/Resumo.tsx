@@ -29,7 +29,7 @@ import { getErrorMessage } from '../utils/errors'
 import type { Registro, Projeto, Subcategoria } from '../types'
 import { SkeletonCard } from '../components/Skeleton'
 import { useToast } from '../contexts/ToastContext'
-import { inicioDaSemana, type InicioSemana } from '../utils/semana'
+import { inicioDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 import { AlertTriangle, ChartNoAxesColumn, ChevronDown, GripVertical, LayoutGrid, List, Table2 } from 'lucide-react'
 import { Button, Chip, EmptyState, Secao, Surface } from '../components/ui'
 
@@ -37,6 +37,15 @@ type Aba = 'semanal' | 'diario' | 'projetos'
 
 function getSemanaInicioParaData(dataStr: string, inicio: InicioSemana): string {
   return inicioDaSemana(dataStr, inicio)
+}
+
+function calcularRangeBloco(bloco: number): { dataInicio: string; dataFim: string } {
+  const hoje = new Date()
+  const fim = new Date(hoje)
+  fim.setDate(hoje.getDate() - (bloco - 1) * 60)
+  const inicio = new Date(hoje)
+  inicio.setDate(hoje.getDate() - (bloco * 60 - 1))
+  return { dataInicio: formatYYYYMMDD(inicio), dataFim: formatYYYYMMDD(fim) }
 }
 
 interface ProjetoCardSortableProps {
@@ -79,11 +88,15 @@ export default function Resumo() {
   const { config } = useConfig()
 
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
+  const [registrosCompletos, setRegistrosCompletos] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [subcategoriasCadastradas, setSubcategoriasCadastradas] = useState<Subcategoria[]>([])
   const [horasBasePorSemana, setHorasBasePorSemana] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [blocosCarregados, setBlocosCarregados] = useState(1)
+  const [carregandoMais, setCarregandoMais] = useState(false)
+  const [temMaisPeriodos, setTemMaisPeriodos] = useState(true)
 
   const [abaAtiva, setAbaAtiva] = useState<Aba>('projetos')
   const [rotinasExpandidas, setRotinasExpandidas] = useState<{ [key: string]: boolean }>({})
@@ -101,10 +114,35 @@ export default function Resumo() {
     localStorage.setItem('horas_view_resumo', mode)
   }
 
+  const recarregarPreservandoRange = async () => {
+    if (!user) return
+    try {
+      setLoading(true)
+      setError(null)
+      const dataInicio = calcularRangeBloco(blocosCarregados).dataInicio
+      const dataFim = calcularRangeBloco(1).dataFim
+      const [projs, regs, regsCompletos, subs] = await Promise.all([
+        listarProjetos(user.id),
+        listarRegistros(user.id, { dataInicio, dataFim }),
+        listarRegistros(user.id),
+        subcategoriasService.listarTodasSubcategorias(user.id)
+      ])
+      setProjetos(projs)
+      setRegistros(regs)
+      setRegistrosCompletos(regsCompletos)
+      setSubcategoriasCadastradas(subs)
+    } catch (err: any) {
+      console.error('Erro ao recarregar dados do resumo:', err)
+      setError(getErrorMessage(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleArquivar = async (id: string) => {
     try {
       await arquivarProjeto(id)
-      await carregarDados()
+      await recarregarPreservandoRange()
       showToast('Projeto arquivado!', 'success')
     } catch (err: any) {
       showToast(getErrorMessage(err), 'error')
@@ -114,7 +152,7 @@ export default function Resumo() {
   const handleDesarquivar = async (id: string) => {
     try {
       await desarquivarProjeto(id)
-      await carregarDados()
+      await recarregarPreservandoRange()
       showToast('Projeto desarquivado!', 'success')
     } catch (err: any) {
       showToast(getErrorMessage(err), 'error')
@@ -125,7 +163,7 @@ export default function Resumo() {
     if (!projetoParaExcluir) return
     try {
       await excluirPermanentemente(projetoParaExcluir.id)
-      await carregarDados()
+      await recarregarPreservandoRange()
       showToast('Projeto e lançamentos excluídos permanentemente!', 'success')
       setProjetoParaExcluir(null)
     } catch (err: any) {
@@ -140,6 +178,22 @@ export default function Resumo() {
     setProjetosExpandidos(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const handleCarregarPeriodoAnterior = async () => {
+    if (!user || carregandoMais) return
+    const proximoBloco = blocosCarregados + 1
+    try {
+      setCarregandoMais(true)
+      const novoBloco = await listarRegistros(user.id, calcularRangeBloco(proximoBloco))
+      setRegistros(prev => [...prev, ...novoBloco])
+      setBlocosCarregados(proximoBloco)
+      if (novoBloco.length === 0) setTemMaisPeriodos(false)
+    } catch (err: any) {
+      showToast(getErrorMessage(err), 'error')
+    } finally {
+      setCarregandoMais(false)
+    }
+  }
+
   // Carregar dados
   const carregarDados = async () => {
     if (!user) return
@@ -147,28 +201,19 @@ export default function Resumo() {
       setLoading(true)
       setError(null)
 
-      const [projs, regs, subs] = await Promise.all([
+      const [projs, regs, regsCompletos, subs] = await Promise.all([
         listarProjetos(user.id),
+        listarRegistros(user.id, calcularRangeBloco(1)),
         listarRegistros(user.id),
         subcategoriasService.listarTodasSubcategorias(user.id)
       ])
 
       setProjetos(projs)
       setRegistros(regs)
+      setRegistrosCompletos(regsCompletos)
       setSubcategoriasCadastradas(subs)
-
-      // Extrair semanas únicas e buscar horas base para cada uma
-      const semanasUnicas = [...new Set(regs.map(r => r.semana_inicio).filter(Boolean))] as string[]
-      const basePromises = semanasUnicas.map(async (semana) => {
-        const hBase = await buscarHorasBaseSemanal(user.id, semana)
-        return { semana, hBase }
-      })
-      const baseResults = await Promise.all(basePromises)
-      const record: Record<string, number> = {}
-      baseResults.forEach(({ semana, hBase }) => {
-        record[semana] = hBase
-      })
-      setHorasBasePorSemana(record)
+      setBlocosCarregados(1)
+      setTemMaisPeriodos(true)
     } catch (err: any) {
       console.error('Erro ao carregar dados do resumo:', err)
       setError(getErrorMessage(err))
@@ -180,6 +225,26 @@ export default function Resumo() {
   useEffect(() => {
     carregarDados()
   }, [user])
+
+  useEffect(() => {
+    if (!user || registros.length === 0) return
+    let cancelado = false
+    ;(async () => {
+      const semanasUnicas = [...new Set(registros.map(r => r.semana_inicio).filter(Boolean))] as string[]
+      const basePromises = semanasUnicas.map(async (semana) => {
+        const hBase = await buscarHorasBaseSemanal(user.id, semana)
+        return { semana, hBase }
+      })
+      const baseResults = await Promise.all(basePromises)
+      if (cancelado) return
+      const record: Record<string, number> = {}
+      baseResults.forEach(({ semana, hBase }) => {
+        record[semana] = hBase
+      })
+      setHorasBasePorSemana(record)
+    })()
+    return () => { cancelado = true }
+  }, [registros, user])
 
   // ============================
   // Helpers de Formatação
@@ -243,7 +308,7 @@ export default function Resumo() {
       grupos[reg.semana_inicio] = (grupos[reg.semana_inicio] || 0) + reg.duracao
     })
     return Object.keys(grupos)
-      .sort((a, b) => a.localeCompare(b))
+      .sort((a, b) => b.localeCompare(a))
       .map((semana) => {
         const totalHoras = grupos[semana]
         const baseVigente = horasBasePorSemana[semana] ?? config.meta_semanal
@@ -269,7 +334,7 @@ export default function Resumo() {
       grupos[reg.data] = (grupos[reg.data] || 0) + reg.duracao
     })
     return Object.keys(grupos)
-      .sort((a, b) => a.localeCompare(b))
+      .sort((a, b) => b.localeCompare(a))
       .map((data) => {
         const totalHoras = grupos[data]
         const semanaDodia = getSemanaInicioParaData(data, config.inicio_semana)
@@ -286,7 +351,7 @@ export default function Resumo() {
   const resumoProjetos = useMemo(() => {
     const grupos: { [key: string]: { duracao: number, qtd: number, registros: any[] } } = {}
     let totalGeral = 0
-    registros.forEach((reg) => {
+    registrosCompletos.forEach((reg) => {
       const projId = reg.projeto_id || 'sem_projeto'
       if (!grupos[projId]) grupos[projId] = { duracao: 0, qtd: 0, registros: [] }
       grupos[projId].duracao += reg.duracao
@@ -396,7 +461,7 @@ export default function Resumo() {
       projetos: arrayProjetos.sort((a, b) => b.totalHoras - a.totalHoras),
       rotinas: arrayRotina.sort((a, b) => b.totalHoras - a.totalHoras)
     }
-  }, [registros, projetos, subcategoriasCadastradas])
+  }, [registrosCompletos, projetos, subcategoriasCadastradas])
 
   const projetosVisiveis = useMemo(
     () => apenasBillable
@@ -579,7 +644,7 @@ export default function Resumo() {
               <SkeletonCard key={i} />
             ))}
           </div>
-        ) : registros.length === 0 ? (
+        ) : registrosCompletos.length === 0 ? (
           <Surface elevacao={1} comBorda padding="nenhum" className="p-12 text-center max-w-lg mx-auto space-y-4">
             <EmptyState
               icone={<ChartNoAxesColumn className="w-icon-xl h-icon-xl" />}
@@ -747,6 +812,14 @@ export default function Resumo() {
                     </div>
                   </Surface>
                 )}
+
+                {temMaisPeriodos && (
+                  <div className="flex justify-center pt-6">
+                    <Button variante="secundario" tamanho="md" onClick={handleCarregarPeriodoAnterior} disabled={carregandoMais}>
+                      {carregandoMais ? 'Carregando...' : 'Carregar período anterior'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -890,6 +963,14 @@ export default function Resumo() {
                       </table>
                     </div>
                   </Surface>
+                )}
+
+                {temMaisPeriodos && (
+                  <div className="flex justify-center pt-6">
+                    <Button variante="secundario" tamanho="md" onClick={handleCarregarPeriodoAnterior} disabled={carregandoMais}>
+                      {carregandoMais ? 'Carregando...' : 'Carregar período anterior'}
+                    </Button>
+                  </div>
                 )}
               </div>
             )}
