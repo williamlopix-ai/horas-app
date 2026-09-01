@@ -40,13 +40,6 @@ export function Surface({
     lg: 'p-6',
   }[padding]
 
-  const sombraClasses = {
-    0: '',
-    1: 'shadow-e1',
-    2: 'shadow-e2',
-    3: 'shadow-e3',
-  }[elevacao]
-
   const ehInterativo = interativo && !!onClick
 
   return (
@@ -60,7 +53,7 @@ export function Surface({
           onClick(e as unknown as React.MouseEvent<HTMLDivElement>)
         }
       } : undefined)}
-      className={`rounded-card ${elevacaoClasses} ${paddingClasses} ${comBorda ? 'border border-hair' : ''} ${comSombra ? sombraClasses : ''} ${ehInterativo ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent' : ''} ${className}`}
+      className={`rounded-card ${elevacaoClasses} ${paddingClasses} ${comBorda ? 'border border-hair' : ''} ${comSombra ? 'shadow-e1' : ''} ${ehInterativo ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:border-accent' : ''} ${className}`}
       {...rest}
     >
       {children}
