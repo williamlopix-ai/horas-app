@@ -80,12 +80,11 @@ export default function Timesheet() {
       const endStr = formatYYYYMMDD(sunday)
 
       const [regs, baseSemanal] = await Promise.all([
-        listarRegistros(user.id),
+        listarRegistros(user.id, { dataInicio: startStr, dataFim: endStr }),
         buscarHorasBaseSemanal(user.id, startStr)
       ])
 
-      const regsSemana = regs.filter(r => r.data >= startStr && r.data <= endStr)
-      setRegistros(regsSemana)
+      setRegistros(regs)
       setMetaSemanaExibida(baseSemanal ?? config.meta_semanal)
 
     } catch (err: any) {
