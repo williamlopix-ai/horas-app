@@ -105,15 +105,15 @@ export default function ProjetoDetalhe() {
       if (!silencioso) setLoading(true)
       setError(null)
 
-      const [projs, todosRegs, subs, fas, planos] = await Promise.all([
+      const [projs, regsDoProjeto, todosRegs, subs, fas, planos] = await Promise.all([
         listarProjetos(user.id),
+        listarRegistros(user.id, { projetoId: id }),
         listarRegistros(user.id),
         subcategoriasService.listarSubcategorias(id),
         fasesService.listarFases(id),
         listarPlanoSemanal(user.id, id)
       ])
 
-      const regsDoProjeto = todosRegs.filter(r => r.projeto_id === id)
       const projEncontrado = projs.find(p => p.id === id) || null
 
       setProjeto(projEncontrado)
