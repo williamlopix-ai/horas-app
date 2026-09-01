@@ -37,6 +37,8 @@
   --proj-10: #7A3FC4;
   --proj-11: #E86BE0;
   --proj-12: #B32A5E;
+  --proj-encerrado: #9CA3AF;
+  --proj-excluido: #6B7280;
 }
 
 :root[data-theme="light"] {
@@ -78,6 +80,8 @@
   --proj-10: #9B62DB;
   --proj-11: #96218C;
   --proj-12: #DB5A85;
+  --proj-encerrado: #9CA3AF;
+  --proj-excluido: #6B7280;
 }
 
 :root {

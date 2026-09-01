@@ -950,7 +950,7 @@ export default function Resumo() {
                                       >
                                         <div className="flex items-start justify-between gap-md">
                                           <div className="flex items-center gap-md min-w-0">
-                                            <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
+                                            <span className="w-4 h-4 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: proj.cor }}>
                                               <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                             </span>
                                             <span className="font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={proj.nome}>{proj.nome}</span>
@@ -1018,7 +1018,7 @@ export default function Resumo() {
 
                               const isExcluido = proj.status === 'excluido';
                               const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
-                              const projCor = isExcluido ? '#4B5563' : '#6B7280';
+                              const projCor = isExcluido ? 'var(--proj-excluido)' : 'var(--proj-encerrado)';
 
                               return (
                                 <Surface
@@ -1032,7 +1032,7 @@ export default function Resumo() {
                                 >
                                   <div className="flex items-start justify-between gap-md">
                                     <div className="flex items-center gap-md min-w-0">
-                                      <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
+                                      <span className="w-4 h-4 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                         <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                       </span>
                                       <span className={`font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido ? 'italic' : ''}`} title={projNome}>{projNome}</span>
@@ -1106,7 +1106,7 @@ export default function Resumo() {
                                 const isExcluido = proj.status === 'excluido';
                                 const isEncerrado = proj.status === 'encerrado';
                                 const projNome = isExcluido ? (proj.nome_original || 'Sem Projeto') : (proj.nome || 'Sem Projeto');
-                                const projCor = isExcluido ? '#4B5563' : isEncerrado ? '#6B7280' : proj.cor;
+                                const projCor = isExcluido ? 'var(--proj-excluido)' : isEncerrado ? 'var(--proj-encerrado)' : proj.cor;
 
                                 return (
                                   <Surface
@@ -1120,7 +1120,7 @@ export default function Resumo() {
                                   >
                                     <div className="flex items-start justify-between gap-md">
                                       <div className="flex items-center gap-md min-w-0">
-                                        <span className="w-4 h-4 rounded-full shrink-0 shadow-sm flex items-center justify-center" style={{ backgroundColor: projCor }}>
+                                        <span className="w-4 h-4 rounded-full shrink-0 shadow-e1 flex items-center justify-center" style={{ backgroundColor: projCor }}>
                                           <span className="w-2 h-2 rounded-full bg-white opacity-40"></span>
                                         </span>
                                         <span className={`font-bold text-ink-900 uppercase text-base whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis ${isExcluido || isEncerrado ? 'italic' : ''}`} title={projNome}>{projNome}</span>
@@ -1200,7 +1200,7 @@ export default function Resumo() {
                                 onClick={() => toggleRotina(rotina.id)}
                               >
                                 <div className="flex items-center gap-lg min-w-0">
-                                  <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: rotina.cor }}></span>
+                                  <span className="w-3 h-3 rounded-full shrink-0 shadow-e1" style={{ backgroundColor: rotina.cor }}></span>
                                   <p className="font-bold text-ink-900 text-sm uppercase tracking-wide whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={rotina.nome}>{rotina.nome}</p>
                                 </div>
                                 <div className="flex items-center gap-lg text-right shrink-0">

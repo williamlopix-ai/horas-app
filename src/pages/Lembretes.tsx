@@ -314,7 +314,7 @@ export default function Lembretes() {
                           {proj ? (
                             <div className="flex items-center gap-xs min-w-0">
                               <span
-                                className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm"
+                                className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-e1"
                                 style={{ backgroundColor: proj.cor }}
                               />
                               <span className="text-[11px] font-semibold text-ink-700 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={proj.nome}>
@@ -416,7 +416,7 @@ export default function Lembretes() {
                             {proj ? (
                               <div className="flex items-center gap-xs min-w-0">
                                 <span
-                                  className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-sm opacity-50"
+                                  className="h-2 w-2 rounded-full shrink-0 border border-black/10 shadow-e1 opacity-50"
                                   style={{ backgroundColor: proj.cor }}
                                 />
                                 <span className="text-[11px] font-semibold text-ink-500 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis" title={proj.nome}>

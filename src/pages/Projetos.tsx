@@ -112,7 +112,7 @@ function ProjetoRowItem({
             </button>
           )}
           <span
-            className="w-4 h-4 rounded-full shrink-0 shadow-sm"
+            className="w-4 h-4 rounded-full shrink-0 shadow-e1"
             style={{ backgroundColor: projeto.cor }}
           />
           <button

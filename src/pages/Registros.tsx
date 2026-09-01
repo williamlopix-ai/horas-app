@@ -730,7 +730,7 @@ export default function Registros() {
                           const status = itemProj.projeto?.status
                           const isEncerrado = status === 'encerrado'
                           const isExcluido = status === 'excluido'
-                          const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (itemProj.projeto?.cor || '#6B7280')
+                          const projCor = isExcluido ? 'var(--proj-excluido)' : isEncerrado ? 'var(--proj-encerrado)' : (itemProj.projeto?.cor || '#6B7280')
                           const projNome = isExcluido ? (itemProj.projeto?.nome_original || 'Sem Projeto') : (itemProj.projeto?.nome || 'Sem Projeto')
 
                           return (
@@ -898,7 +898,7 @@ export default function Registros() {
                         const status = reg.projeto?.status
                         const isEncerrado = status === 'encerrado'
                         const isExcluido = status === 'excluido'
-                        const projCor = isExcluido ? '#6B7280' : isEncerrado ? '#9CA3AF' : (reg.projeto?.cor || '#6B7280')
+                        const projCor = isExcluido ? 'var(--proj-excluido)' : isEncerrado ? 'var(--proj-encerrado)' : (reg.projeto?.cor || '#6B7280')
                         const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
 
                         return (
