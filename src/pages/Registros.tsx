@@ -131,6 +131,16 @@ export default function Registros() {
 
   const [obsAberta, setObsAberta] = useState<{ titulo: string; texto: string } | null>(null)
 
+  // Calcula o intervalo de datas a ser buscado, de acordo com a Opcao A3:
+  // dia especifico tem prioridade; senao, usa a semana selecionada
+  const getFiltroDataAtual = (): { dataInicio: string; dataFim: string } => {
+    if (filtroDiaEspecifico) {
+      return { dataInicio: filtroDiaEspecifico, dataFim: filtroDiaEspecifico }
+    }
+    const { inicio, fim } = intervaloDaSemana(filtroSemana, config.inicio_semana)
+    return { dataInicio: formatYYYYMMDD(inicio), dataFim: formatYYYYMMDD(fim) }
+  }
+
   // Carregar dados iniciais
   const carregarDados = async () => {
     if (!user) return
@@ -151,7 +161,7 @@ export default function Registros() {
       setHorariosSemana(semHorarios)
 
       // 4. Carregar Registros
-      const regs = await listarRegistros(user.id)
+      const regs = await listarRegistros(user.id, getFiltroDataAtual())
       setRegistros(regs)
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err)
@@ -163,7 +173,7 @@ export default function Registros() {
 
   useEffect(() => {
     carregarDados()
-  }, [user])
+  }, [user, filtroSemana, filtroDiaEspecifico])
 
   useEffect(() => {
     const dataParam = searchParams.get('data')
@@ -208,7 +218,7 @@ export default function Registros() {
       setError(null)
       await excluirRegistro(id)
       if (user) {
-        const regs = await listarRegistros(user.id)
+        const regs = await listarRegistros(user.id, getFiltroDataAtual())
         setRegistros(regs)
       }
       showToast('Registro excluído!', 'success')
@@ -241,7 +251,7 @@ export default function Registros() {
           observacao: dados.observacao
         }, config.inicio_semana)
       }
-      const regs = await listarRegistros(user.id)
+      const regs = await listarRegistros(user.id, getFiltroDataAtual())
       setRegistros(regs)
       fecharModal()
       showToast('Registro salvo!', 'success')
