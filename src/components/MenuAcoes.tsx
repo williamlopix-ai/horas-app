@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 
 export type ItemMenu = {
   label: string
@@ -20,7 +20,7 @@ export default function MenuAcoes({
   desabilitado = false
 }: Props) {
   const [aberto, setAberto] = useState(false)
-  const [posicao, setPosicao] = useState<{ top?: number; bottom?: number; right: number }>({ right: 0 })
+  const [posicao, setPosicao] = useState<{ top?: number; bottom?: number; right: number; left?: number }>({ right: 0 })
   const btnRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -84,6 +84,17 @@ export default function MenuAcoes({
     }
   }, [aberto])
 
+  useLayoutEffect(() => {
+    if (!aberto || !menuRef.current) return
+
+    const larguraReal = menuRef.current.getBoundingClientRect().width
+
+    if (window.innerWidth - posicao.right - larguraReal < 8) {
+      setPosicao((prev) => ({ ...prev, left: 8 }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto])
+
   return (
     <div className="relative inline-flex items-center">
       <button
@@ -116,7 +127,9 @@ export default function MenuAcoes({
           style={{
             top: posicao.top,
             bottom: posicao.bottom,
-            right: posicao.right
+            right: posicao.left === undefined ? posicao.right : undefined,
+            left: posicao.left,
+            maxWidth: 'calc(100vw - 16px)'
           }}
           className="fixed bg-surface-2 border border-hair-strong rounded-card shadow-e3 z-40 min-w-[180px] p-1.5 flex flex-col"
           role="menu"
