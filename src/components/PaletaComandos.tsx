@@ -12,6 +12,33 @@ interface PaletaComandosProps {
   aoFechar: () => void
 }
 
+type ItemRecente = {
+  tipo: 'nav' | 'projeto'
+  rota: string
+  rotulo: string
+  codigoExterno?: string
+}
+
+const CHAVE_RECENTES = 'horas:paleta:recentes'
+
+function lerRecentes(): ItemRecente[] {
+  try {
+    const bruto = localStorage.getItem(CHAVE_RECENTES)
+    if (!bruto) return []
+    const dados = JSON.parse(bruto)
+    return Array.isArray(dados) ? (dados as ItemRecente[]) : []
+  } catch {
+    return []
+  }
+}
+
+function salvarRecente(item: ItemRecente): ItemRecente[] {
+  const semDuplicata = lerRecentes().filter((r) => r.rota !== item.rota)
+  const atualizados = [item, ...semDuplicata].slice(0, 5)
+  localStorage.setItem(CHAVE_RECENTES, JSON.stringify(atualizados))
+  return atualizados
+}
+
 export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -19,6 +46,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [carregandoProjetos, setCarregandoProjetos] = useState(false)
   const [projetosCarregados, setProjetosCarregados] = useState(false)
+  const [recentes, setRecentes] = useState<ItemRecente[]>(() => lerRecentes())
 
   // Limpa o texto da busca sempre que a paleta fechar
   useEffect(() => {
@@ -47,10 +75,11 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
     }
   }, [aberta, projetosCarregados, carregandoProjetos, user])
 
-  const navegarPara = (rota: string) => {
+  const navegarPara = (item: ItemRecente) => {
+    setRecentes(salvarRecente(item))
     setBusca('')
     aoFechar()
-    navigate(rota)
+    navigate(item.rota)
   }
 
   return (
@@ -80,9 +109,39 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
           Nenhum resultado encontrado.
         </Command.Empty>
 
+        {busca.trim() === '' && recentes.length > 0 && (
+          <Command.Group
+            heading="Recentes"
+            className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-ink-500"
+          >
+            {recentes.map((item) => {
+              const Icone =
+                item.tipo === 'projeto'
+                  ? FolderKanban
+                  : ITENS_NAV.find((nav) => nav.rota === item.rota)?.Icone ?? Search
+              return (
+                <Command.Item
+                  key={item.rota}
+                  value={`${item.rotulo} ${item.codigoExterno ?? ''}`}
+                  onSelect={() => navegarPara(item)}
+                  className="flex items-center gap-md px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
+                >
+                  <Icone className="w-icon-sm h-icon-sm shrink-0" />
+                  <span className="flex-1 truncate">{item.rotulo}</span>
+                  {item.codigoExterno && (
+                    <span className="text-xs font-mono text-ink-500 opacity-80">
+                      {item.codigoExterno}
+                    </span>
+                  )}
+                </Command.Item>
+              )
+            })}
+          </Command.Group>
+        )}
+
         <Command.Group
           heading="Navegação"
-          className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-ink-500"
+          className="mt-2 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-ink-500"
         >
           {ITENS_NAV.map((item) => {
             const Icone = item.Icone
@@ -90,7 +149,7 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
               <Command.Item
                 key={item.rota}
                 value={item.rotulo}
-                onSelect={() => navegarPara(item.rota)}
+                onSelect={() => navegarPara({ tipo: 'nav', rota: item.rota, rotulo: item.rotulo })}
                 className="flex items-center gap-md px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
               >
                 <Icone className="w-icon-sm h-icon-sm shrink-0" />
@@ -114,7 +173,14 @@ export default function PaletaComandos({ aberta, aoFechar }: PaletaComandosProps
                 <Command.Item
                   key={projeto.id}
                   value={`${projeto.nome} ${projeto.codigo_externo ?? ''}`}
-                  onSelect={() => navegarPara(`/projeto/${projeto.id}`)}
+                  onSelect={() =>
+                    navegarPara({
+                      tipo: 'projeto',
+                      rota: `/projeto/${projeto.id}`,
+                      rotulo: projeto.nome,
+                      codigoExterno: projeto.codigo_externo ?? undefined
+                    })
+                  }
                   className="flex items-center gap-md px-3 py-2.5 rounded-ctl text-sm text-ink-900 cursor-pointer select-none data-[selected=true]:bg-accent-bg data-[selected=true]:text-accent-fg transition-colors duration-d1 ease-ez"
                 >
                   <FolderKanban className="w-icon-sm h-icon-sm shrink-0" />
