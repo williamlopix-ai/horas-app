@@ -437,7 +437,7 @@ export default function Timesheet() {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Filtrar por código..."
+              placeholder="Filtrar por código…"
               value={filtroCodigo}
               onChange={(e) => setFiltroCodigo(e.target.value)}
               className={`${classeCampo()} !pr-11 min-h-[44px]`}

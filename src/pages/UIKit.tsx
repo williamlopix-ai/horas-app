@@ -148,7 +148,7 @@ export default function UIKit() {
           <Field rotulo="Rótulo Simples">
             <input
               type="text"
-              placeholder="Digite algo..."
+              placeholder="Digite algo…"
               value={textoInput}
               onChange={(e) => setTextoInput(e.target.value)}
               className={classeCampo(false)}
@@ -359,7 +359,7 @@ export default function UIKit() {
             <div className="max-w-[240px] p-2 bg-surface-2 rounded-ctl border border-hair">
               <Dica texto="Refatoração completa da camada de serviços e sincronização com Supabase para suportar modo offline e retry automático.">
                 <p className="text-sm text-ink-700 truncate min-w-0 cursor-help">
-                  Refatoração completa da camada de serviços e sincronização com Supabase...
+                  Refatoração completa da camada de serviços e sincronização com Supabase…
                 </p>
               </Dica>
             </div>

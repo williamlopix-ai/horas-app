@@ -749,7 +749,7 @@ export default function Ajustes() {
                       disabled={savingHorasBaseSemanal}
                       className="min-h-[44px]"
                     >
-                      {savingHorasBaseSemanal ? 'Salvando...' : 'Salvar'}
+                      {savingHorasBaseSemanal ? 'Salvando…' : 'Salvar'}
                     </Button>
                   </div>
 
@@ -983,7 +983,7 @@ export default function Ajustes() {
                         disabled={savingDia || diasDisponiveis.length === 0}
                         className="flex-1 min-h-[44px]"
                       >
-                        {savingDia ? 'Salvando...' : 'Salvar'}
+                        {savingDia ? 'Salvando…' : 'Salvar'}
                       </Button>
                     </div>
                   </div>
@@ -1016,7 +1016,7 @@ export default function Ajustes() {
                   carregando={saving}
                   className="w-full sm:w-auto min-h-[44px]"
                 >
-                  {saving ? 'Salvando preferências...' : 'Salvar Configurações'}
+                  {saving ? 'Salvando preferências…' : 'Salvar Configurações'}
                 </Button>
               </div>
 
@@ -1083,7 +1083,7 @@ export default function Ajustes() {
                         disabled={savingHorasBaseMensal}
                         className="min-h-[44px]"
                       >
-                        {savingHorasBaseMensal ? 'Salvando...' : 'Salvar'}
+                        {savingHorasBaseMensal ? 'Salvando…' : 'Salvar'}
                       </Button>
                     </div>
 
@@ -1183,7 +1183,7 @@ export default function Ajustes() {
                         disabled={savingMargem}
                         className="min-h-[44px]"
                       >
-                        {savingMargem ? 'Salvando...' : 'Salvar'}
+                        {savingMargem ? 'Salvando…' : 'Salvar'}
                       </Button>
                     </div>
 
@@ -1278,7 +1278,7 @@ export default function Ajustes() {
                         disabled={savingMargemMensal}
                         className="min-h-[44px]"
                       >
-                        {savingMargemMensal ? 'Salvando...' : 'Salvar'}
+                        {savingMargemMensal ? 'Salvando…' : 'Salvar'}
                       </Button>
                     </div>
 
@@ -1371,7 +1371,7 @@ export default function Ajustes() {
                   iconeEsquerda={<Download className="w-icon-sm h-icon-sm" />}
                   className="w-full sm:w-auto min-h-[44px]"
                 >
-                  {exporting ? 'Exportando...' : 'Exportar para Excel'}
+                  {exporting ? 'Exportando…' : 'Exportar para Excel'}
                 </Button>
               </div>
             </div>

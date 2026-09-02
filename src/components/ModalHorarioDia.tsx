@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useId } from 'react'
+import { X, AlertTriangle, Loader2 } from 'lucide-react'
 import { getErrorMessage } from '../utils/errors'
 import { useModal } from '../hooks/useModal'
 
@@ -50,7 +51,7 @@ export default function ModalHorarioDia({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!inicio || !fim) {
       setError('Preencha os horários de início e fim.')
       return
@@ -78,94 +79,90 @@ export default function ModalHorarioDia({
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
-        className="bg-[#161B22] border border-gray-800 rounded-sheet w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-d3"
+        className="bg-surface-1 border border-hair-strong rounded-sheet w-full max-w-md shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-d3"
       >
-        
+
         {/* Cabeçalho */}
-        <div className="px-6 py-5 border-b border-gray-800 flex items-center justify-between bg-[#0B0E14]/50">
+        <div className="px-6 py-5 border-b border-hair-strong flex items-center justify-between bg-surface-0/50">
           <div>
-            <h2 id={tituloId} className="text-lg font-bold text-white tracking-tight">Horário do Dia</h2>
-            <p className="text-xs text-gray-400 capitalize">{dataFormatada}</p>
+            <h2 id={tituloId} className="text-lg font-bold text-ink-900 tracking-tight">Horário do Dia</h2>
+            <p className="text-xs text-ink-500 capitalize">{dataFormatada}</p>
           </div>
           <button
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-500 hover:text-ink-900 hover:bg-surface-3 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
             title="Fechar"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-md h-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-icon-md h-icon-md" />
           </button>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1">
           <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
-            
+
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-card text-red-400 text-xs flex items-start gap-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-icon-sm h-icon-sm shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+              <div
+                style={{ borderColor: 'color-mix(in srgb, var(--bad) 30%, transparent)' }}
+                className="p-3 bg-bad-bg border rounded-card text-bad text-xs flex items-start gap-sm"
+              >
+                <AlertTriangle className="w-icon-sm h-icon-sm shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             <div className="flex gap-lg">
               <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                   Início
                 </label>
                 <input
                   type="time"
                   value={inicio}
                   onChange={(e) => setInicio(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez font-mono"
+                  className="w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono"
                   required
                 />
               </div>
 
               <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                   Fim
                 </label>
                 <input
                   type="time"
                   value={fim}
                   onChange={(e) => setFim(e.target.value)}
-                  className="w-full bg-[#0B0E14] border border-gray-800 rounded-ctl px-4 py-2.5 h-11 text-white text-sm focus:outline-none focus:border-[#03A9F4] focus:ring-1 focus:ring-[#03A9F4] transition-colors duration-d1 ease-ez font-mono"
+                  className="w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono"
                   required
                 />
               </div>
             </div>
-            
-            <p className="text-xs text-gray-500 italic">
+
+            <p className="text-xs text-ink-500 italic">
               Definir um horário diferente atualizará os cálculos de tempo vago (gaps) apenas para este dia específico.
             </p>
 
           </div>
 
           {/* Rodapé (Ações) */}
-          <div className="px-6 py-4 border-t border-gray-800 bg-[#0B0E14]/50 flex justify-end gap-md mt-auto">
+          <div className="px-6 py-4 border-t border-hair-strong bg-surface-0/50 flex justify-end gap-md mt-auto">
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-gray-800 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
+              className="py-2.5 px-5 text-sm font-semibold text-ink-700 hover:text-ink-900 hover:bg-surface-3 rounded-ctl transition-colors duration-d1 ease-ez focus:outline-none"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="py-2.5 px-6 bg-[#03A9F4] hover:bg-[#0288D1] active:bg-[#007cb5] text-white text-sm font-bold rounded-ctl transition-colors duration-d1 ease-ez shadow-lg shadow-[#03A9F4]/20 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-sm"
+              className="py-2.5 px-6 bg-pri text-pri-fg text-sm font-bold rounded-ctl transition-colors duration-d1 ease-ez shadow-e1 hover:bg-pri-hover active:translate-y-[0.5px] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-sm"
             >
               {saving ? (
                 <>
-                  <svg className="animate-spin w-icon-sm h-icon-sm text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Salvando...
+                  <Loader2 className="animate-spin w-icon-sm h-icon-sm" />
+                  Salvando…
                 </>
               ) : (
                 'Salvar Horário'
