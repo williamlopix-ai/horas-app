@@ -1,6 +1,7 @@
 # HANDOFF — HORAS
 
-> Estado do projeto ao fim da sessão de **01/09/2026**.
+> Estado do projeto ao fim da sessão de **01/09/2026** (mesma sessão que
+> fechou os Blocos 5, 6 e 7, e produziu o protótipo visual do Bloco 8).
 > Substitui integralmente a versão anterior.
 > **Leia este arquivo no início de toda sessão, antes de qualquer ação.**
 
@@ -8,39 +9,67 @@
 
 ## 🚨 COMECE POR AQUI NA PRÓXIMA SESSÃO
 
-A sessão de 01/09 foi longa e fechou **o Bloco 3.5 inteiro (100%)** e
-**o Bloco 4 quase inteiro**. Restam, do Bloco 4, só duas pendências
-adiadas conscientemente (ver abaixo) — o resto do roadmap antigo já
-foi cumprido.
+Esta sessão fechou **Bloco 5** (correções rápidas de UI), **Bloco 6**
+(performance/queries, + aba Anual do Billable) e **Bloco 7 inteiro**
+(navegação: botão "Voltar para X" + ordenação persistente do Timesheet).
+Tudo commitado e em produção (`main`).
 
-**Primeira tarefa da próxima sessão: não há bloco "seguinte" definido.**
-O plano de blocos de 24/08 termina aqui. Escolher entre:
-1. Retomar a pendência 4.3b (reestruturação de tabela-para-blocos em
-   Projetos.tsx, ver "Pendências" abaixo — precisa de mockup fiel
-   antes de qualquer prompt);
-2. Continuar a varredura de hierarquia de elevação (4.2) nos outros
-   pontos já identificados em prints mas não tratados ainda: Ajustes
-   (Configurações Billable, bloco de confirmação de meta), Registros
-   (dia expandido → lançamentos individuais), Timesheet;
-3. Tratar a pendência de acessibilidade dos 2 modais à mão;
-4. Abrir uma frente nova (ex.: trocar a biblioteca de ícones —
-   mencionado de passagem pelo usuário, nunca formalizado).
+Também foi produzido, na mesma sessão, um **protótipo HTML interativo**
+com a direção visual que o usuário quer para o Bloco 8 — e possivelmente
+para o resto do app no futuro. Ver seção "Direção visual premium" abaixo
+antes de codificar qualquer coisa do Bloco 8.
 
-Pergunte ao usuário antes de escolher.
+**Próxima tarefa, em ordem de prioridade sugerida:**
+1. **Bloco 8 — Aba Ferramentas**: retomar a partir do protótipo já
+   aprovado (ver seção dedicada abaixo). Falta decidir a responsividade
+   do calendário semanal (8.4) antes de codificar.
+2. **Pendências herdadas do redesign** (não retomadas ainda): 4.3b
+   (borda lateral + reestruturação de Projetos.tsx), 2 modais sem
+   `useModal`, resto do 4.2. Ver seção própria.
+3. Item pendente do usuário, ainda sem decisão: **filtro mensal do
+   Billable não traz todas as horas** — ele pediu para deixar pendente
+   até entender melhor a demanda. Não iniciar sem ele trazer o caso
+   concreto (mês, número esperado vs. mostrado, resultado de
+   `select count(*) from registros where semana_inicio is null`).
 
-**LIÇÕES CRÍTICAS desta sessão, leia antes de qualquer decisão visual:**
-1. Toda decisão de design ou estrutura = **HTML real** (cores/fontes do
-   projeto, aberto no navegador), nunca SVG nem botão de escolha em
-   texto. Ver seção "Lições" abaixo — falhou 3x antes de virar regra.
-2. Depois de aprovar qualquer "borda"/"realce" visual em elemento
-   dentro de lista/tabela, **verificar se as linhas já têm separação
-   visual entre si** (gap ou fundo distinto). Sem isso, bordas laterais
-   se fundem numa linha contínua — aconteceu com a tentativa de borda
-   de cor de projeto em Projetos.tsx, revertida no mesmo dia.
-3. Toda leva que cria arquivo novo termina com prova física
-   (`Get-ChildItem`) — um arquivo (`Secao.tsx`) foi "aprovado, testado,
-   commitado" sem nunca ter sido escrito no disco, só descoberto 2
-   frentes depois.
+Pergunte ao usuário qual ordem prefere antes de escolher.
+
+---
+
+## 🎨 Direção visual "premium" — base do Bloco 8 (e possível redesign futuro)
+
+O usuário rejeitou o primeiro mockup do Bloco 8 (diagramático, "monte de
+cards") e pediu nível luxuoso/intuitivo, citando implicitamente
+Linear/Raycast/Notion Calendar. Um **protótipo HTML interativo** foi
+entregue e testado (21 testes automatizados simulando cliques/digitação
+reais, 0 falhas) — o usuário vai reter esse arquivo como base de ideia,
+inclusive como possível referência de redesign do app inteiro no futuro.
+**Se ele mencionar "aquele HTML" numa sessão futura, é este.**
+
+Elementos que definiram a direção (aplicar como padrão em telas futuras,
+mediante confirmação do usuário a cada uso):
+- Abas com "pílula" deslizante animada (não sublinhado)
+- Fundo com brilho radial sutil no topo via `::before`, não mais preto chapado
+- Números como elemento dominante (mono, tabular-nums, 35-42px, letter-spacing negativo)
+- "Display" estilo calculadora com gradiente diagonal + reflexo de luz via `::after`
+- Teclado numérico real (grid 4 colunas) — usuário pediu "formato de calculadora mesmo"
+- Anel de progresso SVG animado (`stroke-dashoffset`) pro placar do Fechamento
+- Checklist com item expansível mostrando detalhe dos registros afetados
+- Calendário com blocos em gradiente diagonal por projeto, linha vermelha do "agora", buracos tracejados com dica ao hover
+- Heatmap do mês com tooltip seguindo o cursor
+- Cards "quanto falta" com barra de progresso animada e borda superior colorida por contexto
+- Paleta: só tokens já existentes do projeto (`--bg-*`, `--accent`, `--ok/--warn/--bad`, `--proj-N`) — nada de cor nova inventada
+
+**Decisão de responsivo do calendário (8.4) AINDA EM ABERTO** — o
+protótipo permite alternar Desktop / Celular·1dia / Celular·rolagem de
+verdade, mas o usuário não escolheu qual vai pra produção. Decidir ao
+retomar o Bloco 8.
+
+**Lição de processo registrada:** mockup de decisão visual deste projeto
+deve ser **interativo (JS funcional)**, não só estático/diagramático,
+sempre que envolver componente com estado (calculadora, toggle de
+visualização, formulário). A versão estática foi insuficiente para o
+usuário avaliar "ficou bonito" ou testar de verdade.
 
 ---
 
@@ -51,78 +80,29 @@ BLOCO 0 — Limpeza                    ████████████ 100%
 BLOCO 1 — Correções                  ████████████ 100%
 BLOCO 2 — Funcionalidades            ████████████ 100%
 BLOCO 3 — Responsivo                 ████████████ 100%
+BLOCO 3.5 — Fundações de design      ████████████ 100%
+BLOCO 4 — Estética                   ██████████░░  ~85% (pausado, ver pendências herdadas)
+BLOCO 5 — Correções rápidas de UI    ████████████ 100%  ✅
+BLOCO 6 — Performance (queries)      ████████████ 100%  ✅ (+ aba Anual do Billable)
+BLOCO 7 — Navegação                  ████████████ 100%  ✅ CONCLUÍDO (hoje)
+  ✅ 7.1  Botão "Voltar para X" — Timesheet, Billable, ProjetoDetalhe
+          (lista de dias + "Ver no dia") → Registros
+  ✅ 7.2  Botão "Voltar para X" — Resumo, Projetos → ProjetoDetalhe
+          (reaproveita o botão "Voltar" já existente, trocando texto e
+          destino só quando location.state.origem existe; fallback
+          genérico navigate(-1) intocado quando não há origem)
+  ✅ 7.3  Ordenação manual do Timesheet — evoluiu de "efêmera na sessão"
+          (pedido original) para PERSISTENTE por semana no banco, por
+          decisão do usuário durante a leva. Tabela nova
+          `timesheet_ordem_manual` (usuario_id, semana_inicio,
+          projeto_id, posicao, RLS, on delete cascade). Bug colateral
+          encontrado e corrigido: flash de ordem errada ao entrar na
+          tela, causado por currentDate nascendo hardcoded em 'segunda'
+          em vez de config.inicio_semana (double-fetch concorrente).
 
-BLOCO 3.5 — Fundações de design      ████████████ 100%  ✅ CONCLUÍDO
-  ✅ 3.5a  Inventário de valores no disco
-  ✅ 3.5b  Raio de borda + duração de transição (calibrada)
-  ✅ 3.5c  Ícone, gap, espaçamento de controle
-  ✅ 3.5f  Borda, opacidade, z-index, container
-  ✅ 3.5g  Foco e acessibilidade (5 modais + Sheet, hook useModal)
-  ✅ 3.5h  Movimento — 99 ocorrências em 18 arquivos migradas para
-           tokens calibrados + regra global de <button> no index.css
-           corrigida + 1 achado tardio em Registros.tsx (varredura 3.5l)
-  ✅ 3.5i  Densidade — escala de gap/ctl reduzida um degrau (decidida
-           via HTML comparativo)
-  ✅ 3.5j  Camada de padrões — 4 primitivas novas: PageHeader, Secao,
-           EmptyState, SecaoColapsavel
-  ✅ 3.5k  Prancheta no /ui-kit — 12 primitivas documentadas
-  ✅ 3.5l  Guarda contra regressão — varredura de integridade +
-           varredura de transition-all/duration-N remanescente
-
-BLOCO 4 — Estética                   ██████████░░  ~85%
-  ✅ 4.1  Primitiva Secao — coberto pela SecaoColapsavel (3.5j Frente 4)
-  ✅ 4.2  Hierarquia de elevação
-      ✅ Surface corrigida: cada elevacao (0-3) agora usa a sombra
-         correspondente (shadow-e1/e2/e3), antes fixo em e1 sempre
-      ✅ Aplicada em 3 pontos do ProjetoDetalhe.tsx: lista de
-         subcategorias (bg-surface-1→2), mensagem vazia do Plano
-         Semanal (ganhou wrapper bg-surface-2), lançamento individual
-         dentro de semana expandida (bg-surface-0→2, hover 2→3 —
-         estava INVERTIDO, filho mais escuro que o pai)
-      🟡 Mapeados mas NÃO tratados ainda (usuário mandou prints,
-         confirmou que quer varredura completa, mas sessão fechou
-         antes): Ajustes.tsx (Configurações Billable, bloco de
-         confirmação de meta em Meta Semanal), Registros.tsx (dia
-         expandido → lançamentos), possivelmente Timesheet
-  🟡 4.3  Cor do projeto como identidade
-      ✅ 4.3a — consolidação mecânica: 2 tokens novos no index.css
-         (--proj-encerrado:#9CA3AF, --proj-excluido:#6B7280,
-         substituindo 5 hex inconsistentes entre Resumo/Registros) +
-         8 pontos de shadow-sm (cru) trocados por shadow-e1 (token) em
-         5 arquivos
-      ⬜ 4.3b — REVERTIDA no mesmo dia. Ver "Pendências" abaixo.
-  ✅ 4.4  Movimento — coberto pelo 3.5h/3.5i (transições calibradas,
-         tailwindcss-animate segue não instalado por decisão)
-
-AVULSAS — fora de bloco
-  ⬜ Seletor de tema em Ajustes
-  ⬜ Arquivados invisíveis + exclusão real de projeto
-  ⬜ Contagem de lembretes na sidebar não atualiza
-  ⬜ Lançar horas em um toque no celular (não bloqueante)
-  ⬜ Correção do Billable (getFooterClass usa 8.5 literal) — adiada
-  ⬜ Timesheet mobile: seleção de linha por teclado
-  ⬜ Nome de exibição configurável no rodapé da Sidebar
-  ⬜ Dashboard.tsx: código morto, confirmar e excluir
-  ⬜ 5 candidatos a usar a primitiva Dica em vez do title nativo: 4
-     etiquetas de projeto em Registros.tsx, 1 em
-     BreakdownSubcategorias.tsx:55
-  ⬜ Billable.tsx:841/1158 e Timesheet.tsx:351 — 3 <Link> que copiam
-     manualmente as classes do Button em vez de usar a primitiva
-  ⬜ ModalHorarioDia.tsx: hex legado (#161B22, #03A9F4, gray-800 etc.)
-     ainda não migrado para tokens — decisão consciente, fica para
-     quando o Bloco 4 tratar cor de verdade
-  ⬜ NOVA (01/09): 2 modais desenhados à mão sem acessibilidade —
-     ProjetoDetalhe.tsx (~2146, excluir fase com subcategorias) e
-     Resumo.tsx (~1248, exclusão permanente). Não passam por useModal:
-     sem focus trap, Tab preso, Escape coordenado, restauração de foco.
-     Ver "Pendências" abaixo para detalhe.
-  ⬜ NOVA (01/09): 4.3b — cor do projeto como identidade além da
-     bolinha, especificamente reestruturação de Projetos.tsx de tabela
-     para blocos separados. Ver "Pendências" abaixo.
-  ⬜ NOVA (01/09): trocar a biblioteca de ícones (lucide-react) por
-     algo "mais premium" — mencionado de passagem pelo usuário, nunca
-     formalizado em proposta. Se retomar, pesquisar e comparar opções
-     reais (Phosphor, Heroicons, Tabler, Radix Icons) antes de propor.
+BLOCO 8 — Aba Ferramentas            ░░░░░░░░░░░░  0% (protótipo visual
+                                       pronto e aprovado, código não
+                                       iniciado — ver seção dedicada)
 ```
 
 > **Manter este painel atualizado.** Ao fim de cada leva o assistente deve
@@ -130,215 +110,168 @@ AVULSAS — fora de bloco
 
 ---
 
-## 🧩 Pendências detalhadas (não tratar sem reler isto)
+## 🧩 Pendências técnicas abertas
 
-### Pendência 1 — 4.3b: cor do projeto como identidade (Projetos.tsx)
+### Bug de ordenação de margem (`metas_billable.ts`) — não corrigido de propósito
 
-Aprovado em conceito: trocar a bolinha de cor por borda lateral
-colorida (3px) nas linhas da lista de Projetos.tsx. Mas o usuário
-também quer separação real tipo card entre as linhas (espaço visível,
-não só a linha fina `divide-y` que já existe), nos dois formatos:
-desktop (hoje é uma `<table>` HTML real com `border-collapse`,
-`<tbody className="divide-y divide-hair">`) e mobile (hoje já é
-`<div grid>` empilhado via `md:table-row`, mas ainda colado).
+`buscarMargemMinimaVigente` e `buscarMargemMinimaVigenteMensal`
+(`services/metas_billable.ts`, ~linhas 150-151 e 217-218) ordenam a
+vigência **só por `criado_em` DESC**, ignorando `semana_inicio`/`mes_inicio`.
+Mesmo padrão de bug já corrigido em `horas_base_semanal`/`mensal` (que
+corretamente ordena por `semana_inicio`/`mes_inicio DESC`, com `criado_em`
+só como desempate) — a correção nunca foi replicada nas tabelas de margem.
 
-**TENTATIVA PARCIAL JÁ FEITA E REVERTIDA** (01/09, mesmo dia): aplicar
-só a borda lateral (via `style` inline `border-left` na primeira
-`<td>`), sem a separação entre linhas. Resultado: como as linhas ficam
-coladas, as bordas de cada `<td>` se uniram numa **única linha vertical
-contínua** ao longo de toda a tabela, em vez de segmentos de cor por
-projeto — nada a ver com a proposta aprovada em HTML (que mostrava
-cards com `border-radius` e gap, cada um com sua própria borda).
-Revertido via `git revert` (nunca chegou a ser commitado de fato —
-houve confusão de HEAD no meio da reversão, resolvida com um segundo
-`revert` + `git checkout` do arquivo; ver histórico de commits).
+**Risco:** um lançamento retroativo de vigência de margem com `criado_em`
+mais recente pode sobrescrever silenciosamente uma vigência com data de
+início mais próxima do período de referência.
 
-**Lição:** borda lateral e separação entre linhas **não são
-independentes** — a borda só funciona como identidade visual por linha
-se as linhas já estiverem segmentadas. Não tentar a borda de novo
-isoladamente. Quando retomar: as duas mudanças juntas na mesma leva
-(reestruturação de tabela-para-blocos + borda), com **mockup HTML
-fiel** ao resultado esperado partindo da estrutura real (`border-collapse`
-atual), não um mockup com cards já espaçados artificialmente.
+**Por que não foi corrigido:** a leva 6.1 (performance) precisava
+reproduzir o comportamento atual EXATO para bater com o gabarito
+capturado antes da refatoração — misturar correção de bug com mudança de
+performance na mesma leva impede saber se uma divergência é erro de
+tradução ou efeito do fix.
 
-Vale a pena, antes de reestruturar, olhar `Select-String -Path
-src\pages\Projetos.tsx -Pattern "th className|Nome|Status|Ações"` para
-mapear as 3 colunas reais (Nome/Status/Ações) antes de montar o
-mockup — isso não chegou a ser feito.
+**Ao retomar:** leva separada. Antes de corrigir, avaliar se há alguma
+vigência de margem inserida fora de ordem no histórico real (pode ser
+que o bug seja só teórico até agora). A função `resolverMargemVigente`
+em `Billable.tsx` (dentro de `calcularSaldoAcumulado`/`Mensal` e
+`buscarDadosAnuais`) replica esse mesmo comportamento e precisaria ser
+corrigida junto.
 
-### Pendência 2 — 2 modais sem acessibilidade
+### Falta de CHECK de validade no banco (achado, não é bug confirmado)
 
-`ProjetoDetalhe.tsx` (~linha 2146, confirmação de excluir fase com
-subcategorias) e `Resumo.tsx` (~linha 1248, confirmação de exclusão
-permanente) replicam manualmente o padrão de modal (`div fixed
-inset-0` + scrim + `Surface elevacao={2} comSombra={false}`) mas **não
-passam pelo hook `useModal`** criado na Frente 3 do 3.5g. Sem focus
-trap, Tab preso, Escape coordenado por pilha, nem restauração de foco
-— diferente dos outros 5 modais oficiais.
+Não existe migration SQL confirmando `CHECK (horas_base > 0)` ou similar
+para `horas_base_semanal`/`mensal` e `metas_billable_margem`/`_mensal` —
+validação só client-side (`Ajustes.tsx`), inconsistente entre si:
+- `handleSalvarHorasBaseSemanal`/`Mensal` bloqueiam `<= 0`
+- `handleSalvarMargemMensal` bloqueia `< 1`
+- `handleSalvarMargem` (versão **semanal**) só tem `min="0"` no HTML —
+  não impede negativo via edição ou script
+- `config.meta_semanal` (fallback final) também sem guarda visível
 
-Ao retomar: avaliar se algum dos dois pode simplesmente reaproveitar o
-componente `ModalConfirmacao` em vez de duplicar JSX à mão (mais
-simples que aplicar `useModal` avulso).
+Risco teórico, não confirmado em dados reais. Não é leva agendada — fica
+como conhecimento para se um dia aparecer bug estranho de meta zerada.
 
-### Pendência 3 — 4.2, pontos ainda não tratados
+### Conflito de horário no ModalRegistro para data fora do range carregado
 
-O usuário mandou prints de 5 telas (Plano semanal vazio ✅ tratado,
-Lançamentos por semana ✅ tratado, dia expandido em Registros ⬜,
-Configurações/Ajustes ⬜, Horário padrão em Ajustes — sem aninhamento,
-não precisa) pedindo varredura completa de hierarquia "harmoniosa".
-Só dois pontos foram tratados antes da sessão fechar. Ao retomar,
-seguir o mesmo formato: ver a estrutura real (`Select-String`) antes
-de montar HTML, uma proposta por vez, aprovação antes de prompt.
+Desde a leva 6.4 (Registros.tsx filtra por semana/dia na query), o array
+que alimenta `registrosExistentes` do `ModalRegistro` é só a fatia
+carregada (semana/dia visível), não mais o histórico inteiro. O campo de
+data do modal (sem min/max) permite escolher qualquer data — se o
+usuário digitar manualmente uma data de outra semana, a detecção de
+conflito não vai enxergar registros já existentes naquele dia.
 
----
-
-## 🧠 Lições da sessão de 01/09/2026
-
-### Sobre decisão visual (a mais repetida e mais cara desta sessão)
-- **Falhou 3 vezes até virar regra crítica**: 1) mostrar comparação de
-  densidade via `visualize:show_widget` (SVG) em vez de HTML real; 2)
-  mesma coisa para PageHeader vs. ProjetoDetalhe; 3) mesma coisa de
-  novo, ainda com SVG, na segunda tentativa do mesmo caso. O usuário
-  precisa literalmente abrir um arquivo `.html` no navegador, com as
-  cores e fontes reais do projeto, para conseguir avaliar — ele disse
-  isso explicitamente e por escrito. **Nunca mais usar
-  `visualize:show_widget` para decisão de design deste projeto.**
-- **Proposta HTML "bonita" pode enganar sobre o resultado real.** A
-  proposta de borda lateral em Projetos.tsx foi aprovada olhando um
-  HTML onde cada linha já tinha espaço/gap entre si — mas o app real
-  usa `divide-y` sem gap. O mockup deveria ter usado a estrutura real
-  (tabela colada) para não prometer um efeito que o CSS não entregaria
-  sem mudança estrutural adicional.
-- **Uma proposta de cada vez, não um leque.** Depois de ficar confuso
-  com 4 opções simultâneas (A/B/C/D) na primeira tentativa da 4.3b, o
-  usuário pediu explicitamente "uma proposta por vez, eu digo sim/não/
-  ajusta". Isso funcionou bem no resto da sessão (barra de fase → não;
-  lista de Projetos → sim, com problema depois; hierarquia em
-  subcategorias/plano/lançamentos → sim, sem problema).
-- **Perguntar sem mostrar o objeto real é o mesmo erro, mesmo em
-  texto.** Perguntar "incluir X também?" sem antes ter mostrado X
-  (código real, imagem real) é a mesma falha da regra de HTML, só
-  disfarçada — aconteceu ao perguntar se `ProjetoDetalhe` deveria
-  entrar no `PageHeader` sem antes mostrar a estrutura real dele.
-
-### Sobre arquivo perdido / verificação de disco
-- Ver regra crítica já registrada em memória: toda leva que cria
-  arquivo novo termina com `Get-ChildItem` provando existência física,
-  e usa `npx tsc -b --force` (não só `tsc -b`) por causa do cache
-  incremental `.tsbuildinfo`.
-- **`git add` de caminho inexistente não gera erro** — o commit passa
-  normalmente sem o arquivo. Isso permitiu que `Secao.tsx` "sumisse"
-  por duas frentes inteiras sem ninguém notar, incluindo o próprio
-  Claude aprovando testes que na real testavam o código ANTIGO
-  (`Resumo.tsx` sem `Secao` nenhuma, só que visualmente idêntico).
-- Quando descoberto, também faltava o export no barrel (`index.ts`) —
-  ou seja, a leva inteira (arquivo + barrel + aplicação em Resumo.tsx)
-  não tinha sido persistida, não só o arquivo isolado.
-
-### Sobre troca de executor no meio de uma leva
-- Antigravity ficou sem cota **no meio** da aplicação da Parte 3 de
-  uma migração de 12 partes. `git diff` do arquivo em questão veio
-  vazio (nada tinha sido escrito), então a troca para Claude Code foi
-  limpa — mas o novo agente não tinha visto nenhuma decisão tomada
-  antes da troca (ex.: convenção de `transition-opacity` em vez de
-  `transition-colors` para elementos condicionais sem transição real).
-  Cada prompt para o novo executor precisou reincluir essas decisões
-  explicitamente no "Contexto", porque "combinamos isso antes" não
-  significa nada para um agente que não viu a conversa anterior.
-
-### Sobre `git revert` e HEAD
-- `git revert HEAD` reverte o **último commit**, não "a última coisa
-  que eu fiz na conversa". Se uma mudança foi feita mas nunca
-  commitada (ficou só no working directory), `HEAD` ainda aponta para
-  o commit anterior a ela — reverter ali desfaz outra coisa. Antes de
-  reverter, sempre confirmar com `git status` e `git log --oneline -3`
-  o que realmente está em qual estado.
-
-### Sobre hierarquia de elevação (achado técnico)
-- A primitiva `Surface` tinha a sombra **fixa em `shadow-e1`**
-  independente do valor de `elevacao` escolhido — corrigido com um
-  mapa `{0:'', 1:'shadow-e1', 2:'shadow-e2', 3:'shadow-e3'}`, mesmo
-  padrão já usado para as cores de fundo (`elevacaoClasses`).
-- No app real, hoje quase não existe "card dentro de card" com
-  `Surface` aninhada — a maioria das seções pousa direto no fundo da
-  página. O aninhamento real está em conteúdo **solto** (`<div>` com
-  `bg-surface-N` direto) dentro de uma `Surface`, não `Surface` dentro
-  de `Surface`. A correção, portanto, é trocar a classe de fundo do
-  filho solto, não mexer na prop `elevacao`.
-- Um caso (lançamento individual dentro de semana expandida) estava
-  **invertido**: `bg-surface-0` (mais escuro que o pai) em repouso,
-  clareando só no hover. Corrigido para `bg-surface-2`/`hover:bg-surface-3`.
+Aceito conscientemente como regressão de caso raro. **Ao retomar:**
+avaliar busca sob demanda dentro do próprio `ModalRegistro` quando o
+campo de data mudar (padrão B1 já esboçado), como leva separada — o
+componente é compartilhado por Registros, ProjetoDetalhe e possivelmente
+outras telas. Em ProjetoDetalhe (leva 6.3) esse problema NÃO existe,
+porque lá foi preservada uma segunda query sem filtro (`todosRegistros`)
+específica para essa validação.
 
 ---
 
-## 📁 Arquivos e componentes criados nesta sessão (3.5j)
+## 📁 Novas funções de service (Blocos 6 e 7)
 
-| Arquivo | Props | Onde é usado |
+| Arquivo | Função | Uso |
 |---|---|---|
-| `src/components/ui/PageHeader.tsx` | `titulo`, `subtitulo?`, `acao?`, `className?` | Lembretes.tsx, Projetos.tsx |
-| `src/components/ui/Secao.tsx` | `titulo`, `className?` | Resumo.tsx (títulos "Projetos"/"Rotina") |
-| `src/components/ui/EmptyState.tsx` | `icone`, `corIcone`, `corFundoIcone`, `titulo`, `descricao` (ReactNode), `variante?: 'padrao'\|'display'`, `acao?` | 6 telas: Lembretes, Resumo, Registros, Projetos, Timesheet (x2) |
-| `src/components/ui/SecaoColapsavel.tsx` | `titulo`, `aberto`, `onToggle`, `contador?`, `descricao?`, `acao?`, `className?` | ProjetoDetalhe.tsx (Fases, Plano semanal, Lançamentos) |
-| `src/hooks/useModal.ts` | `useModal(aberto, containerRef, aoFechar)` | 5 modais + (parcialmente) Sheet.tsx |
+| `horas_base.ts` | `listarTodasHorasBaseSemanalDoUsuario(usuarioId)` | Todas vigências semanais, sem filtro de data |
+| `horas_base.ts` | `listarTodasHorasBaseMensalDoUsuario(usuarioId)` | Todas vigências mensais, sem filtro de data |
+| `metas_billable.ts` | `listarTodasMargensSemanal()` | Todas vigências de margem semanal |
+| `metas_billable.ts` | `listarTodasMargensMensal()` | Todas vigências de margem mensal |
+| `billable.ts` | `buscarRegistrosBillableNoIntervalo(dataInicio, dataFim)` | Registros billable brutos num intervalo arbitrário |
+| `timesheet_ordem.ts` (novo) | `buscarOrdemManual(usuarioId, semanaInicio)` | Ordem salva de uma semana (uma query) |
+| `timesheet_ordem.ts` (novo) | `salvarOrdemManual(usuarioId, semanaInicio, projetoIds[])` | Upsert em lote (uma chamada) |
 
-Barrel (`src/components/ui/index.ts`) exporta as 12 primitivas.
-`/ui-kit` documenta todas com exemplo funcional (seções 1-12).
+Em `Billable.tsx` (não exportadas, uso interno): `resolverHorasBaseVigente`,
+`resolverMargemVigente` (bug de ordenação preservado intencionalmente,
+ver "Pendências técnicas"), `buscarDadosAnuais`.
+
+Nova tabela Supabase: `timesheet_ordem_manual` (usuario_id, semana_inicio,
+projeto_id, posicao, criado_em, atualizado_em; unique nos 3 primeiros
+campos; RLS com 4 policies `auth.uid() = usuario_id`; `on delete cascade`
+em ambas as FKs).
 
 ---
 
-## 🔤 Tokens novos criados nesta sessão
+## 🎯 Bloco 8 — Aba Ferramentas (próxima frente grande, 2+ sessões)
 
-**`src/index.css`** (bloco `:root`, junto de `--proj-1..12`):
-```css
---proj-encerrado: #9CA3AF;
---proj-excluido: #6B7280;
-```
-Fixos, não variam por tema (diferente de `--proj-1..12`, que variam).
+Protótipo visual já aprovado (ver seção "Direção visual premium" acima).
+Ordem sugerida de implementação:
 
-**Escala de gap/ctl reduzida (3.5i, densidade):**
-```css
---gap-2xs:4px; --gap-xs:4px; --gap-sm:6px; --gap-md:8px; --gap-lg:12px; --gap-xl:16px;
---ctl-sm-x:8px; --ctl-sm-y:4px; --ctl-md-x:10px; --ctl-md-y:5px; --ctl-aba-x:10px; --ctl-aba-y:6px;
-```
+**8.1** rota/casca da aba (sidebar + abas internas) →
+**8.2** Calculadora (3 modos: intervalo→centesimal, hh:mm↔centesimal
+bidirecional, somador — todos já validados no protótipo, inclusive
+teclado numérico funcional e histórico) →
+**8.3** Fechamento da semana (checklist: dias sem lançamento, dias
+abaixo da meta, gaps grandes, lançamentos sem categoria, projetos
+billable sem `codigo_externo`, sobreposições nunca validadas) →
+**8.4** Calendário semanal (grade de horas, blocos por lançamento,
+buracos visíveis clicáveis, linha do "agora" — **decisão de responsivo
+pendente**, ver acima) →
+**8.5** Calendário mensal (heatmap por distância da meta diária) →
+**8.6** "Quanto falta" (horas restantes pra bater a meta da
+semana/billable/dia).
 
-**Regra global corrigida (`@layer base { button {...} }`):**
-```css
-/* antes: @apply transition-all duration-200; */
-@apply transition-colors duration-d1 ease-ez;
-```
+---
+
+## 🗂️ Pendências herdadas (redesign, ainda não retomadas)
+
+- **4.3b** — borda lateral colorida em Projetos.tsx + reestruturação de
+  tabela para blocos. Tentativa parcial revertida em 01/09 (borda e
+  separação de linha não são independentes — a borda só funciona como
+  identidade visual se as linhas já estiverem segmentadas com gap ou
+  fundo próprio). Precisa mockup HTML fiel à estrutura real
+  (`border-collapse`) mostrando as duas mudanças JUNTAS antes de
+  qualquer prompt.
+- **2 modais sem `useModal`** — ProjetoDetalhe.tsx (~2146, confirmação
+  de excluir fase com subcategorias) e Resumo.tsx (~1248, confirmação
+  de exclusão permanente). Sem focus trap/Tab/Escape coordenado/
+  restauração de foco. Avaliar reaproveitar `ModalConfirmacao` em vez de
+  aplicar o hook avulso.
+- **Resto do 4.2** (hierarquia de elevação) — Ajustes.tsx (Configurações
+  Billable), Registros.tsx (dia expandido), possivelmente Timesheet.
+- **Troca de biblioteca de ícones** (lucide-react → Phosphor/Heroicons/
+  Tabler/Radix Icons) — mencionado de passagem, nunca formalizado.
+- **Buraco de arquivar/excluir projeto** (achado em 25/08): projeto
+  arquivado fica invisível para sempre (nenhuma tela/aba mostra
+  arquivados); `desarquivarProjeto` e `excluirPermanentemente` existem
+  no service mas estão órfãos, sem botão algum na UI. Falta: tela de
+  arquivados + ligar exclusão permanente a algum lugar com confirmação
+  forte.
 
 ---
 
 ## 🛠️ Ambiente & convenções fixas
 
-Stack: React + TypeScript + Tailwind + Vite + Supabase. Deploy Vercel.
-Local: Windows + PowerShell.
+Stack: React 19 + TypeScript + Tailwind CSS 3 + Vite + Supabase. Deploy
+Vercel (`horas-app-nine.vercel.app`). Local: Windows + PowerShell
+(`C:\Users\Mattos\Documents\HORAS-APP`). Executor: **Claude Code**.
 
 - **`verbatimModuleSyntax` ativo** — import de tipo exige a palavra `type`.
 - **`noUnusedLocals` ativo** — import ou variável órfã quebra o `npx tsc -b`.
-- Tema por atributo `data-theme`, **nunca** pelo modificador `dark:`.
-- Escala de duração calibrada: `--d1:300ms` (hover simples) `--d2:550ms`
-  (percurso longo/painel/barra) `--d3:260ms` (entrada/saída modal)
-  `--d4:800ms` (barras de progresso específicas, preservadas) `--d5:380ms`.
-  Sempre acompanhadas de `ease-ez`, exceto o toast que usa `ease-out`
-  de propósito (desacelera na saída).
+- Semana: **sábado a sexta**. Meta diária = meta semanal ÷ 5 (Timesheet e
+  Resumo, NUNCA Billable).
+- `.upsert()` funciona normalmente quando a chave única não envolve
+  coluna anulável (ex: `timesheet_ordem_manual`). Quando envolve coluna
+  anulável com índice parcial, usar `.is()` (nunca `.eq()` para nulls) +
+  padrão select-antes-de-decidir (ver `plano_semanal.ts`).
+- PowerShell do usuário **não aceita `&&`** — sempre usar `;` para encadear.
 
 ### Testar no celular
-
 ```powershell
 npm run dev -- --host
 ```
 Usar a linha **Network**. É `http`, então o PWA não instala e o service
 worker não registra — bom para testar layout sem cache velho.
 
-### Mexeu em tailwind.config.js ou index.css?
+### PWA com cache preso (Edge/Chrome)
+F12 → Application → Service Workers → Unregister + Clear site data.
 
-**Reiniciar `npm run dev`** (Ctrl+C e rodar de novo) — o Tailwind só lê a
-config na subida, sem erro nem aviso se a classe simplesmente não existir.
-Depois, `Ctrl+Shift+R` (ou `Ctrl+F5`) no navegador para limpar cache de CSS.
+### Mexeu em tailwind.config.js ou index.css?
+**Reiniciar `npm run dev`** — o Tailwind só lê a config na subida.
 
 ### Depois de criar arquivo novo, SEMPRE
-
 ```powershell
 Get-ChildItem <caminho-do-arquivo>     # prova física de existência
 npx tsc -b --force                     # ignora cache incremental
@@ -357,6 +290,9 @@ npx tsc -b --force                     # ignora cache incremental
 1. Rodar o script de empacotamento de novo (os arquivos mudaram).
 2. Pedir o `HANDOFF.md` reescrito, **com o painel atualizado**.
 3. Substituir na raiz do repositório e commitar.
+4. **Confirmar com `git log --oneline -3` e `git status` que o commit
+   realmente aconteceu antes de encerrar** — nunca assumir que "testei,
+   ok" implica "já commitado" sem checar.
 
 ### Script de empacotamento (PowerShell)
 
@@ -391,107 +327,83 @@ explorer $destino
 
 ---
 
-## 🤖 Trabalhando com Antigravity (Gemini) e Claude Code
+## 🤖 Trabalhando com Claude Code
 
-**Executor principal: Antigravity/Gemini.** Claude Code fica em
-reserva para quando a cota do Gemini esgotar (aconteceu no meio desta
-sessão — troca foi limpa, ver "Lições" acima sobre o que refazer ao
-trocar).
-
-Modelos Antigravity disponíveis: Gemini 3.7/3.6/3.5 Flash
-(Low/Medium/High) e Gemini 3.1 Pro (Low/High). Preferir sempre o Flash
-mais novo (hoje 3.7).
-
-| Complexidade | Modelo |
-|---|---|
-| Baixa — CSS pontual, renomeação, correção TS single-file | 3.7 Flash (Low) |
-| Média — multi-arquivo, ou single-file com mudança estrutural | 3.7 Flash (Medium) |
-| Alta — telas novas, UI complexa, arquivo grande e complexo | 3.7 Flash (High) |
-| Arquitetura leve | 3.1 Pro (Low) |
-| Arquitetura — banco, migrations, triggers | 3.1 Pro (High) |
-
-**Conversa nova** sempre que criar arquivo novo, virar de contexto
-arquitetural, ou depois de um incidente de reescrita não autorizada.
-
-### Estrutura de prompt que funciona
+Estrutura de prompt usada (funcionou bem em todas as levas, inclusive as
+grandes com múltiplas partes e as que envolveram migration SQL):
 
 ```
 ## Contexto            (stack, branch, arquivo alvo, regra de negócio)
 ## Passo 1 — LER ANTES DE EDITAR
-## Passo 2 — RELATÓRIO (perguntas que forcem citar o disco)
-## Passo 3 — Edição (só após confirmação)
-## O que NÃO pode mudar
+## Passo 2 — RELATÓRIO (perguntas que forcem citar o disco com linhas)
+## Passo 3 — Proposta de plano (levas grandes: sem código, aguarda aprovação)
+## Passo 4 — Edição (só após confirmação, dividida em partes numeradas
+   se grande — uma parte por arquivo ou por bloco lógico coeso)
 ## Restrições
 ## Critério de aceite
 ```
 
-Para **substituição total de bloco**, o Passo 2 deve incluir a pergunta:
-"o bloco do disco é idêntico, caractere por caractere, ao bloco ANTES
-transcrito abaixo? Se houver qualquer diferença, transcreva a linha
-divergente e PARE."
+**Para refatoração de cálculo/fórmula:** capturar gabarito de valores
+reais ANTES de qualquer edição, validar número a número depois.
 
-Para **levas grandes** (5+ arquivos, 50+ ocorrências), pedir relatório e
-diff em **partes numeradas por arquivo**, com um resumo consolidado
-(total, contagem por valor) ao final do relatório.
+**Para leva que mexe em fonte de dados compartilhada:** exigir relatório
+completo de TODOS os consumidores do estado antes de propor o filtro —
+um agente já descobriu assim que `todosRegistros` em ProjetoDetalhe
+alimentava a validação de conflito de horário cross-project, dependência
+que não estava no prompt original.
 
-Para **levas que criam arquivo novo**, sempre incluir no critério de
-aceite: "Get-ChildItem confirma o arquivo existe fisicamente" e usar
-`npx tsc -b --force`, não `tsc -b`.
+**Para leva que cria tabela nova no Supabase:** pedir o SQL como entrega
+isolada (Passo 4a), rodar manualmente e confirmar ANTES do agente seguir
+para o código TypeScript. Nunca o agente executa SQL.
+
+**Estatísticas agregadas — média vs. consolidado:** não são a mesma
+coisa e podem divergir bastante quando os denominadores (metas) variam
+de tamanho entre períodos. Média = "nota de cada período pesa igual";
+consolidado = "soma tudo, divide no final, período com mais peso conta
+mais". Vale reusar essa explicação se o padrão aparecer de novo.
 
 ### O agente nunca
-- roda `npx tsc -b`, `npm run build`, `git` ou qualquer comando de terminal
-  (inclusive leitura: `git diff`, `git status`, `ls`, `cat`, `grep`) — se
-  tentar, recusar pela opção "No, tell the agent what to do instead" e
-  reafirmar a regra.
+- roda `npx tsc -b`, `npm run build`, `git`, SQL ou qualquer comando de terminal
 - faz commit
 - instala pacote
 - toca arquivo fora do escopo declarado
-- cria arquivo auxiliar/script para fazer contagem
 
-### Lições de validação
-- **Nunca aprovar em cima do resumo do agente.** Exigir o diff completo.
+### Lições de validação (gerais, continuam valendo)
+- **Nunca aprovar em cima do resumo do agente.** Exigir o diff/código
+  real colado no chat, com contexto de vizinhança — "Edit... Added N
+  lines" do editor não é prova de nada.
 - **A tela é o juiz.** Testar visualmente sempre, mesmo com diff limpo e
   `tsc` sem erro.
-- **Duas correções sem efeito = parar e substituir o bloco inteiro.**
-- **Comparar o aplicado com o especificado**, não só ler o diff
-  procurando erro.
-- **Diff "limpo" pode esconder ausência de escrita real** — ver lição
-  do `Secao.tsx` acima. Terminar toda leva de arquivo novo com prova
-  física de disco.
+- **Confirmar commit com `git log`/`git status`, não assumir pelo
+  "testei, ok".**
 - **Um agente pode investigar além do pedido e encontrar problema
-  real** (ex.: o `bg-surface-0` invertido) — quando isso acontecer,
-  tratar como achado válido, decidir separadamente, não ignorar.
+  real** — tratar como achado válido, decidir separadamente, nunca
+  ignorar.
+- **Uma leva, uma mudança de categoria.** Não misturar correção de bug
+  com refatoração de performance (ou qualquer troca de tipo de mudança)
+  na mesma leva — dificulta saber se uma divergência é erro novo ou
+  efeito esperado do fix.
 
 ---
 
 ## 🔀 Branches
 
-- **`main`** — tudo desta sessão está aqui, em produção.
-- Commits da sessão de 01/09/2026, em ordem aproximada (lista longa,
-  ver `git log --oneline` para a sequência exata e hashes):
-  - tokens: aplica duration-d1/d2/d3 e propriedades especificas de transicao (ProjetoDetalhe, Resumo)
-  - tokens: aplica duration-d1 e propriedades especificas de transicao (Projetos)
-  - tokens: aplica duration-d1/d4 e propriedades especificas de transicao (Billable)
-  - tokens: aplica duration-d1 na linha da tabela (Timesheet)
-  - tokens: aplica transicoes especificas (Login)
-  - tokens: aplica duration-d1/d3 e propriedades especificas de transicao (Cadastro)
-  - tokens: corrige ease-ez ausente na linha 35 (Login)
-  - tokens: aplica duration-d1 nas transicoes de cor (Dashboard)
-  - tokens: aplica duration-d1 nas transicoes de cor (ModalHorarioDia)
-  - tokens: aplica duration-d1 e propriedades especificas de transicao (4 modais restantes)
-  - tokens: aplica duration-d1/d2 e propriedades especificas de transicao (MenuAcoes, Toast, BreakdownSubcategorias, DataRow)
-  - design: reduz escala de gap e padding de controle + corrige transition-all global de button (3.5i + follow-up 3.5h)
-  - design: extrai primitiva PageHeader, aplica em Lembretes e Projetos
-  - design: extrai primitiva EmptyState, aplica nos 6 cards de estado vazio
-  - design: extrai primitiva SecaoColapsavel, aplica em Fases, Plano semanal e Lancamentos
-  - fix: recupera Secao.tsx que nunca foi persistido no disco
-  - design: completa Frente 2 (Secao aplicada no Resumo) e adiciona as 4 primitivas novas ao /ui-kit
-  - tokens: corrige transition-all remanescente encontrado na varredura final (3.5l)
-  - design: consolida cor de status (encerrado/excluido) em tokens e shadow-sm em shadow-e1 (4.3a)
-  - fix: Surface aplica sombra correspondente ao nivel de elevacao (e1/e2/e3), antes fixo em e1 (4.2)
-  - design: substitui bolinha de cor por borda lateral colorida (REVERTIDO no mesmo dia, ver commits seguintes)
-  - Revert "fix: Surface..." (revert acidental, causado por confusão de HEAD)
-  - Reapply "fix: Surface..." (correção do revert acidental)
-  - design: aplica hierarquia de elevacao em subcategorias, plano semanal vazio e lancamentos individuais (4.2)
+- **`main`** — tudo desta sessão está aqui, em produção. Sem uso de
+  `redesign` nesta sessão.
+- Commits desta sessão, em ordem:
+  1. `fix: remove chip BILLABLE redundante (todas as linhas ja sao billable)`
+  2. (5.2) card de lançamento — ver `git log` para a mensagem exata
+  3. `fix: menu de acoes nao corta mais a esquerda em telas estreitas`
+  4. `feat: paleta de comandos guarda e exibe ultimos destinos navegados`
+  5. `perf: Timesheet filtra registros por semana na query, em vez de baixar tudo e filtrar em memoria`
+  6. `perf: substitui loop de ate 52/60 requisicoes por agregacao unica no calculo de saldo acumulado do Billable`
+  7. `perf: ProjetoDetalhe filtra registros por projeto na query, mantendo busca ampla so para deteccao de conflito de horario`
+  8. `perf: Registros filtra por semana/dia visivel na query, com re-fetch automatico via useEffect`
+  9. `perf: Resumo pagina Semanal e Diario de 60 em 60 dias, mantendo Por Projetos com historico completo, e ordena do mais recente para o mais antigo`
+  10. `feat: adiciona aba Anual ao Billable com media mensal e consolidado do ano`
+  11. `fix: aba Anual do Billable oculta meses sem nenhum registro billable`
+  12. `feat: adiciona botao Voltar para tela de origem (Timesheet, Billable e ProjetoDetalhe -> Registros)`
+  13. `feat: botao Voltar mostra origem (Resumo/Projetos) ao entrar em ProjetoDetalhe, mantendo fallback generico sem origem`
+  14. `feat: ordenacao manual do Timesheet vira persistente por semana (tabela timesheet_ordem_manual), corrige flash de ordem errada causado por fetch duplicado ao entrar na tela`
 
 Para localizar um ponto de retorno: `git log --oneline`.
