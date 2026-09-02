@@ -16,6 +16,7 @@ const Ajustes   = lazy(() => import('./pages/Ajustes'))
 const Lembretes = lazy(() => import('./pages/Lembretes'))
 const ProjetoDetalhe = lazy(() => import('./pages/ProjetoDetalhe'))
 const UIKit = lazy(() => import('./pages/UIKit'))
+const Ferramentas = lazy(() => import('./pages/Ferramentas'))
 
 function App() {
   return (
@@ -105,6 +106,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProjetoDetalhe />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/ferramentas"
+              element={
+                <ProtectedRoute>
+                  <Ferramentas />
                 </ProtectedRoute>
               }
             />
