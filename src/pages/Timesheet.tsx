@@ -3,7 +3,24 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { listarProjetos } from '../services/projetos'
+import { buscarOrdemManual, salvarOrdemManual } from '../services/timesheet_ordem'
 import { useConfig } from '../contexts/ConfigContext'
 import { listarRegistros } from '../services/registros'
 import { buscarHorasBaseSemanal } from '../services/horas_base'
@@ -44,10 +61,143 @@ function formatMeta(val: number): string {
   return Number(val.toFixed(2)).toString().replace('.', ',');
 }
 
+function renderCell(duracao: number, dateStr: string, projetoId: string) {
+  let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-hair tabular-nums transition-colors duration-d1 ease-ez "
+
+  if (duracao === 0) {
+    className += "text-ink-500"
+    return (
+      <td className={className}>
+        {formatDuracao(duracao)}
+      </td>
+    )
+  }
+
+  className += "text-ink-900"
+
+  return (
+    <td className={className}>
+      <Link
+        to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
+        state={{ origem: { rotulo: 'Timesheet', url: '/timesheet' } }}
+        className="hover:text-accent transition-colors duration-d1 ease-ez block w-full"
+      >
+        {formatDuracao(duracao)}
+      </Link>
+    </td>
+  )
+}
+
+interface TimesheetRowData {
+  projetoId: string
+  codigo: string | null
+  nome: string
+  seg: number
+  ter: number
+  qua: number
+  qui: number
+  sex: number
+  sab: number
+  dom: number
+  total: number
+}
+
+interface TimesheetRowProps {
+  row: TimesheetRowData
+  selectedRow: string | null
+  toggleRow: (id: string) => void
+  getFormatDate: (dow: number) => string
+}
+
+function TimesheetRow({ row, selectedRow, toggleRow, getFormatDate }: TimesheetRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.projetoId
+  })
+
+  const isSelected = selectedRow === row.projetoId
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+    position: isDragging ? ('relative' as const) : undefined,
+    ...(isSelected ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : {})
+  }
+
+  const codigoCellClassName = `${isDragging ? 'static' : 'sticky left-0 z-10'} md:static md:z-auto bg-surface-1 md:bg-transparent py-3 px-4 font-mono text-sm text-ink-900 tabular-nums min-w-[130px] md:min-w-[100px]`
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={`transition-colors duration-d1 ease-ez group ${isSelected ? '' : 'hover:bg-surface-2'} ${isDragging ? 'shadow-e3 ring-2 ring-accent' : ''}`}
+    >
+      <td
+        className={codigoCellClassName}
+        style={isSelected ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, var(--bg-1))' } : undefined}
+      >
+        <div className="flex items-center gap-md">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="text-ink-300 hover:text-ink-700 cursor-grab active:cursor-grabbing min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors duration-d1 ease-ez touch-none shrink-0 -ml-2"
+            title="Arrastar para reordenar (salvo automaticamente para esta semana)"
+          >
+            <svg className="w-icon-md h-icon-md" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="9" cy="6" r="1.5" />
+              <circle cx="15" cy="6" r="1.5" />
+              <circle cx="9" cy="12" r="1.5" />
+              <circle cx="15" cy="12" r="1.5" />
+              <circle cx="9" cy="18" r="1.5" />
+              <circle cx="15" cy="18" r="1.5" />
+            </svg>
+          </button>
+          <div className="cursor-pointer select-none" onClick={() => toggleRow(row.projetoId)}>
+            <span className="block text-xs text-ink-500 md:text-sm md:text-ink-900">
+              {row.codigo}
+            </span>
+            <span className="block md:hidden font-ui font-semibold text-ink-900 whitespace-normal break-words leading-tight" title={row.nome}>
+              {row.nome}
+            </span>
+          </div>
+        </div>
+      </td>
+      <td
+        role="button"
+        tabIndex={0}
+        className="hidden md:table-cell py-3 px-4 font-semibold text-ink-900 truncate max-w-[200px] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:ring-inset"
+        title={row.nome}
+        onClick={() => toggleRow(row.projetoId)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            toggleRow(row.projetoId)
+          }
+        }}
+      >
+        {row.nome}
+      </td>
+      {renderCell(row.sab, getFormatDate(6), row.projetoId)}
+      {renderCell(row.dom, getFormatDate(0), row.projetoId)}
+      {renderCell(row.seg, getFormatDate(1), row.projetoId)}
+      {renderCell(row.ter, getFormatDate(2), row.projetoId)}
+      {renderCell(row.qua, getFormatDate(3), row.projetoId)}
+      {renderCell(row.qui, getFormatDate(4), row.projetoId)}
+      {renderCell(row.sex, getFormatDate(5), row.projetoId)}
+      <td className="py-3 px-4 text-right font-mono font-bold text-ink-900 tabular-nums">
+        {formatDuracao(row.total)}
+      </td>
+    </tr>
+  )
+}
+
 export default function Timesheet() {
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { config } = useConfig()
+  const { config, loadingConfig } = useConfig()
 
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [registros, setRegistros] = useState<Registro[]>([])
@@ -55,9 +205,10 @@ export default function Timesheet() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
+  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), config.inicio_semana))
   const [filtroCodigo, setFiltroCodigo] = useState('')
   const [selectedRow, setSelectedRow] = useState<string | null>(null)
+  const [ordemManual, setOrdemManual] = useState<string[]>([])
 
   const toggleRow = (id: string) =>
     setSelectedRow(prev => (prev === id ? null : id))
@@ -79,13 +230,15 @@ export default function Timesheet() {
       const startStr = formatYYYYMMDD(currentDate)
       const endStr = formatYYYYMMDD(sunday)
 
-      const [regs, baseSemanal] = await Promise.all([
+      const [regs, baseSemanal, ordem] = await Promise.all([
         listarRegistros(user.id, { dataInicio: startStr, dataFim: endStr }),
-        buscarHorasBaseSemanal(user.id, startStr)
+        buscarHorasBaseSemanal(user.id, startStr),
+        buscarOrdemManual(user.id, startStr)
       ])
 
       setRegistros(regs)
       setMetaSemanaExibida(baseSemanal ?? config.meta_semanal)
+      setOrdemManual(ordem)
 
     } catch (err: any) {
       console.error('Erro ao carregar timesheet:', err)
@@ -96,12 +249,14 @@ export default function Timesheet() {
   }
 
   useEffect(() => {
-    setCurrentDate(getInicioSemana(new Date(), config.inicio_semana))
+    const corrigida = getInicioSemana(new Date(), config.inicio_semana)
+    setCurrentDate(prev => (formatYYYYMMDD(prev) === formatYYYYMMDD(corrigida) ? prev : corrigida))
   }, [config.inicio_semana])
 
   useEffect(() => {
+    if (loadingConfig) return
     carregarDados()
-  }, [user, currentDate, config.inicio_semana])
+  }, [user, currentDate, config.inicio_semana, loadingConfig])
 
   const prevWeek = () => {
     setCurrentDate(prev => {
@@ -162,6 +317,16 @@ export default function Timesheet() {
       .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
   }, [projetos, registros, days, filtroCodigo])
 
+  const tableDataOrdenada = useMemo(() => {
+    if (ordemManual.length === 0) return tableData
+    const indexMap = new Map(ordemManual.map((id, i) => [id, i]))
+    return [...tableData].sort((a, b) => {
+      const ia = indexMap.has(a.projetoId) ? indexMap.get(a.projetoId)! : ordemManual.length
+      const ib = indexMap.has(b.projetoId) ? indexMap.get(b.projetoId)! : ordemManual.length
+      return ia - ib
+    })
+  }, [tableData, ordemManual])
+
   const totals = useMemo(() => {
     return tableData.reduce((acc, row) => ({
       seg: acc.seg + row.seg,
@@ -187,33 +352,6 @@ export default function Timesheet() {
       .catch(() => showToast('Erro ao copiar grade.', 'error'))
   }
 
-  const renderCell = (duracao: number, dateStr: string, projetoId: string) => {
-    let className = "py-3 px-4 text-center font-mono text-sm font-semibold border-x border-hair tabular-nums transition-colors duration-d1 ease-ez "
-
-    if (duracao === 0) {
-      className += "text-ink-500"
-      return (
-        <td className={className}>
-          {formatDuracao(duracao)}
-        </td>
-      )
-    }
-
-    className += "text-ink-900"
-
-    return (
-      <td className={className}>
-        <Link
-          to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
-          state={{ origem: { rotulo: 'Timesheet', url: '/timesheet' } }}
-          className="hover:text-accent transition-colors duration-d1 ease-ez block w-full"
-        >
-          {formatDuracao(duracao)}
-        </Link>
-      </td>
-    )
-  }
-
   const getFooterClass = (duracao: number) => {
     let className = "py-4 px-4 text-center font-mono text-sm font-bold border-x border-hair tabular-nums "
     if (duracao === 0) {
@@ -229,6 +367,31 @@ export default function Timesheet() {
   const getFormatDate = (dow: number) => {
     const d = days.find(d => d.getDay() === dow)
     return d ? formatYYYYMMDD(d) : ''
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } })
+  )
+
+  const handleDragEndTimesheet = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = tableDataOrdenada.findIndex(r => r.projetoId === active.id)
+    const newIndex = tableDataOrdenada.findIndex(r => r.projetoId === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordenada = arrayMove(tableDataOrdenada, oldIndex, newIndex)
+    const novaOrdem = reordenada.map(r => r.projetoId)
+    setOrdemManual(novaOrdem)
+
+    if (!user) return
+
+    salvarOrdemManual(user.id, formatYYYYMMDD(currentDate), novaOrdem).catch(() => {
+      showToast('Não foi possível salvar a nova ordem. Tente novamente.', 'error')
+    })
   }
 
   return (
@@ -387,93 +550,64 @@ export default function Timesheet() {
             </div>
           ) : (
             <div className="overflow-auto max-h-[62vh]">
-              <table className="w-full text-left border-separate border-spacing-0 whitespace-nowrap min-w-[640px] md:min-w-[800px]">
-                <thead>
-                  <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
-                    <th className="sticky top-0 left-0 z-30 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px] md:min-w-[100px]">Código</th>
-                    <th className="hidden md:table-cell sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Sáb</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Dom</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Seg</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Ter</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qua</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qui</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Sex</th>
-                    <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-accent uppercase tracking-wider text-right w-24">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hair">
-                  {tableData.map((row) => (
-                    <tr
-                      key={row.projetoId}
-                      className={`transition-colors duration-d1 ease-ez group ${
-                        selectedRow === row.projetoId
-                          ? ''
-                          : 'hover:bg-surface-2'
-                      }`}
-                      style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
-                    >
-                      <td
-                        className="sticky left-0 z-10 md:static md:z-auto bg-surface-1 md:bg-transparent py-3 px-4 font-mono text-sm text-ink-900 tabular-nums cursor-pointer select-none min-w-[130px] md:min-w-[100px]"
-                        style={selectedRow === row.projetoId ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, var(--bg-1))' } : undefined}
-                        onClick={() => toggleRow(row.projetoId)}
-                      >
-                        <span className="block text-xs text-ink-500 md:text-sm md:text-ink-900">
-                          {row.codigo}
-                        </span>
-                        <span className="block md:hidden font-ui font-semibold text-ink-900 whitespace-normal break-words leading-tight" title={row.nome}>
-                          {row.nome}
-                        </span>
-                      </td>
-                      <td
-                        role="button"
-                        tabIndex={0}
-                        className="hidden md:table-cell py-3 px-4 font-semibold text-ink-900 truncate max-w-[200px] cursor-pointer select-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg focus-visible:ring-inset"
-                        title={row.nome}
-                        onClick={() => toggleRow(row.projetoId)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            toggleRow(row.projetoId)
-                          }
-                        }}
-                      >
-                        {row.nome}
-                      </td>
-                      {renderCell(row.sab, getFormatDate(6), row.projetoId)}
-                      {renderCell(row.dom, getFormatDate(0), row.projetoId)}
-                      {renderCell(row.seg, getFormatDate(1), row.projetoId)}
-                      {renderCell(row.ter, getFormatDate(2), row.projetoId)}
-                      {renderCell(row.qua, getFormatDate(3), row.projetoId)}
-                      {renderCell(row.qui, getFormatDate(4), row.projetoId)}
-                      {renderCell(row.sex, getFormatDate(5), row.projetoId)}
-                      <td className="py-3 px-4 text-right font-mono font-bold text-ink-900 tabular-nums">
-                        {formatDuracao(row.total)}
-                      </td>
-                    </tr>
-                  ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEndTimesheet}
+              >
+                <SortableContext
+                  items={tableDataOrdenada.map(r => r.projetoId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <table className="w-full text-left border-separate border-spacing-0 whitespace-nowrap min-w-[640px] md:min-w-[800px]">
+                    <thead>
+                      <tr className="border-b-2 bg-surface-0" style={{ borderBottomColor: 'color-mix(in srgb, var(--accent) 30%, transparent)' }}>
+                        <th className="sticky top-0 left-0 z-30 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px] md:min-w-[100px]">Código</th>
+                        <th className="hidden md:table-cell sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider w-full">Nome</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Sáb</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-700 uppercase tracking-wider text-center w-20">Dom</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Seg</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Ter</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qua</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Qui</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-ink-900 uppercase tracking-wider text-center w-20">Sex</th>
+                        <th className="sticky top-0 z-20 bg-surface-0 py-4 px-4 text-xs font-bold text-accent uppercase tracking-wider text-right w-24">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-hair">
+                      {tableDataOrdenada.map((row) => (
+                        <TimesheetRow
+                          key={row.projetoId}
+                          row={row}
+                          selectedRow={selectedRow}
+                          toggleRow={toggleRow}
+                          getFormatDate={getFormatDate}
+                        />
+                      ))}
 
-                  {/* Linha de Totais */}
-                  <tr className="bg-surface-0 border-t-2 border-hair-strong">
-                    <td className="md:hidden sticky left-0 z-10 bg-surface-0 py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px]">
-                      Total da Semana
-                    </td>
-                    <td colSpan={2} className="hidden md:table-cell py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
-                      Total da Semana
-                    </td>
-                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.sab)}</td>
-                    <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.dom)}</td>
-                    <td className={getFooterClass(totals.seg)}>{formatDuracao(totals.seg)}</td>
-                    <td className={getFooterClass(totals.ter)}>{formatDuracao(totals.ter)}</td>
-                    <td className={getFooterClass(totals.qua)}>{formatDuracao(totals.qua)}</td>
-                    <td className={getFooterClass(totals.qui)}>{formatDuracao(totals.qui)}</td>
-                    <td className={getFooterClass(totals.sex)}>{formatDuracao(totals.sex)}</td>
-                    <td className="py-4 px-4 text-right font-mono text-base font-black text-accent tabular-nums">
-                      {formatDuracao(totals.total)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      {/* Linha de Totais */}
+                      <tr className="bg-surface-0 border-t-2 border-hair-strong">
+                        <td className="md:hidden sticky left-0 z-10 bg-surface-0 py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider min-w-[130px]">
+                          Total da Semana
+                        </td>
+                        <td colSpan={2} className="hidden md:table-cell py-4 px-4 text-right text-xs font-bold text-ink-700 uppercase tracking-wider">
+                          Total da Semana
+                        </td>
+                        <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.sab)}</td>
+                        <td className="py-4 px-4 text-center font-mono text-sm font-bold text-ink-900 tabular-nums border-x border-hair">{formatDuracao(totals.dom)}</td>
+                        <td className={getFooterClass(totals.seg)}>{formatDuracao(totals.seg)}</td>
+                        <td className={getFooterClass(totals.ter)}>{formatDuracao(totals.ter)}</td>
+                        <td className={getFooterClass(totals.qua)}>{formatDuracao(totals.qua)}</td>
+                        <td className={getFooterClass(totals.qui)}>{formatDuracao(totals.qui)}</td>
+                        <td className={getFooterClass(totals.sex)}>{formatDuracao(totals.sex)}</td>
+                        <td className="py-4 px-4 text-right font-mono text-base font-black text-accent tabular-nums">
+                          {formatDuracao(totals.total)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </Surface>

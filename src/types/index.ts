@@ -99,3 +99,13 @@ export interface PlanoSemanal {
   criado_em: string
 }
 
+export interface TimesheetOrdemManual {
+  id: string
+  usuario_id: string
+  semana_inicio: string
+  projeto_id: string
+  posicao: number
+  criado_em: string
+  atualizado_em: string
+}
+
