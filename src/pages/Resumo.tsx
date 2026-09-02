@@ -1026,7 +1026,7 @@ export default function Resumo() {
                                         comBorda
                                         padding="nenhum"
                                         interativo
-                                        onClick={() => navigate(`/projeto/${proj.id}`)}
+                                        onClick={() => navigate(`/projeto/${proj.id}`, { state: { origem: { rotulo: 'Resumo', url: '/resumo' } } })}
                                         className="p-6 flex flex-col space-y-4 cursor-pointer hover:border-hair-strong transition-colors duration-d1 ease-ez"
                                       >
                                         <div className="flex items-start justify-between gap-md">
@@ -1108,7 +1108,7 @@ export default function Resumo() {
                                   comBorda
                                   padding="nenhum"
                                   interativo
-                                  onClick={() => navigate(`/projeto/${proj.id}`)}
+                                  onClick={() => navigate(`/projeto/${proj.id}`, { state: { origem: { rotulo: 'Resumo', url: '/resumo' } } })}
                                   className="p-6 flex flex-col space-y-4 opacity-60 hover:opacity-80 cursor-pointer hover:border-hair-strong transition-[opacity,border-color] duration-d1 ease-ez"
                                 >
                                   <div className="flex items-start justify-between gap-md">
@@ -1196,7 +1196,7 @@ export default function Resumo() {
                                     comBorda
                                     padding="nenhum"
                                     interativo
-                                    onClick={() => navigate(`/projeto/${proj.id}`)}
+                                    onClick={() => navigate(`/projeto/${proj.id}`, { state: { origem: { rotulo: 'Resumo', url: '/resumo' } } })}
                                     className="p-6 flex flex-col space-y-4 opacity-40 hover:opacity-60 cursor-pointer hover:border-hair-strong transition-[opacity,border-color] duration-d1 ease-ez"
                                   >
                                     <div className="flex items-start justify-between gap-md">

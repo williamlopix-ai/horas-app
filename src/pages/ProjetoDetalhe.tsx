@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Trash2, X } from 'lucide-react'
-import { Button, Surface, classeCampo, SecaoColapsavel } from '../components/ui'
+import { Button, Surface, classeCampo, SecaoColapsavel, VoltarPara } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -36,6 +36,8 @@ const DESTINO_PENDENTE = '__escolher__'
 export default function ProjetoDetalhe() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const origem = location.state?.origem as { rotulo: string; url: string } | undefined
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const { showToast } = useToast()
@@ -1087,14 +1089,18 @@ export default function ProjetoDetalhe() {
       <Sidebar />
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
         <div>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-sm text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
-          >
-            <ArrowLeft className="w-icon-sm h-icon-sm shrink-0" />
-            <span>Voltar</span>
-          </button>
+          {origem ? (
+            <VoltarPara rotulo={origem.rotulo} url={origem.url} />
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-sm text-sm font-semibold text-ink-500 hover:text-ink-900 transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg rounded-ctl py-2.5 px-3 min-h-[44px]"
+            >
+              <ArrowLeft className="w-icon-sm h-icon-sm shrink-0" />
+              <span>Voltar</span>
+            </button>
+          )}
         </div>
 
         {error && (

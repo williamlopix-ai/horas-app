@@ -576,7 +576,7 @@ export default function Projetos() {
                           onToggleStatus={handleAlternarStatus}
                           onExcluir={handleExcluirProjeto}
                           onArquivar={handleArquivarProjeto}
-                          onNavigate={(id) => navigate(`/projeto/${id}`)}
+                          onNavigate={(id) => navigate(`/projeto/${id}`, { state: { origem: { rotulo: 'Projetos', url: '/projetos' } } })}
                         />
                       ))}
                     </tbody>
