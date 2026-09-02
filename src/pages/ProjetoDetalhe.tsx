@@ -618,7 +618,7 @@ export default function ProjetoDetalhe() {
     }
   }
 
-  const renderListaSubcategorias = (items: SubcategoriaBreakdownItem[]) => {
+  const renderListaSubcategorias = (items: SubcategoriaBreakdownItem[], nomeProjeto: string) => {
     if (!items || items.length === 0) {
       return (
         <div className="text-xs text-ink-500 italic py-2">
@@ -945,7 +945,7 @@ export default function ProjetoDetalhe() {
                       <button
                         key={dia.data}
                         type="button"
-                        onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`)}
+                        onClick={() => navigate(`/registros?data=${dia.data}&subcategoria_id=${sub.id}`, { state: { origem: { rotulo: nomeProjeto, url: `/projeto/${id}` } } })}
                         className="w-full flex items-center justify-between gap-md text-xs py-3 px-2 min-h-[44px] rounded-ctl hover:bg-surface-2 transition-colors duration-d1 ease-ez text-left focus:outline-none"
                       >
                         <span className="font-mono text-ink-500">{formatarDataCurta(dia.data)}</span>
@@ -1519,7 +1519,7 @@ export default function ProjetoDetalhe() {
                             )
                           })()}
 
-                          {renderListaSubcategorias(subcategoriasComPercentual)}
+                          {renderListaSubcategorias(subcategoriasComPercentual, projeto.nome)}
 
                           {adicionandoEmFaseId === fase.id && (
                             <div className="flex items-center gap-sm mt-3">
@@ -1662,7 +1662,7 @@ export default function ProjetoDetalhe() {
                             <span className="text-ink-900 font-bold">{duracaoSemFase.toFixed(2).replace('.', ',')}h</span> / —
                           </div>
                         </div>
-                        {renderListaSubcategorias(subcategoriasComPercentual)}
+                        {renderListaSubcategorias(subcategoriasComPercentual, projeto.nome)}
                       </div>
                     )
                   })()}
@@ -1716,7 +1716,7 @@ export default function ProjetoDetalhe() {
                       })
                     }
 
-                    return renderListaSubcategorias(subcategoriasComPercentual)
+                    return renderListaSubcategorias(subcategoriasComPercentual, projeto.nome)
                   })()}
 
                   {adicionandoSemFase && (
@@ -2049,7 +2049,7 @@ export default function ProjetoDetalhe() {
                                               const targetUrl = reg.projeto_id
                                                 ? `/registros?data=${reg.data}&projeto_id=${reg.projeto_id}`
                                                 : `/registros?data=${reg.data}`
-                                              navigate(targetUrl)
+                                              navigate(targetUrl, { state: { origem: { rotulo: projeto.nome, url: `/projeto/${id}` } } })
                                             }}
                                             className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez focus:outline-none"
                                             title="Ver no dia"

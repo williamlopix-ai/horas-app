@@ -660,6 +660,7 @@ export default function Billable() {
       <td key={dateStr} className="py-3 px-4 text-sm text-right text-ink-900 font-mono tabular-nums border-x border-hair font-semibold transition-colors duration-d1 ease-ez">
         <Link
           to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
+          state={{ origem: { rotulo: 'Billable', url: '/billable' } }}
           className="hover:text-accent transition-colors duration-d1 ease-ez"
         >
           {duracao.toFixed(2).replace('.', ',')}
@@ -680,6 +681,7 @@ export default function Billable() {
       <td key={semanaStr} className="py-3 px-4 text-sm text-right text-ink-900 font-mono tabular-nums border-x border-hair font-semibold transition-colors duration-d1 ease-ez">
         <Link
           to={`/registros?semana_inicio=${semanaStr}&projeto_id=${projetoId}`}
+          state={{ origem: { rotulo: 'Billable', url: '/billable' } }}
           className="hover:text-accent transition-colors duration-d1 ease-ez"
         >
           {duracao.toFixed(2).replace('.', ',')}

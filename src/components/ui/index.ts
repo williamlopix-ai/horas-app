@@ -33,3 +33,6 @@ export type { SecaoColapsavelProps } from './SecaoColapsavel'
 
 export { Secao } from './Secao'
 export type { SecaoProps } from './Secao'
+
+export { VoltarPara } from './VoltarPara'
+export type { VoltarParaProps } from './VoltarPara'

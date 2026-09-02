@@ -205,6 +205,7 @@ export default function Timesheet() {
       <td className={className}>
         <Link
           to={`/registros?data=${dateStr}&projeto_id=${projetoId}`}
+          state={{ origem: { rotulo: 'Timesheet', url: '/timesheet' } }}
           className="hover:text-accent transition-colors duration-d1 ease-ez block w-full"
         >
           {formatDuracao(duracao)}

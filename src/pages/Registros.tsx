@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
@@ -17,7 +17,7 @@ import {
   Trash2,
   X
 } from 'lucide-react'
-import { Button, Dica, EmptyState, Sheet, Surface, classeCampo } from '../components/ui'
+import { Button, Dica, EmptyState, Sheet, Surface, VoltarPara, classeCampo } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import {
   listarRegistros,
@@ -70,6 +70,8 @@ function formatarIntervaloSemana(dataStr: string, inicio: InicioSemana): string 
 
 export default function Registros() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
+  const origem = (location.state as { origem?: { rotulo: string; url: string } } | null)?.origem
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
@@ -475,6 +477,9 @@ export default function Registros() {
 
       {/* 2. Conteúdo Principal */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
+
+        {/* Voltar para a tela de origem */}
+        {origem && <VoltarPara rotulo={origem.rotulo} url={origem.url} />}
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-lg">
