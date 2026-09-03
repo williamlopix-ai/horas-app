@@ -3,15 +3,15 @@ import { ArrowLeftRight } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { classeCampo, Field, Surface } from '../components/ui'
 import { calcularDuracaoCentesimal } from '../services/registros'
+import CalendarioSemana from '../components/ferramentas/CalendarioSemana'
 
-type TabId = 'calculadora' | 'fechamento' | 'calendario-semana' | 'calendario-mes' | 'quanto-falta'
+type TabId = 'calculadora' | 'fechamento' | 'calendario-semana' | 'calendario-mes'
 
 const ABAS: { id: TabId; rotulo: string }[] = [
   { id: 'calculadora', rotulo: 'Calculadora' },
   { id: 'fechamento', rotulo: 'Fechamento' },
   { id: 'calendario-semana', rotulo: 'Calendário da Semana' },
   { id: 'calendario-mes', rotulo: 'Calendário do Mês' },
-  { id: 'quanto-falta', rotulo: 'Quanto Falta' },
 ]
 
 export default function Ferramentas() {
@@ -79,6 +79,8 @@ export default function Ferramentas() {
 
         {activeTab === 'calculadora' ? (
           <CalculadoraTab />
+        ) : activeTab === 'calendario-semana' ? (
+          <CalendarioSemana />
         ) : (
           <Surface elevacao={1}>
             <p className="text-sm text-ink-500">
