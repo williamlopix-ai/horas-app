@@ -49,6 +49,15 @@ export default {
       boxShadow:                { e1:'var(--sh-1)', e2:'var(--sh-2)', e3:'var(--sh-3)' },
       transitionDuration:       { d1:'var(--d1)', d2:'var(--d2)', d3:'var(--d3)', d4:'var(--d4)', d5:'var(--d5)' },
       transitionTimingFunction: { ez:'var(--ez)' },
+      keyframes: {
+        'radar-agora': {
+          '0%': { transform: 'scale(1)', opacity: '0.9' },
+          '100%': { transform: 'scale(2.6)', opacity: '0' },
+        },
+      },
+      animation: {
+        'radar-agora': 'radar-agora 2.4s ease-out infinite',
+      },
       width: {
         'icon-xs': '12px',
         'icon-sm': '16px',

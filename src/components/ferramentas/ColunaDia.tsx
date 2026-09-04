@@ -33,8 +33,28 @@ export default function ColunaDia({ registros, agoraTop }: ColunaDiaProps) {
       ))}
 
       {agoraTop !== undefined && (
-        <div className="absolute inset-x-0 h-px bg-bad z-20 pointer-events-none" style={{ top: agoraTop }}>
-          <div className="absolute -left-[3px] -top-[3px] w-[7px] h-[7px] rounded-full bg-bad" />
+        <div
+          className="absolute inset-x-0 h-[2px] z-20 pointer-events-none"
+          style={{
+            top: agoraTop,
+            background: 'var(--fg-900)',
+            boxShadow: '0 0 4px 1.5px color-mix(in srgb, var(--bg-0) 85%, transparent)',
+          }}
+        >
+          <div
+            className="absolute -left-[4.5px] -top-[3.5px] w-[9px] h-[9px] rounded-full"
+            style={{
+              background: 'var(--bad)',
+              border: '2px solid var(--fg-900)',
+              boxShadow: '0 0 4px 1px color-mix(in srgb, var(--bg-0) 70%, transparent)',
+              position: 'relative',
+            }}
+          >
+            <div
+              className="absolute inset-[-2px] rounded-full pointer-events-none animate-radar-agora"
+              style={{ border: '2px solid var(--bad)' }}
+            />
+          </div>
         </div>
       )}
 
