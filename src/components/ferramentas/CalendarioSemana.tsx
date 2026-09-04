@@ -20,6 +20,7 @@ export default function CalendarioSemana() {
   const [carregando, setCarregando] = useState(true)
   const [agora, setAgora] = useState(() => new Date())
   const [diaModalIndex, setDiaModalIndex] = useState<0 | 1 | null>(null)
+  const [diaMobileIndex, setDiaMobileIndex] = useState(0)
 
   const { inicio, fim } = useMemo(() => intervaloDaSemana(dataAncora, 'sabado'), [dataAncora])
   const dias = useMemo(() => diasDaSemana(dataAncora, 'sabado'), [dataAncora])
@@ -29,6 +30,13 @@ export default function CalendarioSemana() {
     const t = setInterval(() => setAgora(new Date()), 60000)
     return () => clearInterval(t)
   }, [])
+
+  // Ao trocar de semana, reseta o dia mobile pro dia de hoje (se estiver na semana) ou pro Sábado (índice 0).
+  useEffect(() => {
+    const hoje = formatYYYYMMDD(new Date())
+    const idx = diasDaSemana(dataAncora, 'sabado').map(formatYYYYMMDD).indexOf(hoje)
+    setDiaMobileIndex(idx >= 0 ? idx : 0)
+  }, [dataAncora])
 
   useEffect(() => {
     if (!user) return
@@ -56,6 +64,14 @@ export default function CalendarioSemana() {
 
   function irParaHoje() {
     setDataAncora(formatYYYYMMDD(new Date()))
+  }
+
+  function diaMobileAnterior() {
+    setDiaMobileIndex(i => (i - 1 + 7) % 7)
+  }
+
+  function diaMobileProximo() {
+    setDiaMobileIndex(i => (i + 1) % 7)
   }
 
   const hojeStr = formatYYYYMMDD(new Date())
@@ -87,6 +103,10 @@ export default function CalendarioSemana() {
   const agoraVisivel = diasStr.includes(hojeStr) && agoraDecimal >= HORA_INICIO && agoraDecimal <= HORA_FIM
   const agoraColunaIndex = diasStr.indexOf(hojeStr)
   const agoraTop = (agoraDecimal - HORA_INICIO) * ALTURA_HORA
+
+  const diaMobileStr = diasStr[diaMobileIndex]
+  const totalDiaMobile = (registrosPorDia.get(diaMobileStr) || []).reduce((acc, r) => acc + r.duracao, 0)
+  const nomeDiaMobile = dias[diaMobileIndex].toLocaleDateString('pt-BR', { weekday: 'long' })
 
   return (
     <Surface elevacao={1} className="space-y-4">
@@ -130,7 +150,8 @@ export default function CalendarioSemana() {
       {carregando ? (
         <p className="text-xs text-ink-500">Carregando…</p>
       ) : (
-        <div className="overflow-x-auto">
+      <>
+        <div className="hidden md:block overflow-x-auto">
           <div className="min-w-[760px]">
             <div className="grid" style={{ gridTemplateColumns: GRID_TEMPLATE_COLUMNS }}>
               <div />
@@ -209,6 +230,73 @@ export default function CalendarioSemana() {
             </div>
           </div>
         </div>
+
+        <div className="md:hidden space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={diaMobileAnterior}
+              className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg shrink-0"
+              title="Dia anterior"
+              aria-label="Dia anterior"
+            >
+              <ChevronLeft className="w-icon-sm h-icon-sm" />
+            </button>
+
+            <div className="text-center min-w-0">
+              <h3 className="text-sm font-bold text-ink-900 capitalize truncate">
+                {nomeDiaMobile} {String(dias[diaMobileIndex].getDate()).padStart(2, '0')}/{String(dias[diaMobileIndex].getMonth() + 1).padStart(2, '0')}
+              </h3>
+              <p className="text-xs text-ink-500">
+                {totalDiaMobile.toFixed(2).replace('.', ',')}h lançadas
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={diaMobileProximo}
+              className="h-11 w-11 bg-surface-2 border border-hair-strong hover:border-accent text-ink-700 hover:text-ink-900 rounded-ctl flex items-center justify-center transition-colors duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg shrink-0"
+              title="Próximo dia"
+              aria-label="Próximo dia"
+            >
+              <ChevronRight className="w-icon-sm h-icon-sm" />
+            </button>
+          </div>
+
+          <div className="grid" style={{ gridTemplateColumns: '52px 1fr' }}>
+            <div className="relative" style={{ height: ALTURA_GRADE }}>
+              {HORAS_DA_GRADE.map(h => (
+                <div
+                  key={h}
+                  className="absolute right-2 -translate-y-1/2 text-[11px] text-ink-500 tabular-nums"
+                  style={{ top: (h - HORA_INICIO) * ALTURA_HORA }}
+                >
+                  {String(h).padStart(2, '0')}h
+                </div>
+              ))}
+            </div>
+            <ColunaDia
+              registros={registrosPorDia.get(diaMobileStr) || []}
+              agoraTop={agoraVisivel && agoraColunaIndex === diaMobileIndex ? agoraTop : undefined}
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-1.5">
+            {diasStr.map((d, i) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDiaMobileIndex(i)}
+                className={`h-2 rounded-full transition-all duration-d1 ease-ez cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg ${
+                  i === diaMobileIndex ? 'w-6 bg-accent' : 'w-2 bg-surface-3 border border-hair-strong'
+                }`}
+                title={`Ir para ${ROTULOS_DIA[i]}`}
+                aria-label={`Ir para ${ROTULOS_DIA[i]}`}
+              />
+            ))}
+          </div>
+        </div>
+      </>
       )}
 
       <ModalDiaUnico
