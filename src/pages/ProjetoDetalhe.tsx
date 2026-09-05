@@ -1029,6 +1029,8 @@ export default function ProjetoDetalhe() {
       await carregarDados(true)
       setSemanaInputDate('')
       setHorasPlanejadasInput('')
+      setFormularioAberto(false)
+      setPlanoEmEdicaoId(null)
       showToast('Plano semanal salvo!', 'success')
     } catch (err: unknown) {
       console.error('Erro ao salvar plano semanal:', err)
@@ -1112,7 +1114,6 @@ export default function ProjetoDetalhe() {
   }, [planosComMetricas])
 
   const totalDiferencaPlanos = totalRealizadoPlanos - totalPlanejado
-  const formularioVisivel = formularioAberto || planosSemanais.length === 0
 
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const totalContratado = projeto?.horas_contratadas ?? null
@@ -1872,32 +1873,24 @@ export default function ProjetoDetalhe() {
                 aberto={secoesExpandidas['plano']}
                 onToggle={() => toggleSecao('plano')}
                 contador={planosSemanais.length === 1 ? '1 semana planejada' : `${planosSemanais.length} semanas planejadas`}
-                descricao="Planeje a distribuição de horas do projeto por semana e acompanhe a comparação entre o planejado e o realizado."
               />
 
               {secoesExpandidas['plano'] && (
                 <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-md">
-                  <Button
-                    type="button"
-                    variante="secundario"
-                    tamanho="sm"
-                    onClick={handleAbrirNovoPlano}
-                    iconeEsquerda={<Plus className="w-icon-xs h-icon-xs" />}
-                    className={formularioVisivel && planoEmEdicaoId === null ? '!bg-accent-bg !text-accent !border-accent' : ''}
-                  >
-                    Novo plano semanal
-                  </Button>
-
-                  {planosSemanais.length === 0 && (
-                    <div className="bg-surface-2 rounded-card p-4 border border-hair">
-                      <p className="text-xs text-ink-500">
-                        Nenhuma semana planejada para este projeto ainda. Preencha o formulário abaixo para adicionar a primeira semana.
-                      </p>
-                    </div>
+                  {!formularioAberto && (
+                    <Button
+                      type="button"
+                      variante="secundario"
+                      tamanho="sm"
+                      onClick={handleAbrirNovoPlano}
+                      iconeEsquerda={<Plus className="w-icon-xs h-icon-xs" />}
+                    >
+                      Novo plano semanal
+                    </Button>
                   )}
 
                   {/* Form de adicionar/editar semana */}
-                  {formularioVisivel && (
+                  {formularioAberto && (
                   <form ref={formPlanoRef} onSubmit={handleSalvarPlanoSemanal} className="space-y-md">
                     {(() => {
                       if (!planoExistente) {
