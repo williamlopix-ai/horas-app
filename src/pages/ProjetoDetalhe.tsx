@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
+import { useEffect, useState, useMemo, useRef, Fragment } from 'react'
+import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
-import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Trash2, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button, Surface, classeCampo, SecaoColapsavel, VoltarPara } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
@@ -58,6 +58,11 @@ export default function ProjetoDetalhe() {
   const [horasPlanejadasInput, setHorasPlanejadasInput] = useState<string>('')
   const [salvandoPlano, setSalvandoPlano] = useState(false)
   const [planoExcluindo, setPlanoExcluindo] = useState<PlanoSemanal | null>(null)
+  const [planosExpandidos, setPlanosExpandidos] = useState<Record<string, boolean>>({})
+  const [pulsoFormularioPlano, setPulsoFormularioPlano] = useState(0)
+  const formPlanoRef = useRef<HTMLFormElement>(null)
+  const [formularioAberto, setFormularioAberto] = useState(false)
+  const [planoEmEdicaoId, setPlanoEmEdicaoId] = useState<string | null>(null)
 
   const [fasesExpandidas, setFasesExpandidas] = useState<Record<string, boolean>>({})
   const [secoesExpandidas, setSecoesExpandidas] = useState<Record<string, boolean>>({})
@@ -984,6 +989,19 @@ export default function ProjetoDetalhe() {
     return `${ds1} ${d1}/${m1} a ${ds2} ${d2}/${m2}`
   }
 
+  const formatarDiaSemanaLabel = (dataStr: string) => {
+    const diasCompletos = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+    const [y, m, d] = dataStr.split('-').map(Number)
+    const date = new Date(y, m - 1, d)
+    const dd = String(d).padStart(2, '0')
+    const mm = String(m).padStart(2, '0')
+    return `${diasCompletos[date.getDay()]} ${dd}/${mm}`
+  }
+
+  const togglePlanoExpandido = (planoId: string) => {
+    setPlanosExpandidos(prev => ({ ...prev, [planoId]: !prev[planoId] }))
+  }
+
   const semanaInicioCalculada = useMemo(() => {
     if (!semanaInputDate) return ''
     return inicioDaSemana(semanaInputDate, config.inicio_semana)
@@ -1041,6 +1059,32 @@ export default function ProjetoDetalhe() {
     setHorasPlanejadasInput(plano.horas_planejadas.toString())
   }
 
+  const handleClicarEditarPlano = (plano: PlanoSemanal) => {
+    handleSelecionarPlanoParaEdicao(plano)
+    setPlanoEmEdicaoId(plano.id)
+    setFormularioAberto(true)
+    setPulsoFormularioPlano(n => n + 1)
+  }
+
+  useEffect(() => {
+    if (!formularioAberto) return
+    formPlanoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [formularioAberto, planoEmEdicaoId])
+
+  const handleAbrirNovoPlano = () => {
+    setPlanoEmEdicaoId(null)
+    setSemanaInputDate('')
+    setHorasPlanejadasInput('')
+    setFormularioAberto(true)
+  }
+
+  const handleCancelarPlano = () => {
+    setFormularioAberto(false)
+    setPlanoEmEdicaoId(null)
+    setSemanaInputDate('')
+    setHorasPlanejadasInput('')
+  }
+
   const totalPlanejado = useMemo(() => {
     return planosSemanais.reduce((acc, p) => acc + p.horas_planejadas, 0)
   }, [planosSemanais])
@@ -1068,6 +1112,7 @@ export default function ProjetoDetalhe() {
   }, [planosComMetricas])
 
   const totalDiferencaPlanos = totalRealizadoPlanos - totalPlanejado
+  const formularioVisivel = formularioAberto || planosSemanais.length === 0
 
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const totalContratado = projeto?.horas_contratadas ?? null
@@ -1832,6 +1877,17 @@ export default function ProjetoDetalhe() {
 
               {secoesExpandidas['plano'] && (
                 <Surface elevacao={1} comBorda padding="nenhum" className="p-5 space-y-md">
+                  <Button
+                    type="button"
+                    variante="secundario"
+                    tamanho="sm"
+                    onClick={handleAbrirNovoPlano}
+                    iconeEsquerda={<Plus className="w-icon-xs h-icon-xs" />}
+                    className={formularioVisivel && planoEmEdicaoId === null ? '!bg-accent-bg !text-accent !border-accent' : ''}
+                  >
+                    Novo plano semanal
+                  </Button>
+
                   {planosSemanais.length === 0 && (
                     <div className="bg-surface-2 rounded-card p-4 border border-hair">
                       <p className="text-xs text-ink-500">
@@ -1841,9 +1897,29 @@ export default function ProjetoDetalhe() {
                   )}
 
                   {/* Form de adicionar/editar semana */}
-                  <form onSubmit={handleSalvarPlanoSemanal} className="space-y-md">
+                  {formularioVisivel && (
+                  <form ref={formPlanoRef} onSubmit={handleSalvarPlanoSemanal} className="space-y-md">
+                    {(() => {
+                      if (!planoExistente) {
+                        return (
+                          <span className="inline-flex items-center gap-1.5 self-start px-3 py-1 rounded-full text-xs font-bold border shrink-0 bg-surface-3 text-ink-500 border-hair">
+                            <Plus className="w-icon-xs h-icon-xs" />
+                            Novo plano semanal
+                          </span>
+                        )
+                      }
+                      const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
+                      const intervaloTexto = formatarIntervaloCurto(inicio, fim)
+                      return (
+                        <span className="inline-flex items-center gap-1.5 self-start px-3 py-1 rounded-full text-xs font-bold border shrink-0 bg-accent-bg text-accent border-transparent">
+                          <Pencil className="w-icon-xs h-icon-xs" />
+                          Editando semana de {intervaloTexto}
+                        </span>
+                      )
+                    })()}
+
                     <div className="flex flex-wrap items-end gap-md">
-                      <div className="flex flex-col gap-xs min-w-[160px]">
+                      <div key={`semana-${pulsoFormularioPlano}`} className={`flex flex-col gap-xs min-w-[160px] ${pulsoFormularioPlano > 0 ? 'animate-pulso-campo' : ''}`}>
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Semana
                         </label>
@@ -1856,7 +1932,7 @@ export default function ProjetoDetalhe() {
                         />
                       </div>
 
-                      <div className="flex flex-col gap-xs w-36">
+                      <div key={`horas-${pulsoFormularioPlano}`} className={`flex flex-col gap-xs w-36 ${pulsoFormularioPlano > 0 ? 'animate-pulso-campo' : ''}`}>
                         <label className="text-xs font-semibold text-ink-500 uppercase tracking-wide">
                           Horas planejadas
                         </label>
@@ -1872,31 +1948,37 @@ export default function ProjetoDetalhe() {
                         />
                       </div>
 
-                      <Button
-                        variante="primario"
-                        tamanho="md"
-                        type="submit"
-                        carregando={salvandoPlano}
-                        disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
-                        className="min-h-[44px]"
-                      >
-                        {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
-                      </Button>
+                      <div className="flex items-center gap-sm">
+                        <Button
+                          variante="primario"
+                          tamanho="md"
+                          type="submit"
+                          carregando={salvandoPlano}
+                          disabled={salvandoPlano || !semanaInputDate || !horasPlanejadasInput.trim()}
+                          className="min-h-[44px]"
+                        >
+                          {salvandoPlano ? 'Salvando...' : planoExistente ? 'Atualizar' : 'Adicionar'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variante="fantasma"
+                          tamanho="md"
+                          onClick={handleCancelarPlano}
+                          disabled={salvandoPlano}
+                          className="min-h-[44px]"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
                     </div>
 
-                    {semanaInputDate && (() => {
-                      const { inicio, fim } = intervaloDaSemana(semanaInicioCalculada, config.inicio_semana)
-                      const intervaloTexto = formatarIntervaloCurto(inicio, fim)
-                      return (
-                        <div className="text-xs text-ink-500">
-                          Semana de {intervaloTexto}
-                          {planoExistente && (
-                            <span> — já existe plano de {planoExistente.horas_planejadas.toString().replace('.', ',')}h, será atualizado</span>
-                          )}
-                        </div>
-                      )
-                    })()}
+                    {planoExistente && (
+                      <div className="text-xs text-ink-500">
+                        já existe {planoExistente.horas_planejadas.toString().replace('.', ',')}h salvo
+                      </div>
+                    )}
                   </form>
+                  )}
 
                   {/* Linha Informativa Comparação com Contratado */}
                   {temContratado && planosSemanais.length > 0 && (() => {
@@ -1924,7 +2006,7 @@ export default function ProjetoDetalhe() {
                             <th className="py-2 px-3 text-right">Planejado</th>
                             <th className="py-2 px-3 text-right">Realizado</th>
                             <th className="py-2 px-3 text-right">Diferença</th>
-                            <th className="py-2 px-2 text-center w-10"></th>
+                            <th className="py-2 px-2 text-center w-28"></th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-hair">
@@ -1937,42 +2019,137 @@ export default function ProjetoDetalhe() {
                             const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
 
                             const corDiferenca = item.diferenca >= 0 ? 'var(--ok)' : 'var(--bad)'
+                            const isExpanded = planosExpandidos[item.id] ?? false
+
+                            const diasComRegistros = !isExpanded ? [] : (() => {
+                              const regsDaSemana = registros.filter(r => (r.semana_inicio || calcularSemanaInicio(r.data, config.inicio_semana)) === item.semana_inicio)
+                              const grupos: { data: string; total: number; registros: typeof regsDaSemana }[] = []
+                              regsDaSemana.forEach(r => {
+                                const existente = grupos.find(g => g.data === r.data)
+                                if (existente) {
+                                  existente.total += r.duracao
+                                  existente.registros.push(r)
+                                } else {
+                                  grupos.push({ data: r.data, total: r.duracao, registros: [r] })
+                                }
+                              })
+                              grupos.forEach(g => g.registros.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio)))
+                              return grupos.sort((a, b) => a.data.localeCompare(b.data))
+                            })()
 
                             return (
-                              <tr
-                                key={item.id}
-                                onClick={() => handleSelecionarPlanoParaEdicao(item)}
-                                className="hover:bg-surface-3 transition-colors duration-d1 ease-ez cursor-pointer group"
-                              >
-                                <td className="py-2.5 px-3 text-ink-900 font-medium">
-                                  {periodoStr}
-                                </td>
-                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
-                                  {item.horas_planejadas.toFixed(2).replace('.', ',')}h
-                                </td>
-                                <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
-                                  {item.realizado.toFixed(2).replace('.', ',')}h
-                                </td>
-                                <td
-                                  className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
-                                  style={{ color: corDiferenca }}
+                              <Fragment key={item.id}>
+                                <tr
+                                  onClick={() => handleClicarEditarPlano(item)}
+                                  className={`transition-colors duration-d1 ease-ez cursor-pointer group ${
+                                    planoEmEdicaoId === item.id ? '' : 'hover:bg-surface-3'
+                                  }`}
+                                  style={planoEmEdicaoId === item.id ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                                 >
-                                  {item.diferenca.toFixed(2).replace('.', ',')}h
-                                </td>
-                                <td className="py-2.5 px-2 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setPlanoExcluindo(item)
-                                    }}
-                                    className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors duration-d1 ease-ez opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                                    title="Excluir plano semanal"
+                                  <td className="py-2.5 px-3 text-ink-900 font-medium">
+                                    {periodoStr}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
+                                    {item.horas_planejadas.toFixed(2).replace('.', ',')}h
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
+                                    {item.realizado.toFixed(2).replace('.', ',')}h
+                                  </td>
+                                  <td
+                                    className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
+                                    style={{ color: corDiferenca }}
                                   >
-                                    <Trash2 className="w-icon-sm h-icon-sm" />
-                                  </button>
-                                </td>
-                              </tr>
+                                    {item.diferenca.toFixed(2).replace('.', ',')}h
+                                  </td>
+                                  <td className="py-2.5 px-2 text-center">
+                                    <div className="flex items-center justify-center gap-2xs">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          togglePlanoExpandido(item.id)
+                                        }}
+                                        className={`p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center transition-colors duration-d1 ease-ez opacity-100 sm:opacity-0 sm:group-hover:opacity-100 ${isExpanded ? 'text-accent' : 'text-ink-500 hover:text-accent'}`}
+                                        title={isExpanded ? 'Ocultar lançamentos da semana' : 'Ver lançamentos da semana'}
+                                      >
+                                        <Eye className="w-icon-sm h-icon-sm" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleClicarEditarPlano(item)
+                                        }}
+                                        className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-accent transition-colors duration-d1 ease-ez opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                        title="Editar plano semanal"
+                                      >
+                                        <Pencil className="w-icon-sm h-icon-sm" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setPlanoExcluindo(item)
+                                        }}
+                                        className="p-2.5 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center text-ink-500 hover:text-bad transition-colors duration-d1 ease-ez opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                                        title="Excluir plano semanal"
+                                      >
+                                        <Trash2 className="w-icon-sm h-icon-sm" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr>
+                                    <td colSpan={5} className="px-3 pb-3 bg-surface-2">
+                                      <div className="ml-2 pl-3 border-l border-hair space-y-3 py-2">
+                                        {diasComRegistros.length === 0 ? (
+                                          <p className="text-xs text-ink-500 italic py-1">Nenhum lançamento nesta semana.</p>
+                                        ) : (
+                                          diasComRegistros.map(dia => (
+                                            <div key={dia.data} className="space-y-1.5">
+                                              <div className="flex items-center justify-between text-[10px] font-bold text-ink-500 uppercase tracking-wide font-mono">
+                                                <span>{formatarDiaSemanaLabel(dia.data)}</span>
+                                                <span>{dia.total.toFixed(2).replace('.', ',')}h</span>
+                                              </div>
+                                              <div className="space-y-1">
+                                                {dia.registros.map(reg => {
+                                                  const nomeSub = reg.subcategoria?.nome || subcategorias.find(s => s.id === reg.subcategoria_id)?.nome
+                                                  return (
+                                                    <Link
+                                                      key={reg.id}
+                                                      to={`/registros?data=${reg.data}&registro_id=${reg.id}`}
+                                                      state={{ origem: { rotulo: projeto.nome, url: `/projeto/${id}` } }}
+                                                      className="flex items-center justify-between gap-md text-xs py-2.5 px-2.5 min-h-[44px] rounded-ctl bg-surface-1 hover:bg-surface-3 border border-hair transition-colors duration-d1 ease-ez focus:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
+                                                    >
+                                                      <div className="flex items-center gap-sm min-w-0 flex-1">
+                                                        <span className="text-ink-700 font-mono shrink-0">{reg.hora_inicio.slice(0, 5)}–{reg.hora_fim.slice(0, 5)}</span>
+                                                        {nomeSub && (
+                                                          <span className="text-[10px] px-1.5 py-0.5 rounded-chip bg-surface-3 border border-hair-strong text-ink-500 font-medium shrink-0 whitespace-nowrap">
+                                                            {nomeSub}
+                                                          </span>
+                                                        )}
+                                                        {reg.observacao ? (
+                                                          <span className="text-ink-500 truncate" title={reg.observacao}>{reg.observacao}</span>
+                                                        ) : (
+                                                          <span className="text-ink-300 italic">sem observação</span>
+                                                        )}
+                                                      </div>
+                                                      <span className="font-mono font-semibold text-ink-900 shrink-0">
+                                                        {reg.duracao.toFixed(2).replace('.', ',')}h
+                                                      </span>
+                                                    </Link>
+                                                  )
+                                                })}
+                                              </div>
+                                            </div>
+                                          ))
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
                             )
                           })}
                         </tbody>
