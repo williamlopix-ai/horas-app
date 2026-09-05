@@ -58,10 +58,15 @@ export default {
           '0%': { transform: 'scale(1)', opacity: '0.7' },
           '100%': { transform: 'scale(2.8)', opacity: '0' },
         },
+        'destaque-pulso': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.35' },
+        },
       },
       animation: {
         'radar-agora': 'radar-agora 2.4s ease-out infinite',
         'ponto-pulso': 'ponto-pulso 2s ease-out infinite',
+        'destaque-pulso': 'destaque-pulso 1.6s ease-in-out infinite',
       },
       width: {
         'icon-xs': '12px',

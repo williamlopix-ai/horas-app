@@ -93,6 +93,8 @@ export default function Registros() {
   const [subcategoriaDestacadaId, setSubcategoriaDestacadaId] = useState<string | null>(null)
   // Registro especifico vindo de ?registro_id= na URL: destaca e rola ate o lancamento
   const [registroDestacadoId, setRegistroDestacadoId] = useState<string | null>(null)
+  // Registros cujo destaque ja foi "visto" (usuario editou ou excluiu) nesta visita a pagina
+  const [registrosVistos, setRegistrosVistos] = useState<Set<string>>(new Set())
   const [filtroSemana, setFiltroSemana] = useState<string>(() => {
     const now = new Date()
     const y = now.getFullYear()
@@ -737,7 +739,8 @@ export default function Registros() {
                   </div>
 
                   {/* Lançamentos e Gaps */}
-                  <div className={`flex flex-col gap-xs transition-[max-height,opacity,margin-top] duration-d2 ease-ez overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                  <div className={`transition-[max-height,opacity,margin-top] duration-d2 ease-ez overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}>
+                    <div className="flex flex-col gap-xs p-1">
                     {viewMode === 'projeto' ? (
                       // Agrupar registros do dia por projeto
                       (() => {
@@ -817,13 +820,17 @@ export default function Registros() {
                               {/* Registros deste projeto */}
                               <div className="flex flex-col gap-2xs">
                                 {itemProj.records.map((reg) => {
-                                  const emDestaque = registroDestacadoId
+                                  const emDestaque = (registroDestacadoId
                                     ? reg.id === registroDestacadoId
                                     : subcategoriaDestacadaId
                                       ? reg.subcategoria_id === subcategoriaDestacadaId
-                                      : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)
+                                      : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId))
+                                    && !registrosVistos.has(reg.id)
                                   return (
-                                  <div key={reg.id} id={`registro-${reg.id}`} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${emDestaque ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
+                                  <div key={reg.id} id={`registro-${reg.id}`} className="relative bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm">
+                                    {emDestaque && (
+                                      <div className="absolute inset-0 rounded-card ring-2 ring-accent ring-offset-2 ring-offset-surface-0 pointer-events-none animate-destaque-pulso" />
+                                    )}
                                     {/* Linha 1 no Mobile: [horário] */}
                                     <div className="flex items-center justify-between md:contents w-full">
                                       {/* Horários */}
@@ -888,7 +895,10 @@ export default function Registros() {
                                         <div className="shrink-0 md:w-[60px] flex gap-2xs justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                           <button
                                             type="button"
-                                            onClick={() => abrirEditarRegistroModal(reg)}
+                                            onClick={() => {
+                                              setRegistrosVistos(prev => new Set(prev).add(reg.id))
+                                              abrirEditarRegistroModal(reg)
+                                            }}
                                             className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Editar Lançamento"
                                           >
@@ -897,7 +907,10 @@ export default function Registros() {
                                           </button>
                                           <button
                                             type="button"
-                                            onClick={() => handleExcluir(reg.id)}
+                                            onClick={() => {
+                                              setRegistrosVistos(prev => new Set(prev).add(reg.id))
+                                              handleExcluir(reg.id)
+                                            }}
                                             className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                             title="Excluir Lançamento"
                                           >
@@ -948,18 +961,22 @@ export default function Registros() {
                         const isExcluido = status === 'excluido'
                         const projCor = isExcluido ? 'var(--proj-excluido)' : isEncerrado ? 'var(--proj-encerrado)' : (reg.projeto?.cor || '#6B7280')
                         const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
-                        const emDestaque = registroDestacadoId
+                        const emDestaque = (registroDestacadoId
                           ? reg.id === registroDestacadoId
                           : subcategoriaDestacadaId
                             ? reg.subcategoria_id === subcategoriaDestacadaId
-                            : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)
+                            : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId))
+                          && !registrosVistos.has(reg.id)
 
                         return (
                           <div
                             key={reg.id}
                             id={`registro-${reg.id}`}
-                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${emDestaque ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
+                            className="relative bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm"
                           >
+                            {emDestaque && (
+                              <div className="absolute inset-0 rounded-card ring-2 ring-accent ring-offset-2 ring-offset-surface-0 pointer-events-none animate-destaque-pulso" />
+                            )}
                             {/* Linha 1 no Mobile: [TAG] [horário] */}
                             <div className="flex items-center justify-between md:contents w-full">
                               {/* Tag do Projeto */}
@@ -1057,7 +1074,10 @@ export default function Registros() {
                                 <div className="shrink-0 md:w-[60px] flex gap-2xs justify-end opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-d1 ease-ez">
                                   <button
                                     type="button"
-                                    onClick={() => abrirEditarRegistroModal(reg)}
+                                    onClick={() => {
+                                      setRegistrosVistos(prev => new Set(prev).add(reg.id))
+                                      abrirEditarRegistroModal(reg)
+                                    }}
                                     className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-ink-900 rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Editar Lançamento"
                                   >
@@ -1066,7 +1086,10 @@ export default function Registros() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleExcluir(reg.id)}
+                                    onClick={() => {
+                                      setRegistrosVistos(prev => new Set(prev).add(reg.id))
+                                      handleExcluir(reg.id)
+                                    }}
                                     className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 p-2.5 md:p-1.5 text-ink-500 hover:text-bad rounded-ctl transition-colors duration-d1 ease-ez flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-bg"
                                     title="Excluir Lançamento"
                                   >
@@ -1080,6 +1103,7 @@ export default function Registros() {
                         )
                       })
                     )}
+                    </div>
                   </div>
                 </div>
               )
