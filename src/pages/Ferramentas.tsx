@@ -6,20 +6,18 @@ import { classeCampo, Field, Surface } from '../components/ui'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import CalendarioSemana from '../components/ferramentas/CalendarioSemana'
 
-type TabId = 'calculadora' | 'fechamento' | 'calendario-semana' | 'calendario-mes'
+type TabId = 'calendario-semana' | 'calculadora'
 
 const ABAS: { id: TabId; rotulo: string }[] = [
-  { id: 'calculadora', rotulo: 'Calculadora' },
-  { id: 'fechamento', rotulo: 'Fechamento' },
   { id: 'calendario-semana', rotulo: 'Calendário da Semana' },
-  { id: 'calendario-mes', rotulo: 'Calendário do Mês' },
+  { id: 'calculadora', rotulo: 'Calculadora' },
 ]
 
 export default function Ferramentas() {
   const [searchParams, setSearchParams] = useSearchParams()
   const abaParam = searchParams.get('aba') as TabId | null
   const [activeTab, setActiveTab] = useState<TabId>(
-    abaParam && ABAS.some(a => a.id === abaParam) ? abaParam : 'calculadora'
+    abaParam && ABAS.some(a => a.id === abaParam) ? abaParam : 'calendario-semana'
   )
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 })
   const tabsContainerRef = useRef<HTMLDivElement>(null)
@@ -48,8 +46,6 @@ export default function Ferramentas() {
     window.addEventListener('resize', recalcularPilula)
     return () => window.removeEventListener('resize', recalcularPilula)
   }, [activeTab])
-
-  const abaAtiva = ABAS.find(a => a.id === activeTab)
 
   return (
     <div className="relative min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
@@ -91,16 +87,10 @@ export default function Ferramentas() {
           ))}
         </div>
 
-        {activeTab === 'calculadora' ? (
-          <CalculadoraTab />
-        ) : activeTab === 'calendario-semana' ? (
+        {activeTab === 'calendario-semana' ? (
           <CalendarioSemana />
         ) : (
-          <Surface elevacao={1}>
-            <p className="text-sm text-ink-500">
-              {abaAtiva?.rotulo} — em construção (leva 8.X).
-            </p>
-          </Surface>
+          <CalculadoraTab />
         )}
       </main>
     </div>
