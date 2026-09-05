@@ -54,9 +54,14 @@ export default {
           '0%': { transform: 'scale(1)', opacity: '0.9' },
           '100%': { transform: 'scale(2.6)', opacity: '0' },
         },
+        'ponto-pulso': {
+          '0%': { transform: 'scale(1)', opacity: '0.7' },
+          '100%': { transform: 'scale(2.8)', opacity: '0' },
+        },
       },
       animation: {
         'radar-agora': 'radar-agora 2.4s ease-out infinite',
+        'ponto-pulso': 'ponto-pulso 2s ease-out infinite',
       },
       width: {
         'icon-xs': '12px',

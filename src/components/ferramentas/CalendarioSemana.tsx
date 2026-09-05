@@ -200,6 +200,7 @@ export default function CalendarioSemana() {
                 const ehFimDeSemana = i === 0 || i === 1
 
                 if (ehFimDeSemana) {
+                  const temLancamento = (registrosPorDia.get(diaStr) || []).length > 0
                   return (
                     <button
                       key={diaStr}
@@ -209,6 +210,12 @@ export default function CalendarioSemana() {
                       style={{ height: ALTURA_GRADE }}
                       title={`Abrir ${ROTULOS_DIA[i]} ${String(dia.getDate()).padStart(2, '0')}`}
                     >
+                      {temLancamento && (
+                        <div className="absolute top-1.5 left-1/2 -translate-x-1/2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                          <div className="absolute inset-0 rounded-full bg-accent animate-ponto-pulso" />
+                        </div>
+                      )}
                       <span
                         className="text-[9px] font-semibold uppercase tracking-wide text-ink-500"
                         style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
