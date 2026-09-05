@@ -62,11 +62,16 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.35' },
         },
+        'pulso-campo': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.35' },
+        },
       },
       animation: {
         'radar-agora': 'radar-agora 2.4s ease-out infinite',
         'ponto-pulso': 'ponto-pulso 2s ease-out infinite',
         'destaque-pulso': 'destaque-pulso 1.6s ease-in-out infinite',
+        'pulso-campo': 'pulso-campo 0.9s ease-in-out 1',
       },
       width: {
         'icon-xs': '12px',
