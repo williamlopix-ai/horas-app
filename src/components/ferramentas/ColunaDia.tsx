@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   HORA_INICIO,
   HORAS_DA_GRADE,
@@ -84,9 +85,11 @@ export default function ColunaDia({ registros, agoraTop }: ColunaDiaProps) {
         const largura = 100 / totalLanes
         const completo = pos.height >= 60
         return (
-          <div
+          <Link
             key={registro.id}
-            className={`absolute rounded-ctl overflow-hidden shadow-e1 ${completo ? 'px-2 py-1' : 'px-1.5 py-0.5 flex items-center'}`}
+            to={`/registros?data=${registro.data}&registro_id=${registro.id}`}
+            state={{ origem: { rotulo: 'Calendário Semana', url: '/ferramentas?aba=calendario-semana' } }}
+            className={`absolute rounded-ctl overflow-hidden shadow-e1 cursor-pointer transition-[transform,box-shadow] duration-[160ms] ease-out hover:z-10 hover:scale-[1.03] hover:ring-2 hover:ring-ink-900 hover:shadow-e3 ${completo ? 'px-2 py-1' : 'px-1.5 py-0.5 flex items-center'}`}
             style={{
               top: pos.top,
               height: Math.max(pos.height - 2, 0),
@@ -115,7 +118,7 @@ export default function ColunaDia({ registros, agoraTop }: ColunaDiaProps) {
                 </span>
               </div>
             )}
-          </div>
+          </Link>
         )
       })}
     </div>

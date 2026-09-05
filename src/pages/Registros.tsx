@@ -91,6 +91,8 @@ export default function Registros() {
   const [projetoDestacadoId, setProjetoDestacadoId] = useState<string | null>(null)
   // Subcategoria vinda de ?subcategoria_id= na URL: apenas destaca visualmente, nao filtra a lista
   const [subcategoriaDestacadaId, setSubcategoriaDestacadaId] = useState<string | null>(null)
+  // Registro especifico vindo de ?registro_id= na URL: destaca e rola ate o lancamento
+  const [registroDestacadoId, setRegistroDestacadoId] = useState<string | null>(null)
   const [filtroSemana, setFiltroSemana] = useState<string>(() => {
     const now = new Date()
     const y = now.getFullYear()
@@ -181,6 +183,7 @@ export default function Registros() {
     const dataParam = searchParams.get('data')
     const projetoIdParam = searchParams.get('projeto_id')
     const subcategoriaIdParam = searchParams.get('subcategoria_id')
+    const registroIdParam = searchParams.get('registro_id')
 
     if (dataParam) {
       const isFormatValid = /^\d{4}-\d{2}-\d{2}$/.test(dataParam)
@@ -201,6 +204,10 @@ export default function Registros() {
       setSubcategoriaDestacadaId(subcategoriaIdParam)
     }
 
+    if (registroIdParam) {
+      setRegistroDestacadoId(registroIdParam)
+    }
+
     const novoParam = searchParams.get('novo')
     if (novoParam === '1') {
       setEditingRegistro(null)
@@ -210,6 +217,25 @@ export default function Registros() {
       setSearchParams(proximos, { replace: true })
     }
   }, [searchParams])
+
+  // Garante o dia expandido antes de rolar ate o registro destacado: na 1a
+  // passada (dia ainda fechado) so expande o dia do registro e retorna sem
+  // rolar; a mudanca de diasExpandidos dispara este mesmo efeito de novo,
+  // agora com o card ja no DOM em altura real, quando entao o scroll roda.
+  useEffect(() => {
+    if (!registroDestacadoId) return
+    const reg = registros.find(r => r.id === registroDestacadoId)
+    if (!reg) return
+
+    if (diasExpandidos[reg.data] !== true) {
+      setDiasExpandidos(prev => ({ ...prev, [reg.data]: true }))
+      return
+    }
+
+    if (loading) return
+
+    document.getElementById(`registro-${reg.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [registroDestacadoId, registros, diasExpandidos, loading])
 
   // ===============================
   // LÓGICA DE REGISTROS (CRUD)
@@ -790,8 +816,14 @@ export default function Registros() {
 
                               {/* Registros deste projeto */}
                               <div className="flex flex-col gap-2xs">
-                                {itemProj.records.map((reg) => (
-                                  <div key={reg.id} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
+                                {itemProj.records.map((reg) => {
+                                  const emDestaque = registroDestacadoId
+                                    ? reg.id === registroDestacadoId
+                                    : subcategoriaDestacadaId
+                                      ? reg.subcategoria_id === subcategoriaDestacadaId
+                                      : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)
+                                  return (
+                                  <div key={reg.id} id={`registro-${reg.id}`} className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${emDestaque ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}>
                                     {/* Linha 1 no Mobile: [horário] */}
                                     <div className="flex items-center justify-between md:contents w-full">
                                       {/* Horários */}
@@ -876,7 +908,8 @@ export default function Registros() {
                                       </div>
                                     </div>
                                   </div>
-                                ))}
+                                  )
+                                })}
                               </div>
                             </div>
                           )
@@ -915,11 +948,17 @@ export default function Registros() {
                         const isExcluido = status === 'excluido'
                         const projCor = isExcluido ? 'var(--proj-excluido)' : isEncerrado ? 'var(--proj-encerrado)' : (reg.projeto?.cor || '#6B7280')
                         const projNome = isExcluido ? (reg.projeto?.nome_original || 'Sem Projeto') : (reg.projeto?.nome || 'Sem Projeto')
+                        const emDestaque = registroDestacadoId
+                          ? reg.id === registroDestacadoId
+                          : subcategoriaDestacadaId
+                            ? reg.subcategoria_id === subcategoriaDestacadaId
+                            : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)
 
                         return (
                           <div
                             key={reg.id}
-                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${(subcategoriaDestacadaId ? reg.subcategoria_id === subcategoriaDestacadaId : (projetoDestacadoId && reg.projeto_id === projetoDestacadoId)) ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
+                            id={`registro-${reg.id}`}
+                            className={`bg-surface-2 p-3 rounded-card flex flex-col md:flex-row md:items-center gap-sm md:gap-lg hover:bg-surface-3 transition-colors duration-d1 ease-ez group text-sm ${emDestaque ? 'ring-2 ring-accent ring-offset-2 ring-offset-surface-0' : ''}`}
                           >
                             {/* Linha 1 no Mobile: [TAG] [horário] */}
                             <div className="flex items-center justify-between md:contents w-full">

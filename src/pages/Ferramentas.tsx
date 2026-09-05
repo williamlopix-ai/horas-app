@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeftRight } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import { classeCampo, Field, Surface } from '../components/ui'
@@ -15,10 +16,23 @@ const ABAS: { id: TabId; rotulo: string }[] = [
 ]
 
 export default function Ferramentas() {
-  const [activeTab, setActiveTab] = useState<TabId>('calculadora')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const abaParam = searchParams.get('aba') as TabId | null
+  const [activeTab, setActiveTab] = useState<TabId>(
+    abaParam && ABAS.some(a => a.id === abaParam) ? abaParam : 'calculadora'
+  )
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 })
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const abaRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({})
+
+  function selecionarAba(id: TabId) {
+    setActiveTab(id)
+    setSearchParams(prev => {
+      const proximos = new URLSearchParams(prev)
+      proximos.set('aba', id)
+      return proximos
+    }, { replace: true })
+  }
 
   useEffect(() => {
     const recalcularPilula = () => {
@@ -67,7 +81,7 @@ export default function Ferramentas() {
               key={aba.id}
               type="button"
               ref={(el) => { abaRefs.current[aba.id] = el }}
-              onClick={() => setActiveTab(aba.id)}
+              onClick={() => selecionarAba(aba.id)}
               className={`relative z-10 min-h-[44px] px-4 rounded-ctl text-sm font-semibold whitespace-nowrap transition-colors duration-d1 ease-ez ${
                 activeTab === aba.id ? 'text-ink-900' : 'text-ink-500 hover:text-ink-900'
               }`}
