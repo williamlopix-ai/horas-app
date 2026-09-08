@@ -122,7 +122,6 @@ const CAMPOS_INICIAIS: Record<string, string> = {
   intInicioM: '',
   intFimH: '',
   intFimM: '',
-  intPausa: '',
   intDuracaoAlvo: '',
   convHHMMH: '',
   convHHMMM: '',
@@ -195,10 +194,6 @@ function minutosParaHoraRelogio(totalMinutos: number): string {
   return `${pad2(Math.floor(normalizado / 60))}:${pad2(normalizado % 60)}`
 }
 
-function parseMinutos(str: string): number {
-  const n = parseInt(str, 10)
-  return isNaN(n) ? 0 : n
-}
 
 function aplicarTecla(atual: string, tecla: string): string {
   if (tecla === 'apagar') return atual.slice(0, -1)
@@ -271,19 +266,16 @@ function CalculadoraTab() {
     atualizarCampo(campoFocado, novoValor)
   }
 
-  // Modo Intervalo — sub-modo Calcular duração: reaproveita calcularDuracaoCentesimal (fim <= início => 0),
-  // a pausa entra depois de já convertido para centesimal. Só calcula se início e fim tiverem algo digitado,
-  // senão mostra 0,00h em vez de NaN.
+  // Modo Intervalo — sub-modo Calcular duração: reaproveita calcularDuracaoCentesimal (fim <= início => 0).
+  // Só calcula se início e fim tiverem algo digitado, senão mostra 0,00h em vez de NaN.
   const intInicioPreenchido = campos.intInicioH !== '' || campos.intInicioM !== ''
   const intFimPreenchido = campos.intFimH !== '' || campos.intFimM !== ''
   const intInicioCombinado = combinarHoraMinuto(campos.intInicioH, campos.intInicioM)
   const intFimCombinado = combinarHoraMinuto(campos.intFimH, campos.intFimM)
 
-  const pausaIntervaloMin = parseMinutos(campos.intPausa)
-  const duracaoBruta = intInicioPreenchido && intFimPreenchido
+  const duracaoIntervalo = intInicioPreenchido && intFimPreenchido
     ? calcularDuracaoCentesimal(intInicioCombinado, intFimCombinado)
     : 0
-  const duracaoIntervalo = Math.max(0, Math.round((duracaoBruta - pausaIntervaloMin / 60) * 100) / 100)
 
   // Modo Intervalo — sub-modo Calcular fim: inverso, tudo em minutos até converter no final.
   const inicioValido = intInicioPreenchido
@@ -291,7 +283,7 @@ function CalculadoraTab() {
   const minutosInicio = inicioValido ? horaInicioH * 60 + horaInicioM : 0
   const duracaoAlvoMin = Math.round(parseCentesimal(campos.intDuracaoAlvo) * 60)
   const fimCalculado = inicioValido
-    ? minutosParaHoraRelogio(minutosInicio + duracaoAlvoMin + pausaIntervaloMin)
+    ? minutosParaHoraRelogio(minutosInicio + duracaoAlvoMin)
     : '--:--'
 
   // Modo Conversão: hh:mm agora vem de dois campos separados (H/M), combinados aqui.
@@ -311,10 +303,10 @@ function CalculadoraTab() {
 
     if (modo === 'intervalo') {
       if (subModoIntervalo === 'duracao') {
-        expressao = `${intInicioPreenchido ? intInicioCombinado : '--:--'} → ${intFimPreenchido ? intFimCombinado : '--:--'} (pausa ${campos.intPausa || '0'}min)`
+        expressao = `${intInicioPreenchido ? intInicioCombinado : '--:--'} → ${intFimPreenchido ? intFimCombinado : '--:--'}`
         resultado = `${formatarCentesimal(duracaoIntervalo)}h`
       } else {
-        expressao = `${inicioValido ? intInicioCombinado : '--:--'} + ${campos.intDuracaoAlvo || '0'}h (pausa ${campos.intPausa || '0'}min)`
+        expressao = `${inicioValido ? intInicioCombinado : '--:--'} + ${campos.intDuracaoAlvo || '0'}h`
         resultado = fimCalculado
       }
     } else {
@@ -435,7 +427,7 @@ function CalculadoraTab() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {renderParHorario('Início', 'intInicioH', 'intInicioM')}
 
                 {subModoIntervalo === 'duracao' ? (
@@ -452,17 +444,6 @@ function CalculadoraTab() {
                     />
                   </Field>
                 )}
-
-                <Field rotulo="Pausa (min)">
-                  <input
-                    type="text"
-                    placeholder="0"
-                    value={campos.intPausa}
-                    onFocus={() => setCampoFocado('intPausa')}
-                    onChange={e => atualizarCampo('intPausa', e.target.value)}
-                    className={classeCampoNeoTatil()}
-                  />
-                </Field>
               </div>
             </div>
           )}
