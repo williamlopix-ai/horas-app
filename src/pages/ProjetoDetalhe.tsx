@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'reac
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
+import { useSidebar } from '../contexts/SidebarContext'
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button, Surface, classeCampo, SecaoColapsavel, VoltarPara } from '../components/ui'
 import Sidebar from '../components/Sidebar'
@@ -42,6 +43,7 @@ export default function ProjetoDetalhe() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
+  const { recolhida } = useSidebar()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -1133,7 +1135,7 @@ export default function ProjetoDetalhe() {
   return (
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
         <div>
           {origem ? (
             <VoltarPara rotulo={origem.rotulo} url={origem.url} />

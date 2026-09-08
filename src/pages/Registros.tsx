@@ -3,6 +3,7 @@ import { useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
+import { useSidebar } from '../contexts/SidebarContext'
 import {
   AlertTriangle,
   ChevronDown,
@@ -75,6 +76,7 @@ export default function Registros() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
+  const { recolhida } = useSidebar()
 
   // Estados dos Dados
   const [registros, setRegistros] = useState<(Registro & { projeto: { nome: string; cor: string; tipo: 'projeto' | 'rotina'; status: 'ativo' | 'encerrado' | 'excluido'; nome_original: string | null } | null })[]>([])
@@ -504,7 +506,7 @@ export default function Registros() {
       <Sidebar />
 
       {/* 2. Conteúdo Principal */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl lg:ml-[240px] space-y-6 w-full">
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
 
         {/* Voltar para a tela de origem */}
         {origem && <VoltarPara rotulo={origem.rotulo} url={origem.url} />}

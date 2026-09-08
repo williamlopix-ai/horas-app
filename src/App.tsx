@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ConfigProvider } from './contexts/ConfigContext'
+import { SidebarProvider } from './contexts/SidebarContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
@@ -23,107 +24,109 @@ function App() {
     <AuthProvider>
       <ToastProvider>
         <ConfigProvider>
-          <BrowserRouter>
-            <Suspense fallback={
-            <div className="fixed inset-0 bg-[#0B0E14] flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
-            </div>
-          }>
-          <Routes>
-            {/* Redirecionamento da raiz para /registros */}
-            <Route path="/" element={<Navigate to="/registros" replace />} />
-            
-            {/* Rotas Públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-            <Route path="/ui-kit" element={<UIKit />} />
-            
-            <Route
-              path="/registros"
-              element={
-                <ProtectedRoute>
-                  <Registros />
-                </ProtectedRoute>
-              }
-            />
+          <SidebarProvider>
+            <BrowserRouter>
+              <Suspense fallback={
+                <div className="fixed inset-0 bg-[#0B0E14] flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
+                </div>
+              }>
+                <Routes>
+                  {/* Redirecionamento da raiz para /registros */}
+                  <Route path="/" element={<Navigate to="/registros" replace />} />
+                  
+                  {/* Rotas Públicas */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/cadastro" element={<Cadastro />} />
+                  <Route path="/ui-kit" element={<UIKit />} />
+                  
+                  <Route
+                    path="/registros"
+                    element={
+                      <ProtectedRoute>
+                        <Registros />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/resumo"
-              element={
-                <ProtectedRoute>
-                  <Resumo />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/resumo"
+                    element={
+                      <ProtectedRoute>
+                        <Resumo />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/timesheet"
-              element={
-                <ProtectedRoute>
-                  <Timesheet />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/timesheet"
+                    element={
+                      <ProtectedRoute>
+                        <Timesheet />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/billable"
-              element={
-                <ProtectedRoute>
-                  <Billable />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/billable"
+                    element={
+                      <ProtectedRoute>
+                        <Billable />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/projetos"
-              element={
-                <ProtectedRoute>
-                  <Projetos />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/projetos"
+                    element={
+                      <ProtectedRoute>
+                        <Projetos />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/ajustes"
-              element={
-                <ProtectedRoute>
-                  <Ajustes />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/ajustes"
+                    element={
+                      <ProtectedRoute>
+                        <Ajustes />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/lembretes"
-              element={
-                <ProtectedRoute>
-                  <Lembretes />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/lembretes"
+                    element={
+                      <ProtectedRoute>
+                        <Lembretes />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/projeto/:id"
-              element={
-                <ProtectedRoute>
-                  <ProjetoDetalhe />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/projeto/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ProjetoDetalhe />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            <Route
-              path="/ferramentas"
-              element={
-                <ProtectedRoute>
-                  <Ferramentas />
-                </ProtectedRoute>
-              }
-            />
+                  <Route
+                    path="/ferramentas"
+                    element={
+                      <ProtectedRoute>
+                        <Ferramentas />
+                      </ProtectedRoute>
+                    }
+                  />
 
-            {/* Fallback para rotas não encontradas */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-          </Suspense>
-          </BrowserRouter>
+                  {/* Fallback para rotas não encontradas */}
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </SidebarProvider>
         </ConfigProvider>
       </ToastProvider>
     </AuthProvider>

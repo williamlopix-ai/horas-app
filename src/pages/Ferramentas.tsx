@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowLeftRight } from 'lucide-react'
+import { useSidebar } from '../contexts/SidebarContext'
 import Sidebar from '../components/Sidebar'
 import { classeCampo, Field, Surface } from '../components/ui'
 import { calcularDuracaoCentesimal } from '../services/registros'
@@ -14,6 +15,7 @@ const ABAS: { id: TabId; rotulo: string }[] = [
 ]
 
 export default function Ferramentas() {
+  const { recolhida } = useSidebar()
   const [searchParams, setSearchParams] = useSearchParams()
   const abaParam = searchParams.get('aba') as TabId | null
   const [activeTab, setActiveTab] = useState<TabId>(
@@ -58,7 +60,7 @@ export default function Ferramentas() {
 
       <Sidebar />
 
-      <main className="relative z-10 flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
+      <main className={`relative z-10 flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Ferramentas</h1>
           <p className="text-sm text-ink-500">Calculadoras e utilitários de apoio ao dia a dia.</p>

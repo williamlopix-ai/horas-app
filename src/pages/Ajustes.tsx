@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { ChevronDown, AlertTriangle, Trash2, Plus, Download } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useSidebar } from '../contexts/SidebarContext'
 import Sidebar from '../components/Sidebar'
 import { useConfig } from '../contexts/ConfigContext'
 import { listarHorariosSemana, salvarHorarioSemana, removerHorarioSemana } from '../services/horariosSemana'
@@ -28,6 +29,7 @@ export default function Ajustes() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config, salvarConfig } = useConfig()
+  const { recolhida } = useSidebar()
 
   // Estados dos Campos de Configuração
   const [inicioSemana, setInicioSemana] = useState<InicioSemana>('segunda')
@@ -552,7 +554,7 @@ export default function Ajustes() {
       <Sidebar />
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-3xl mx-auto space-y-6 lg:ml-[240px] w-full">
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-3xl mx-auto space-y-6 ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez w-full`}>
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Configurações</h1>
           <p className="text-sm text-ink-500">Personalize o comportamento e as metas do seu aplicativo.</p>

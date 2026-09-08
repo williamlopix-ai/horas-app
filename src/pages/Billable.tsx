@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
+import { useSidebar } from '../contexts/SidebarContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import { getErrorMessage } from '../utils/errors'
@@ -301,6 +302,7 @@ export default function Billable() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const { config } = useConfig()
+  const { recolhida } = useSidebar()
   const [activeTab, setActiveTab] = useState<'semanal' | 'mensal' | 'anual'>('semanal')
   const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
 
@@ -738,7 +740,7 @@ export default function Billable() {
       <Sidebar />
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl lg:ml-[240px] space-y-6 w-full">
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
         {/* Header da Seção */}
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight text-ink-900">Billable</h1>

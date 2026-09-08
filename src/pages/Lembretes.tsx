@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
+import { useSidebar } from '../contexts/SidebarContext'
 import Sidebar from '../components/Sidebar'
 import {
   listarLembretes,
@@ -19,6 +20,7 @@ import { Button, EmptyState, PageHeader } from '../components/ui'
 export default function Lembretes() {
   const { user } = useAuth()
   const { showToast } = useToast()
+  const { recolhida } = useSidebar()
   
   const [lembretes, setLembretes] = useState<Lembrete[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
@@ -185,7 +187,7 @@ export default function Lembretes() {
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
 
-      <main className="flex-1 p-4 md:p-8 lg:ml-[240px] max-w-5xl space-y-6 w-full overflow-y-auto">
+      <main className={`flex-1 p-4 md:p-8 ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez max-w-5xl space-y-6 w-full overflow-y-auto`}>
         <PageHeader
           titulo="Lembretes"
           subtitulo="Organize e acompanhe seus lembretes e tarefas pendentes."
