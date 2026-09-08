@@ -1135,7 +1135,7 @@ export default function ProjetoDetalhe() {
   return (
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
-      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-6xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto ${recolhida ? 'max-w-7xl lg:ml-16' : 'max-w-6xl lg:ml-[240px]'} transition-all duration-d3 ease-ez space-y-6 w-full`}>
         <div>
           {origem ? (
             <VoltarPara rotulo={origem.rotulo} url={origem.url} />

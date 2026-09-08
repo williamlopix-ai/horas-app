@@ -187,7 +187,7 @@ export default function Lembretes() {
     <div className="min-h-screen bg-surface-0 text-ink-900 flex flex-col lg:flex-row">
       <Sidebar />
 
-      <main className={`flex-1 p-4 md:p-8 ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez max-w-5xl space-y-6 w-full overflow-y-auto`}>
+      <main className={`flex-1 p-4 md:p-8 ${recolhida ? 'max-w-6xl lg:ml-16' : 'max-w-5xl lg:ml-[240px]'} transition-all duration-d3 ease-ez space-y-6 w-full overflow-y-auto`}>
         <PageHeader
           titulo="Lembretes"
           subtitulo="Organize e acompanhe seus lembretes e tarefas pendentes."

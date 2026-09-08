@@ -457,7 +457,7 @@ export default function Projetos() {
       <Sidebar />
 
       {/* 2. Conteúdo Principal */}
-      <main className={`flex-1 p-4 md:p-8 overflow-y-auto max-w-5xl ${recolhida ? 'lg:ml-16' : 'lg:ml-[240px]'} transition-[margin-left] duration-d3 ease-ez space-y-6 w-full`}>
+      <main className={`flex-1 p-4 md:p-8 overflow-y-auto ${recolhida ? 'max-w-6xl lg:ml-16' : 'max-w-5xl lg:ml-[240px]'} transition-all duration-d3 ease-ez space-y-6 w-full`}>
         
         <PageHeader
           titulo="Projetos"
