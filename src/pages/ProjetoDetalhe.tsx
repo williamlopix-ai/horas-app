@@ -2033,10 +2033,7 @@ export default function ProjetoDetalhe() {
                             return (
                               <Fragment key={item.id}>
                                 <tr
-                                  onClick={() => handleClicarEditarPlano(item)}
-                                  className={`transition-colors duration-d1 ease-ez cursor-pointer group ${
-                                    planoEmEdicaoId === item.id ? '' : 'hover:bg-surface-3'
-                                  }`}
+                                  className="transition-colors duration-d1 ease-ez group hover:bg-surface-3"
                                   style={planoEmEdicaoId === item.id ? { backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' } : undefined}
                                 >
                                   <td className="py-2.5 px-3 text-ink-900 font-medium">
