@@ -5,7 +5,7 @@ import { useToast } from '../contexts/ToastContext'
 import { useConfig } from '../contexts/ConfigContext'
 import { useSidebar } from '../contexts/SidebarContext'
 import { AlertTriangle, ArrowLeft, Check, ChevronDown, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
-import { Button, Surface, classeCampo, SecaoColapsavel, VoltarPara } from '../components/ui'
+import { Button, Chip, Surface, classeCampo, SecaoColapsavel, VoltarPara } from '../components/ui'
 import Sidebar from '../components/Sidebar'
 import type { SubcategoriaBreakdownItem } from '../components/BreakdownSubcategorias'
 import ModalRegistro from '../components/ModalRegistro'
@@ -33,6 +33,32 @@ type RegistroComDetalhes = Registro & {
 }
 
 const DESTINO_PENDENTE = '__escolher__'
+
+type EstadoRestante =
+  | { tipo: 'restam'; horas: number }
+  | { tipo: 'concluida' }
+  | { tipo: 'excedeu'; horas: number }
+  | null
+
+function calcularRestante(alocadas: number | null | undefined, lancadas: number): EstadoRestante {
+  if (alocadas === null || alocadas === undefined || alocadas === 0) {
+    return null
+  }
+  if (Math.abs(alocadas - lancadas) <= 0.01) {
+    return { tipo: 'concluida' }
+  }
+  if (lancadas - alocadas > 0.01) {
+    return { tipo: 'excedeu', horas: lancadas - alocadas }
+  }
+  return { tipo: 'restam', horas: alocadas - lancadas }
+}
+
+function renderChipRestante(estado: EstadoRestante) {
+  if (!estado) return null
+  if (estado.tipo === 'concluida') return <Chip tom="ok">concluída</Chip>
+  if (estado.tipo === 'excedeu') return <Chip tom="erro">excedeu {estado.horas.toFixed(2).replace('.', ',')}h</Chip>
+  return <Chip tom="neutro">restam {estado.horas.toFixed(2).replace('.', ',')}h</Chip>
+}
 
 export default function ProjetoDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -661,6 +687,7 @@ export default function ProjetoDetalhe() {
           {items.map((sub) => {
             const isBaldeSemSub = sub.id === null
             const temAlocacao = !isBaldeSemSub && sub.horas_alocadas !== null && sub.horas_alocadas > 0
+            const restanteSub = calcularRestante(sub.horas_alocadas, sub.duracao)
             const excedeu = temAlocacao && sub.duracao > sub.horas_alocadas!
             const percentualAlocado = temAlocacao ? Math.round((sub.duracao / sub.horas_alocadas!) * 100) : 0
             const larguraBarra = temAlocacao ? Math.min(100, Math.max(0, (sub.duracao / sub.horas_alocadas!) * 100)) : 0
@@ -696,6 +723,7 @@ export default function ProjetoDetalhe() {
                     <div className="flex items-center gap-sm shrink-0">
                       <div className="font-mono text-right shrink-0">
                         <span className="font-bold text-ink-900">{duracaoFormatada}</span>
+                        <span className="text-xs text-ink-500"> lançadas</span>
                       </div>
                       <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
                         {sub.percentual ?? 0}%
@@ -908,10 +936,15 @@ export default function ProjetoDetalhe() {
                         <>
                           <div className="font-mono text-right shrink-0">
                             <span className="font-bold text-ink-900">{duracaoFormatada}</span>
-                            {temAlocacao && (
+                            {temAlocacao ? (
                               <span className="text-xs text-ink-500"> de {alocadoFormatado} reservadas</span>
+                            ) : (
+                              <span className="text-xs text-ink-500"> lançadas</span>
                             )}
                           </div>
+                          {restanteSub && (
+                            <span className="hidden sm:flex shrink-0">{renderChipRestante(restanteSub)}</span>
+                          )}
                           <span className="font-mono w-10 text-right font-medium text-ink-500 shrink-0">
                             {!temAlocacao ? `${sub.percentual ?? 0}%` : ''}
                           </span>
@@ -940,6 +973,9 @@ export default function ProjetoDetalhe() {
                         }}
                       />
                     </div>
+                    {restanteSub && (
+                      <span className="flex sm:hidden shrink-0">{renderChipRestante(restanteSub)}</span>
+                    )}
                     <span
                       className={`font-mono text-[10px] w-10 text-right font-medium shrink-0 ${excedeu ? 'text-bad' : 'text-ink-500'}`}
                     >
@@ -1089,10 +1125,6 @@ export default function ProjetoDetalhe() {
     setHorasPlanejadasInput('')
   }
 
-  const totalPlanejado = useMemo(() => {
-    return planosSemanais.reduce((acc, p) => acc + p.horas_planejadas, 0)
-  }, [planosSemanais])
-
   const planosOrdenados = useMemo(() => {
     return [...planosSemanais].sort((a, b) => a.semana_inicio.localeCompare(b.semana_inicio))
   }, [planosSemanais])
@@ -1110,12 +1142,6 @@ export default function ProjetoDetalhe() {
       }
     })
   }, [planosOrdenados, registros, config.inicio_semana])
-
-  const totalRealizadoPlanos = useMemo(() => {
-    return planosComMetricas.reduce((acc, p) => acc + p.realizado, 0)
-  }, [planosComMetricas])
-
-  const totalDiferencaPlanos = totalRealizadoPlanos - totalPlanejado
 
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const totalContratado = projeto?.horas_contratadas ?? null
@@ -1497,16 +1523,19 @@ export default function ProjetoDetalhe() {
                                 />
                                 <span className="font-display font-bold text-ink-900 text-base min-w-0 whitespace-normal break-words overflow-hidden md:whitespace-nowrap md:text-ellipsis">{fase.nome}</span>
                               </div>
-                              <div className="font-mono text-sm font-semibold text-ink-500 shrink-0 pl-7 md:pl-0 md:ml-2">
-                                {temPrevisto ? (
-                                  <>
-                                    <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> de {previstoFormatado} previstas
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> lançadas
-                                  </>
-                                )}
+                              <div className="flex items-center gap-sm flex-wrap pl-7 md:pl-0 md:ml-2">
+                                <div className="font-mono text-sm font-semibold text-ink-500 shrink-0">
+                                  {temPrevisto ? (
+                                    <>
+                                      <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> de {previstoFormatado} previstas
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-ink-900 font-bold">{usadoFase.toFixed(2).replace('.', ',')}h</span> lançadas
+                                    </>
+                                  )}
+                                </div>
+                                {renderChipRestante(calcularRestante(fase.horas_contratadas, usadoFase))}
                               </div>
                             </button>
                             <div className="shrink-0 ml-1">
@@ -1975,22 +2004,6 @@ export default function ProjetoDetalhe() {
                   </form>
                   )}
 
-                  {/* Linha Informativa Comparação com Contratado */}
-                  {temContratado && planosSemanais.length > 0 && (() => {
-                    const excedeu = totalPlanejado > totalContratado!
-                    const diff = Math.abs(totalContratado! - totalPlanejado)
-                    return (
-                      <div className={`text-xs font-medium ${excedeu ? 'text-bad' : 'text-ink-700'}`}>
-                        Planejado: <span className="font-bold font-mono">{totalPlanejado.toFixed(2).replace('.', ',')}h</span> de{' '}
-                        <span className="font-bold font-mono">{totalContratado!.toFixed(2).replace('.', ',')}h</span> contratadas —{' '}
-                        {excedeu
-                          ? `${diff.toFixed(2).replace('.', ',')}h acima do contratado`
-                          : `faltam ${diff.toFixed(2).replace('.', ',')}h a planejar`
-                        }
-                      </div>
-                    )
-                  })()}
-
                   {/* Tabela de semanas planejadas */}
                   {planosComMetricas.length > 0 && (
                     <div className="overflow-x-auto">
@@ -2145,24 +2158,6 @@ export default function ProjetoDetalhe() {
                             )
                           })}
                         </tbody>
-                        <tfoot>
-                          <tr className="border-t-2 border-hair-strong font-bold">
-                            <td className="py-3 px-3 text-ink-900">Total</td>
-                            <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-900">
-                              {totalPlanejado.toFixed(2).replace('.', ',')}h
-                            </td>
-                            <td className="py-3 px-3 text-right font-mono tabular-nums text-ink-900">
-                              {totalRealizadoPlanos.toFixed(2).replace('.', ',')}h
-                            </td>
-                            <td
-                              className="py-3 px-3 text-right font-mono tabular-nums"
-                              style={{ color: totalDiferencaPlanos >= 0 ? 'var(--ok)' : 'var(--bad)' }}
-                            >
-                              {totalDiferencaPlanos.toFixed(2).replace('.', ',')}h
-                            </td>
-                            <td></td>
-                          </tr>
-                        </tfoot>
                       </table>
                     </div>
                   )}
