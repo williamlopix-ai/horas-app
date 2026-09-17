@@ -82,7 +82,7 @@ export default defineConfig({
           },
           {
             urlPattern: /\.js$/,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'js-cache',
             },
