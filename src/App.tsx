@@ -5,6 +5,7 @@ import { ToastProvider } from './contexts/ToastContext'
 import { ConfigProvider } from './contexts/ConfigContext'
 import { SidebarProvider } from './contexts/SidebarContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 
@@ -26,7 +27,8 @@ function App() {
         <ConfigProvider>
           <SidebarProvider>
             <BrowserRouter>
-              <Suspense fallback={
+              <ErrorBoundary>
+                <Suspense fallback={
                 <div className="fixed inset-0 bg-[#0B0E14] flex items-center justify-center">
                   <div className="w-6 h-6 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -125,7 +127,8 @@ function App() {
                   <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
               </Suspense>
-            </BrowserRouter>
+            </ErrorBoundary>
+          </BrowserRouter>
           </SidebarProvider>
         </ConfigProvider>
       </ToastProvider>
