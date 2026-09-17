@@ -60,6 +60,22 @@ function renderChipRestante(estado: EstadoRestante) {
   return <Chip tom="neutro">restam {estado.horas.toFixed(2).replace('.', ',')}h</Chip>
 }
 
+type EstadoDiferenca = { texto: string; classe: string }
+
+function estadoDiferencaSemana(
+  planejado: number,
+  realizado: number,
+  semanaEncerrada: boolean
+): EstadoDiferenca {
+  const d = realizado - planejado
+  if (Math.abs(d) <= 0.01) return { texto: 'concluído', classe: 'text-ok' }
+  if (d > 0) return { texto: `+${d.toFixed(2).replace('.', ',')}h`, classe: 'text-warn' }
+  return {
+    texto: `${d.toFixed(2).replace('.', ',')}h`,
+    classe: semanaEncerrada ? 'text-bad' : 'text-ink-500'
+  }
+}
+
 export default function ProjetoDetalhe() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -1143,6 +1159,12 @@ export default function ProjetoDetalhe() {
     })
   }, [planosOrdenados, registros, config.inicio_semana])
 
+  const hojeZerado = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
   const totalLancado = registros.reduce((acc, r) => acc + r.duracao, 0)
   const totalContratado = projeto?.horas_contratadas ?? null
 
@@ -2026,7 +2048,8 @@ export default function ProjetoDetalhe() {
                             const m2 = String(fim.getMonth() + 1).padStart(2, '0')
                             const periodoStr = `${d1}/${m1} a ${d2}/${m2}`
 
-                            const corDiferenca = item.diferenca >= 0 ? 'var(--ok)' : 'var(--bad)'
+                            const semanaEncerrada = fim < hojeZerado
+                            const dif = estadoDiferencaSemana(item.horas_planejadas, item.realizado, semanaEncerrada)
                             const isExpanded = planosExpandidos[item.id] ?? false
 
                             const diasComRegistros = !isExpanded ? [] : (() => {
@@ -2060,11 +2083,8 @@ export default function ProjetoDetalhe() {
                                   <td className="py-2.5 px-3 text-right font-mono tabular-nums text-ink-900">
                                     {item.realizado.toFixed(2).replace('.', ',')}h
                                   </td>
-                                  <td
-                                    className="py-2.5 px-3 text-right font-mono tabular-nums font-semibold"
-                                    style={{ color: corDiferenca }}
-                                  >
-                                    {item.diferenca.toFixed(2).replace('.', ',')}h
+                                  <td className={`py-2.5 px-3 text-right font-mono tabular-nums font-semibold ${dif.classe}`}>
+                                    {dif.texto}
                                   </td>
                                   <td className="py-2.5 px-2 text-center">
                                     <div className="flex items-center justify-center gap-2xs">
