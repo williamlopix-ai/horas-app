@@ -21,7 +21,6 @@ import type { HorarioSemana } from '../types'
 import { useToast } from '../contexts/ToastContext'
 import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import { Surface, classeCampo, Button, Chip } from '../components/ui'
-import * as XLSX from 'xlsx'
 import { supabase } from '../lib/supabase'
 import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
 
@@ -183,6 +182,7 @@ export default function Ajustes() {
     if (!user) return
     try {
       setExporting(true)
+      const XLSX = await import('xlsx')
 
       // 1. Buscar registros ordenados por data asc
       const { data: registros, error: errorRegistros } = await supabase
