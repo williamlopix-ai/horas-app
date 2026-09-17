@@ -149,30 +149,35 @@ export default function Registros() {
     return { dataInicio: formatYYYYMMDD(inicio), dataFim: formatYYYYMMDD(fim) }
   }
 
-  // Carregar dados iniciais
-  const carregarDados = async () => {
+  // Carregar dados estáticos/globais da sessão (projetos e horários)
+  const carregarMetadados = async () => {
+    if (!user) return
+    try {
+      setError(null)
+      const [projs, excecoes, semHorarios] = await Promise.all([
+        listarProjetos(user.id),
+        listarHorariosDias(user.id),
+        listarHorariosSemana(user.id)
+      ])
+      setProjetos(projs)
+      setHorariosExcecoes(excecoes)
+      setHorariosSemana(semHorarios)
+    } catch (err: any) {
+      console.error('Erro ao carregar projetos/horários:', err)
+      setError(getErrorMessage(err))
+    }
+  }
+
+  // Carregar registros de acordo com a semana ou dia selecionado
+  const carregarRegistros = async () => {
     if (!user) return
     try {
       setLoading(true)
       setError(null)
-
-      // 2. Carregar Projetos
-      const projs = await listarProjetos(user.id)
-      setProjetos(projs)
-
-      // 3. Carregar Exceções de Horários
-      const excecoes = await listarHorariosDias(user.id)
-      setHorariosExcecoes(excecoes)
-
-      // 3.5. Carregar Horários da Semana
-      const semHorarios = await listarHorariosSemana(user.id)
-      setHorariosSemana(semHorarios)
-
-      // 4. Carregar Registros
       const regs = await listarRegistros(user.id, getFiltroDataAtual())
       setRegistros(regs)
     } catch (err: any) {
-      console.error('Erro ao carregar dados:', err)
+      console.error('Erro ao carregar registros:', err)
       setError(getErrorMessage(err))
     } finally {
       setLoading(false)
@@ -180,7 +185,11 @@ export default function Registros() {
   }
 
   useEffect(() => {
-    carregarDados()
+    carregarMetadados()
+  }, [user])
+
+  useEffect(() => {
+    carregarRegistros()
   }, [user, filtroSemana, filtroDiaEspecifico])
 
   useEffect(() => {
