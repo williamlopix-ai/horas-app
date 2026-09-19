@@ -3,7 +3,7 @@ import type { Configuracao } from '../types'
 
 export const CONFIG_PADRAO: Omit<Configuracao, 'id' | 'usuario_id'> = {
   meta_semanal: 42.5,
-  inicio_semana: 'segunda',
+  inicio_semana: 'sabado',
   formato_horas: 'decimal',
   inicio_dia: '09:00',
   fim_dia: '18:30',

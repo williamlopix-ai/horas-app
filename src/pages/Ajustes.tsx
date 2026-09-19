@@ -27,7 +27,7 @@ import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } 
 export default function Ajustes() {
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { config, salvarConfig } = useConfig()
+  const { config, salvarConfig, loadingConfig } = useConfig()
   const { recolhida } = useSidebar()
 
   // Estados dos Campos de Configuração
@@ -490,6 +490,7 @@ export default function Ajustes() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return
+    if (loadingConfig) return
     try {
       setSaving(true)
       setError(null)
@@ -570,7 +571,7 @@ export default function Ajustes() {
           </div>
         )}
 
-        {loading ? (
+        {(loading || loadingConfig) ? (
           <Surface elevacao={1} comBorda padding="nenhum" className="p-6 md:p-8 space-y-8">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="space-y-3">
@@ -1014,7 +1015,7 @@ export default function Ajustes() {
                   variante="primario"
                   tamanho="md"
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || loadingConfig}
                   carregando={saving}
                   className="w-full sm:w-auto min-h-[44px]"
                 >
