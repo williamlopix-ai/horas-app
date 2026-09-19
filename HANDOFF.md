@@ -1,8 +1,8 @@
 # HANDOFF — HORAS
 
 > Cole este arquivo no início de cada sessão nova. Só estado atual +
-> regras não-negociáveis + próximo passo. Histórico de "como chegamos
-> aqui" vive na memória do Claude, não aqui.
+> regras não-negociáveis + próximo passo.
+> **Atualizado em 19/09/2026.** Substitui integralmente a versão anterior.
 
 ---
 
@@ -16,283 +16,374 @@
   (a função acima), `utils/semana.ts`, `vite.config.ts`, `contexts/AuthContext.tsx`,
   `index.css`/`tailwind.config.js`.
 - **Nenhum arquivo do código do app fica anexado ao projeto por padrão** — só
-  este HANDOFF. Se precisar ler um arquivo real, pedir explicitamente para
-  colar/anexar. Nunca assumir ou inventar estrutura de memória antiga.
-- **`var()` cru dentro de arbitrary value do Tailwind 3** (`shadow-[...]`,
-  `ring-[...]`, `bg-[...]`) não é confiável — sem erro, sem efeito. Usar
-  utility nativa (`ring-2 ring-accent`, `shadow-e3`) ou `style` inline com
-  `color-mix(in srgb, var(--x) N%, transparent)`. Nunca os dois juntos.
-- **`overflow-y-auto` + `overflow-x-visible` (ou vice-versa) no mesmo elemento
-  não funciona** — CSS Overflow Module: qualquer eixo diferente de `visible`
-  força o OUTRO eixo especificamente para `auto`, cortando filhos com
-  `position: absolute` que extravasem o container. Se um popover precisa
-  sair do container, o container não pode ter nenhum eixo com scroll.
-- Decisão visual ou estrutural = mockup HTML real primeiro (cores/tokens do
-  app), nunca texto nem botões de opção. Só depois vira prompt de leva.
-- **Verificação visual de UI é sempre manual (usuário no navegador), nunca
-  automatizada via browser task do agente** — já causou loop de permissão
-  gastando cota à toa (sessão 08/09). O agente lê código e mostra diff;
-  quem confirma visualmente é o usuário.
-- **Toda atualização de horas contratadas (projeto) ou previstas (fase)
-  passa por `ModalConfirmacao`** — nunca grava direto.
-- **Nome de ícone do Lucide v1 sempre verificado no disco antes de usar** —
-  nomes mudaram na v1 (`AlertTriangle` NÃO existe, é `TriangleAlert`;
-  `BarChart3` também não existe). Todo prompt que use ícone novo precisa
-  de passo de verificação em `node_modules/lucide-react`.
-- **`useEffect` com `[user]` na dependência** — usar `[user?.id]` em telas
-  novas. O objeto `user` muda de referência a cada revalidação de token
-  (foco de aba), disparando refetch em cascata. Corrigido na raiz em
-  `AuthContext.tsx` em 17/09, mas o padrão continua valendo por segurança.
+  este HANDOFF. Se precisar ler um arquivo real, pedir para colar/anexar ou
+  mandar o agente ler do disco.
+- **`var()` cru dentro de arbitrary value do Tailwind 3** não é confiável —
+  sem erro, sem efeito. Usar utility nativa ou `color-mix` em `style` inline.
+- **`overflow-y-auto` + `overflow-x-visible` no mesmo elemento não funciona** —
+  qualquer eixo diferente de `visible` força o outro para `auto`.
+- Decisão visual ou estrutural = mockup HTML real primeiro (tokens do app),
+  nunca texto nem botões de opção.
+- **Verificação visual de UI é sempre manual (usuário no navegador)**, nunca
+  browser task do agente.
+- **Toda atualização de horas contratadas ou previstas passa por
+  `ModalConfirmacao`** — nunca grava direto. (Existe UMA violação conhecida
+  dessa regra hoje: ver pendência 6.)
+- **Nome de ícone do Lucide v1 sempre verificado no disco antes de usar.**
+- **`useEffect` com `[user]`** → usar `[user?.id]`.
+- **Duas classes Tailwind que controlam a mesma propriedade CSS colidem em
+  silêncio** — vence a ordem do CSS gerado, não a da string. Visibilidade
+  condicional (`hidden sm:flex`) vai em `<span>` wrapper POR FORA do
+  componente, nunca misturada às classes dele.
+- **Wrapper de visibilidade condicionado à existência do conteúdo**, não só
+  o conteúdo: `{cond && <span>...}`. Span vazio continua sendo item flex e
+  consome `gap`.
+- **Toda dedução de "encerrado/passado/futuro" usa `utils/semana.ts`.** E ao
+  ler retorno de função de data, conferir com qual `config.inicio_semana`
+  real ela foi chamada — o default da assinatura é `'segunda'` e o valor do
+  app é `'sabado'`.
+- **NUNCA buscar dados dependentes de `config` antes de `loadingConfig`
+  virar `false`**, e sempre com flag `cancelado` no cleanup do `useEffect`.
+  Foi a causa raiz de 4 bugs corrigidos em 19/09.
 
 ## Executor desta sessão
 
 Confirmar sempre no início: **Claude Code** ou **Antigravity/Gemini**? Nunca
 roda terminal — usuário roda tudo (`tsc`, `git`, `npm`).
 
-Modelos disponíveis no Antigravity (atualizado 17/09/2026): Gemini **3.8 /
-3.7 / 3.6 Flash** (Low/Medium/High) e **3.1 Pro** (Low/High). Preferir sempre
-o Flash mais novo (hoje 3.8) para tarefas de Flash.
+Modelos no Antigravity: Gemini **3.8 / 3.7 / 3.6 Flash** (Low/Medium/High)
+e **3.1 Pro** (Low/High). Preferir o Flash mais novo para tarefas de Flash.
+**Em 19/09 o 3.1 Pro ficou indisponível ("high traffic") em várias
+tentativas seguidas** — se repetir, 3.8 Flash (High) deu conta das levas de
+diagnóstico, com revisão mais rigorosa do diff.
 
 ## Protocolo de leva
 
 Contexto → Passo 1 Ler → Passo 2 Relatório (para, aguarda) → Passo 3 Diff
-completo (para, aguarda) → Edição → Restrições → Critério de aceite. Nunca
-aceitar resumo em prosa como prova de que o código foi escrito ou de que
-um comportamento visual foi confirmado.
+completo (para, aguarda) → Edição → Restrições → Critério de aceite.
+
+**Padrão que se repetiu em TODAS as levas de 18-19/09**: o Passo 2 vem
+correto e o Passo 3 vem com pelo menos um problema — mudança não pedida
+colada junto, dependência de `useEffect` acrescentada sem motivo,
+consequência não percebida. Foi pego todas as vezes comparando o diff linha
+a linha com o pedido original. **Nunca aprovar Passo 3 na primeira resposta.**
+
+Outro padrão: **o agente afirma sem provar** ("essa função não é usada em
+outro lugar"). Exigir `git grep` colado. Em 19/09 ele chegou a aplicar
+edição antes de entregar provas exigidas — cobrar as provas mesmo assim.
 
 ---
 
 ## Estado atual
 
-Ferramentas tem **só 2 abas**: Calendário Semana (default) e Calculadora.
+Redesign geral (Fases 1-4) em produção desde 23/08. Reversão: commit
+`10503d3`. Sidebar recolhível desde 08/09. Infraestrutura (performance,
+backup, segurança, ErrorBoundary) resolvida em 17/09.
 
-Redesign geral (Fases 1-4) em produção desde 23/08. Reversão se precisar:
-commit `10503d3` (antes do merge).
-
-**Sidebar recolhível em desktop (>=1024px)**, implementada em 08/09.
-
-**Infraestrutura (performance, backup, segurança) resolvida em 17/09** —
-ver seção abaixo. O app está mais rápido, com backup automático testado e
-com auditoria de segurança concluída.
-
-## Concluído na sessão de 17/09 — Infraestrutura
-
-Sessão inteira de infraestrutura, sem tocar em funcionalidade. Tudo em
-produção e testado.
-
-### Performance (4 correções, todas commitadas)
-
-1. **`vite.config.ts`** — handler de cache dos chunks `.js` trocado de
-   `NetworkFirst` para `StaleWhileRevalidate`. Os chunks têm contenthash
-   no nome, então não precisavam revalidar contra rede a cada navegação.
-   Era a causa de telas com chunk grande (Resumo 45kB, ProjetoDetalhe
-   57kB) parecerem mais lentas que telas pequenas.
-2. **`Ajustes.tsx`** — `xlsx` (282kB, o maior chunk do build) passou de
-   import estático para `await import('xlsx')` dentro de `handleExport`.
-   Abrir Ajustes deixou de baixar 94kB gzipped à toa.
-3. **`Registros.tsx`** — `carregarDados()` separada em `carregarMetadados()`
-   (projetos/horários, roda só em `[user]`) e `carregarRegistros()` (roda em
-   `[user, filtroSemana, filtroDiaEspecifico]`). Antes, trocar de semana
-   refazia 4 queries, sendo 3 de dados que não dependem da semana.
-4. **`AuthContext.tsx` (arquivo protegido, aprovado explicitamente)** —
-   `setUser` agora compara `id` antes de trocar a referência:
-   ```
-   setUser(prev => prev?.id === session?.user?.id ? prev : (session?.user ?? null))
-   ```
-   **Esta foi a correção de maior impacto.** O supabase-js revalida o token
-   quando a aba recupera foco, disparando `onAuthStateChange` com um objeto
-   `user` de referência nova (mesmo id). Isso invalidava todo `useEffect`
-   com `[user]`, causando refetch em cascata sem cancelamento — requests
-   acumulando a cada troca de aba (32 → 38 → 44 → 50, medido no Network).
-   Auditado antes: nenhum consumidor de `useAuth` usa `session`, nenhum lê
-   campo mutável de `user` além de `.id`.
-
-### Error Boundary
-
-- **`src/components/ErrorBoundary.tsx`** (novo) — class component com
-  `getDerivedStateFromError` + `componentDidCatch`. Tela de erro usando
-  `Surface`/`Button` e tokens reais do design system, com `<details>`
-  recolhido mostrando a mensagem técnica para o usuário copiar.
-- **`App.tsx`** — `<ErrorBoundary>` dentro de `<BrowserRouter>`, por fora
-  de `<Suspense>` e `<Routes>` (fica dentro dos providers para ter acesso
-  ao tema). Testado com `throw` proposital e confirmado visualmente.
-
-### Backup automático (fora do repo, roda no PC pessoal)
-
-Plano free do Supabase **não tem backup nenhum restaurável** — a própria
-documentação manda o usuário exportar por conta própria. Montado:
-
-- `pg_dump` 18.6 instalado local (client tools; o CLI do Supabase foi
-  descartado porque exige Docker).
-- Script `C:\Users\Mattos\scripts\backup-horas.ps1` gera 3 arquivos por dia
-  (`schema.sql`, `dados.sql`, `completo.dump`) dos schemas `public` e `auth`.
-- Destino: `G:\Meu Drive\backups-horas\<AAAA-MM-DD>\` (Google Drive desktop).
-- Conexão via **Session pooler** (`aws-1-us-east-2.pooler.supabase.com:5432`),
-  não via host direto — o host direto é IPv6 e não resolve na rede do Will.
-- Credencial em variável de ambiente `HORAS_DB_URL` (nunca no script).
-- Agendado no Agendador de Tarefas do Windows, diário, com "executar após
-  inicialização perdida" marcado e `-WindowStyle Hidden`.
-- Retenção: 30 dias completos → depois só segundas → acima de 1 ano só dia 1.
-- Tamanho real: **0,41 MB por backup**.
-- **Restauração testada e comprovada**: restaurado num Postgres local limpo,
-  conferido 466 registros / 26 projetos / 79 subcategorias / 24 fases.
-  Único erro no restore é `schema "public" já existe`, inofensivo.
-- Manutenção do Will: nenhuma no dia a dia. Uma vez por mês, conferir a
-  pasta e procurar `ERRO` em `_backup.log`.
-
-### Segurança
-
-- **RLS**: as 16 tabelas com RLS ativo, todas as policies comparando
-  `auth.uid()`. Nenhuma policy frouxa encontrada.
-- **Corrigido**: 5 policies tinham `USING` mas não `WITH CHECK`
-  (`registros`, `projetos`, `subcategorias`, `configuracoes` e o UPDATE de
-  `plano_semanal`) — permitiriam gravar linha atribuída a outro usuário.
-  Recriadas com `WITH CHECK (auth.uid() = usuario_id)`. App testado depois.
-- **`service_role` key**: verificado que não aparece em `src/`, `.env*` nem
-  no build `dist/`.
-- **Cadastro público desabilitado** no Supabase (Authentication → Sign In /
-  Providers → "Allow new users to sign up" desligado). Testado: retorna
-  "Signups not allowed for this instance". A rota `/cadastro` continua
-  existindo e mostrando o formulário — só falha ao submeter.
-- **`vercel.json`**: headers de segurança adicionados preservando as regras
-  de cache do `sw.js`/manifest e os rewrites da SPA. CSP montada com os
-  domínios reais (`*.supabase.co` + `wss://*.supabase.co`). Confirmado em
-  produção no Response Headers, console sem erro de CSP.
-  - Ressalvas conhecidas, aceitas: `script-src` usa `'unsafe-inline'`
-    (exigência do Vite/PWA sem nonce), e `connect-src` usa wildcard
-    `*.supabase.co` em vez do domínio específico do projeto.
+**18-19/09: seis levas commitadas**, todas testadas em produção.
 
 ---
 
-## Pendências de infraestrutura (desta frente, ainda não feitas)
+## Concluído na sessão de 18-19/09
 
-1. **Testes das regras imutáveis** — Vitest cobrindo
-   `calcularDuracaoCentesimal`, `utils/semana.ts` e meta diária ÷5. São
-   funções puras; ~15 testes bastam. Protege contra o próprio agente
-   quebrar regra em refactor futuro. **Maior valor dos pendentes.**
-2. **Índices no Postgres** — queries filtram por `usuario_id` + `data`;
-   confirmar se há índice. Com 466 registros hoje não dói, mas degrada
-   linearmente.
-3. **Lighthouse** — rodar a aba do DevTools e decidir o que corrigir
-   (performance, acessibilidade, PWA, boas práticas).
-4. **Higiene de código**:
-   - `src/pages/Dashboard.tsx` é código morto confirmado, continua no repo
-   - `ProjetoDetalhe.tsx` com **2404 linhas** — cada mudança nele é
-     arriscada só pelo tamanho
-   - Sem CI: nada impede push com `tsc` quebrado chegar em produção
-5. **Sentry ou equivalente** — Error Boundary já mostra o erro na tela, mas
-   não há registro do que quebrou quando o Will não está olhando. Avaliado
-   e adiado conscientemente (dependência externa + dados saindo).
-6. **Rota `/cadastro`** — remover ou redirecionar para login, já que
-   signup está desabilitado no servidor. Cosmético.
+Executor: Antigravity (3.8 Flash Medium/High e 3.1 Pro Low).
+
+### Leva 1 — Chip de horas restantes (ProjetoDetalhe)
+
+Função pura `calcularRestante(alocadas, lancadas)`, tolerância 0,01h,
+4 estados: `restam Xh` (neutro), `concluída` (verde), `excedeu Xh`
+(vermelho), nenhum chip sem reserva/previsão.
+
+- Chip no cabeçalho da fase e em cada categoria.
+- Wrapper responsivo: desktop na linha do valor, mobile na linha da barra
+  antes do `%`.
+- Bloco "Sem categoria" e categoria sem reserva leem "X,XXh lançadas",
+  sem chip.
+
+### Leva 2 — Plano Semanal: limpeza
+
+- Removida a linha `<tfoot>` "Total" e a linha "Planejado: Xh de Yh
+  contratadas".
+- Três variáveis órfãs removidas (`totalPlanejado`, `totalRealizadoPlanos`,
+  `totalDiferencaPlanos`).
+- **Efeito colateral aceito**: o realizado acumulado do plano não aparece
+  mais em lugar nenhum da tela.
+
+### Leva 3 — Coluna Diferença do Plano Semanal
+
+`estadoDiferencaSemana(planejado, realizado, semanaEncerrada)`:
+- dentro de ±0,01h → **"concluído"** verde, sem número
+- positiva → `+X,XXh` em `text-warn` (não existe laranja no design system)
+- negativa e semana encerrada → `-X,XXh` em `text-bad`
+- negativa e semana NÃO encerrada → neutro (`text-ink-500`)
+- `semanaEncerrada` = `intervaloDaSemana(...).fim < hojeZerado`, memoizado
+  fora do loop. Cabeçalho da coluna continua REALIZADO.
+
+### Leva 4 — Bug do filtro de Registros (race condition)
+
+**Sintoma**: clicar num card do Calendário gerava
+`/registros?data=...&registro_id=...` e às vezes mostrava "Nenhum
+lançamento encontrado" com o registro existindo. Pior no fim de semana.
+
+**Causa**: `filtroSemana` nascia com `'segunda'` hardcoded no `useState`; o
+fetch disparava antes de `config.inicio_semana` (`'sabado'`) chegar; sem
+cancelamento, a resposta obsoleta (7 dias) chegava depois da correta
+(1 dia) e sobrescrevia. Dados no banco estavam íntegros — confirmado por
+SQL (`semana_inicio` todos em sábado).
+
+**Correção**: `filtroSemana` nasce vazio; guarda `if (loadingConfig)
+return`; flag `cancelado` cobrindo sucesso, catch e finally; efeito de
+inicialização com guarda `if (filtroSemana) return` para não jogar o
+usuário de volta à semana atual; `[user?.id]`.
+
+### Leva 5 — CONFIG_PADRAO + Ajustes
+
+**Causa**: `CONFIG_PADRAO.inicio_semana` era `'segunda'`, contra a regra do
+app. `Ajustes.tsx` não observava `loadingConfig`, e o formulário aparecia
+quando o histórico de metas retornava — antes do config central. Salvar
+nessa janela gravaria os padrões por cima dos valores reais: **seis campos
+em risco**, incluindo `meta_semanal` (voltaria a 42,5) e `inicio_semana`
+(voltaria a segunda). Como `criarRegistro` recebe `config.inicio_semana`,
+isso corromperia o `semana_inicio` de todo lançamento novo.
+
+**Correção**: `CONFIG_PADRAO.inicio_semana` → `'sabado'`; `loadingConfig`
+desestruturado; guarda no `handleSave`; skeleton com
+`(loading || loadingConfig)`; botão `disabled={saving || loadingConfig}`.
+Testado sob throttling 3G.
+
+### Leva 6 — Billable e Timesheet (mesmo bug)
+
+- **Billable**: não observava `loadingConfig`, `currentDate` nascia com
+  `'segunda'` hardcoded, três efeitos de busca sem guarda nem cleanup.
+  Corrigido com guarda + flag `cancelado` nas abas semanal e mensal; aba
+  anual só com `cancelado` (não usa `inicio_semana`); flag
+  `dataInicializada` para não sobrescrever navegação manual; `'sabado'` no
+  `useState` inicial; dependências enxutas.
+- **Timesheet**: já tinha a guarda desde 02/09, faltava cancelamento.
+  Adicionada, **sem tocar no `handleDragEnd`** (a flag ali faria a linha
+  arrastada voltar sozinha).
+- **Verificados e SEM o bug**: `Resumo.tsx` e `ProjetoDetalhe.tsx` — usam a
+  semana só em `useMemo` de agregação, não para buscar.
 
 ---
 
-## Conciliação de Horas (planejada, NADA implementado ainda)
+## Itens que o HANDOFF antigo listava como pendentes e JÁ ESTAVAM FEITOS
 
-Sessão de 09-10/09 foi desenho de solução via mockup HTML interativo.
-Nenhuma linha de código do app alterada. Decisões fechadas:
+Varredura no disco em 18/09 porque documento e código divergiam. Não
+reabrir:
 
-### Decisão conceitual (não óbvia — não reabrir)
+- Arquivar/Desarquivar/Excluir permanentemente — feito, mas implementado em
+  `Resumo.tsx`, não em `Projetos.tsx` (por isso parecia pendente).
+- Fonte única de `horas_contratadas` — as 3 telas leem direto do campo.
+- Bug Billable do `8.5` literal — não existe mais.
+- Bloco 3 responsivo (truncate/min-w-0) — 0 ocorrências problemáticas.
+- Bloco 4 — tokens `duration` d1-d5, `icon-xs..xl`, `Surface` com elevação
+  em 9 páginas e 7 componentes.
+- Drag-and-drop no Resumo, paleta de 12 cores por projeto, criar projeto
+  navegando direto — todos feitos.
+- `Dashboard.tsx` — excluído do repo no commit `a15127e`.
+- Link do Timesheet → Registros — já usa `?data=&registro_id=`.
 
-**"Restantes" e "conciliação" são dois eixos independentes:**
-- **Restantes** (execução) = contratadas − lançadas. Sem mudança de fórmula.
-- **Conciliação** (desenho do projeto) = contratadas − reservadas/previstas.
-  Dado NOVO, ao lado, nunca substituindo o de execução.
+---
 
-Will pediu inicialmente para juntar os dois — recusado com justificativa
-aritmética. **Decisão mantida: dois números, dois lugares.**
+## PENDÊNCIAS — lista completa
 
-### Hierarquia de conciliação (3 níveis)
+### 1. Três funções ordenando por `criado_em` (metas_billable.ts)
+**Onde**: `buscarMargemMinimaVigente` (~157), `buscarMargemMinimaVigenteMensal`
+(~245) e a meta semanal (~23). `buscarMetaBillableMensal` (~45) **já foi
+corrigida** e serve de modelo no mesmo arquivo.
+**O que causa**: lançamento retroativo de margem sobrescreve silenciosamente
+uma margem posterior e correta, adulterando o número do Billable. Mesmo bug
+já corrigido em `horas_base`, nunca replicado aqui.
+**Custo**: baixo — um arquivo, 3 queries, com a versão certa ao lado.
+**Mais urgente da lista.**
 
+### 2. Drill-down por subcategoria no Resumo — bug de navegação
+**Onde**: `BreakdownSubcategorias.tsx:51-87` e `Resumo.tsx:1026-1033`.
+**O que causa**: as linhas de categoria não têm `onClick` nem
+`stopPropagation`, então o clique borbulha até o `<Surface interativo
+onClick={navigate}>` do card e leva o usuário para a página do projeto sem
+contexto nenhum da categoria clicada. O botão "Ver detalhes" (~1071) tem
+`stopPropagation`; o conteúdo interno não.
+**Decisão pendente antes do prompt**: navegar para Registros filtrado pela
+categoria, ou apenas parar a navegação acidental?
+
+### 3. Alvo de toque 44px — 169 ocorrências espalhadas
+**Onde**: 19 arquivos (Ajustes 38, ProjetoDetalhe 34, Registros 14,
+Resumo 14, ModalProjeto 12, ModalRegistro 9…). `Button.tsx` e
+`classeCampo()` NÃO têm o mínimo embutido; só `VoltarPara.tsx:20` e
+`SecaoColapsavel.tsx:29` trazem hardcoded.
+**O que causa**: nenhuma garantia estrutural — todo componente novo depende
+de alguém lembrar de escrever a classe.
+**Fazer em DUAS levas**: (a) mínimo dentro de `Button` e `classeCampo`;
+(b) remover as 169 redundantes, separado, para não misturar com regressão.
+
+### 4. `ProtectedRoute.tsx` — cor legada
+**Onde**: linha 20 `text-gray-400`, linha 14 `bg-[#0B0E14]`, linha 16
+`text-[#03A9F4]` (ciano pré-redesign). **Única** ocorrência em todo `src/`.
+**O que causa**: nada visualmente hoje; quebra se a paleta mudar.
+**Custo**: trivial — pode ir junto com a pendência 1.
+
+### 5. Quatro funções de semana duplicadas fora de `utils/semana.ts`
+**Onde**: `Registros.tsx:45` (`getWeekRange`) e `:49` (`getWeekKey`),
+`Timesheet.tsx:36` (`getInicioSemana`), `Billable.tsx:42`
+(`getInicioSemana`), `Resumo.tsx:39` (`getSemanaInicioParaData`).
+**O que causa**: viola a regra imutável de que todo cálculo de semana passa
+pelo arquivo canônico. É a raiz estrutural dos bugs corrigidos em 19/09 —
+enquanto existirem, o padrão pode renascer em tela nova.
+**Cuidado**: `CalendarioSemana.tsx` usa `'sabado'` **hardcoded** em 4 linhas
+(25, 26, 37, 78) — ignora o config e por isso sempre funcionou. Tratar junto.
+
+### 6. Botão de sincronização de contratadas — viola regra do projeto
+**Onde**: `ProjetoDetalhe.tsx:471-484` (`handleAtualizarContratadasParaFases`)
+e o banner em `:1370-1390`.
+**O que causa**:
+- sobrescreve `horas_contratadas` **direto, sem `ModalConfirmacao`** —
+  exceção antiga à regra imutável;
+- o banner só aparece quando as fases **excedem** o contratado
+  (`:1172-1174`); se somam menos, nenhum aviso;
+- projeto **sem fases** tem verificação equivalente (`:1890-1916`) com
+  textos próprios e **sem botão** — dois comportamentos paralelos
+  implementados de formas diferentes no mesmo arquivo;
+- se ninguém clicar, Resumo (3 blocos), cabeçalho e card "Restantes" do
+  ProjetoDetalhe e o campo desabilitado de `ModalProjeto.tsx:218-221`
+  seguem com valor defasado.
+**Impacta o desenho da Fase 0 da Conciliação.**
+
+### 7. Performance — chamadas repetidas
+**Observado no Network sob 3G em 19/09**:
+- `Timesheet.tsx`: `listarProjetos` está dentro do `carregarDados` que roda
+  por semana — trocar de semana refaz busca de projetos, que não depende de
+  semana. Mesmo problema corrigido no Registros em 17/09 (`carregarMetadados`
+  separado de `carregarRegistros`); o Timesheet nunca recebeu o tratamento.
+  Cinco chamadas idênticas de `projetos` observadas num print.
+- `Ajustes.tsx`: 46 requests ao abrir a tela, com
+  `metas_billable_margem_mensal` aparecendo repetido.
+
+### 8. `buscarDadosAnuais` contorna o ConfigContext
+**Onde**: `Billable.tsx:261` (função fora do componente).
+**O que causa**: chama `buscarConfiguracoes(userId)` direto no banco só para
+ler `meta_semanal` como fallback. Segunda fonte de verdade para a mesma
+config, mais uma query por render da aba anual. Débito, não bug.
+
+### 9. Fallbacks divergentes de horário
+**Onde**: `Ajustes.tsx:334-335` usa `'08:00'`/`'18:00'`; `CONFIG_PADRAO` usa
+`'09:00'`/`'18:30'`. Dois padrões para a mesma coisa no mesmo fluxo.
+
+### 10. Seletor de início de semana — remover (decidido, não executado)
+Will decidiu remover: o início é sempre sábado e não vai mudar.
+**Não executar sem cuidado**: o estado local `inicioSemana` alimenta
+`ajustarParaInicioSemana` e `formatarIntervaloSemana` (`Ajustes.tsx:339-357`),
+a prévia de vigência de metas (`:682, 686-735`) e o payload de `salvarConfig`
+(`:499`). Se sair sem tratar isso, o payload passa a mandar o default.
+~35 linhas de JSX (`:600-634`). **Leva separada, por último.**
+`CONFIG_PADRAO` já está `'sabado'`, então o fallback está correto
+independentemente disso.
+
+### 11. Infraestrutura ainda pendente (de 17/09)
+- **Testes das regras imutáveis (Vitest)** — `calcularDuracaoCentesimal`,
+  `utils/semana.ts`, meta ÷5. ~15 testes. Única rede de segurança contra o
+  agente quebrar regra em refactor. **Maior valor dos pendentes de infra.**
+- **Índices no Postgres** — `usuario_id` + `data`. Com 466 registros não
+  dói; degrada linearmente.
+- **Lighthouse** — rodar e decidir.
+- **Sem CI** — nada impede push com `tsc` quebrado chegar em produção.
+- **Sentry** — avaliado e adiado (dependência externa + dados saindo).
+- **Rota `/cadastro`** — cosmético, signup já desabilitado no servidor.
+- **`ProjetoDetalhe.tsx` com 2400+ linhas** — cada leva nele é arriscada só
+  pelo tamanho.
+
+---
+
+## Conciliação de Horas (planejada, NADA implementado)
+
+**O que ataca**: hoje não há como saber se as horas reservadas nas
+categorias batem com o contratado sem somar na mão. Coloca o cálculo na
+tela, com aviso automático nos dois sentidos e nos dois níveis.
+
+### Decisão conceitual (não reabrir)
+**"Restantes" e "conciliação" são eixos independentes:**
+- **Restantes** (execução) = contratadas − lançadas.
+- **Conciliação** (desenho) = contratadas − reservadas/previstas.
+Will pediu para juntar os dois; recusado com justificativa aritmética.
+**Dois números, dois lugares.**
+
+### Hierarquia (3 níveis)
 | Nível | Compara | Fórmula |
 |---|---|---|
 | Projeto sem fases | contratadas × reservadas nas categorias | Σ categorias |
-| Projeto com fases (nível 1) | contratadas × soma das fases | Σ **previstas** das fases |
-| Fase (nível 2) | previstas da fase × reservadas nas categorias dela | Σ categorias daquela fase |
+| Projeto com fases (nível 1) | contratadas × soma das fases | Σ previstas das fases |
+| Fase (nível 2) | previstas × reservadas nas categorias dela | Σ categorias da fase |
 
-Bloco "Sem fase" entra no nível 1 como se fosse mais uma fase.
+Bloco "Sem fase" entra no nível 1 como se fosse fase. 3 estados, tolerância
+0,01h: **fecha** (verde), **falta** (amarelo, estado NORMAL de montagem, não
+é erro), **estoura** (vermelho).
 
-3 estados por nível, tolerância de **0,01h**:
-- **fecha** (verde), **falta** (amarelo, estado NORMAL de montagem, não é
-  erro), **estoura** (vermelho, inconsistência real)
+### Variante visual: Variante 1
+Segunda barra fina de reserva abaixo da barra de execução, chip de estado à
+direita, `Stat` com prop `apoio`, chip agregado no cabeçalho da seção.
 
-### Variante visual escolhida
+**Conflito já resolvido em 18/09**: o chip de restantes (Leva 1) ocupa o
+cabeçalho da fase. Decisão: **restantes fica no cabeçalho; o chip de estado
+de conciliação desce para o subtexto** ("Todas as Xh previstas estão
+reservadas").
 
-**Variante 1**: segunda barra fina de "reserva" abaixo da barra de execução
-no card de progresso do ProjetoDetalhe, com chip de estado à direita. Card
-"Restantes" ganha linha de apoio (prop `apoio` do `Stat`). Seção "Fases &
-Categorias" ganha chip agregado no cabeçalho, visível mesmo recolhida.
+### Ações por estado (todas via `ModalConfirmacao`)
+- **Estoura**: painel com campo livre + atalhos (`= reservado/previsto`,
+  `+10%`, arredondar) e alternativa "Revisar categorias/fases".
+- **Falta**: SEM botão primário. Só "Revisar" + link discreto.
+- **Sem contratadas**: tom informativo, nunca vermelho. Link "seguir sem
+  horas contratadas" sempre visível.
+- **Rotina sem contratadas**: nenhum aviso.
+- **Lançadas > contratadas sem estouro de reserva** — **Tratamento B**: duas
+  causas nomeadas ("Houve aditivo" / "Lançamento no projeto errado"), nunca
+  botão primário direto.
+- **Ajuste de fase que gera estouro no nível 1**: aviso de cascata dentro do
+  modal, permite confirmar, não bloqueia.
+- **Subir contratadas com fases**: oferecer distribuir a diferença —
+  **UI ainda não desenhada, precisa de mockup próprio**.
 
-Descartadas: variante 2 (faixa full-width) e variante 3 (quarto card).
-
-### Ação por estado (todos abrem `ModalConfirmacao`)
-
-- **Estoura**: painel com campo de valor (digitação livre + atalhos
-  `= reservado/previsto`, `+10%`, arredondar). Alternativa sempre visível:
-  "Revisar categorias/fases".
-- **Falta**: SEM botão primário de ajuste. Só "Revisar" + link discreto
-  "reduzir para X".
-- **Sem horas contratadas**: tom azul/informativo, nunca vermelho. Sugestões
-  `= reservadas` (pré-selecionada) e `= lançadas`. Link "seguir sem horas
-  contratadas" sempre disponível.
-- **Rotina sem contratadas**: NENHUM aviso.
-- **Lançadas > contratadas, sem estouro de reserva** — **Tratamento B**:
-  mensagem + painel com duas causas nomeadas ("Houve aditivo" / "Tem
-  lançamento no projeto errado" → Lançamentos filtrado). NUNCA botão
-  primário direto de atualizar contratadas.
-- **Ajuste de fase que geraria estouro no nível 1**: aviso de cascata
-  DENTRO do `ModalConfirmacao`, permite confirmar, NÃO bloqueia.
-- **Subir contratadas do projeto com fases**: oferecer distribuir a
-  diferença entre as fases. **UI ainda não desenhada** — precisa de mockup
-  próprio antes do prompt da Fase 3.
-
-### Dependência dura
-
-Depende do item "Bloco 1 — fonte única de horas contratadas" (hoje
-`projetos.horas_contratadas` é calculado diferente em Resumo/ProjetoDetalhe/
-Projetos). Fica como Fase 0, obrigatória.
-
-### Checklist da leva (nenhuma etapa iniciada)
-
-- [ ] **Fase 0** — unificar fonte de `horas_contratadas` nas 3 telas
-- [ ] **Fase 1** — função pura de estado de conciliação (3 níveis, 0,01h)
-- [ ] **Fase 2** — card de progresso: segunda barra + chip + apoio + chip
-      agregado no cabeçalho
-- [ ] **Fase 3** — painéis de ação por estado (9 cenários); "distribuir
-      diferença entre fases" precisa de mockup antes
-- [ ] **Fase 4** — limpeza: remover segmento azul da barra de fase antiga
-      (resolve 1.3 do Bloco 1); rodapé perde aviso antigo; `tsc -b` limpo
+### Checklist (nada iniciado)
+- [ ] **Fase 0** — unificar os dois avisos (com fase / sem fase) e fazer o
+      botão passar por `ModalConfirmacao` (ver pendência 6 — o escopo mudou
+      após o diagnóstico: "fonte única de contratadas" já foi feita)
+- [ ] **Fase 1** — função pura de estado (3 níveis, 0,01h)
+- [ ] **Fase 2** — card de progresso: segunda barra + chip + apoio
+- [ ] **Fase 3** — painéis de ação (9 cenários); "distribuir diferença"
+      precisa de mockup antes
+- [ ] **Fase 4** — limpeza: segmento azul da barra antiga, rodapé,
+      `tsc -b` limpo
 
 ---
 
-## Próximo passo — fila priorizada (revisar ordem no início da sessão)
+## Resumo semanal para terceiros — em aberto, sem solução aprovada
 
-1. **Conciliação de Horas** — começando pela Fase 0. Mockup de "distribuir
-   diferença entre fases" ainda pendente.
-2. **Testes das regras imutáveis** (infra, item 1 acima) — barato e protege
-   o núcleo do app.
-3. **Arquivar/Excluir projeto** — projeto arquivado some sem UI de
-   recuperação; `desarquivarProjeto` e `excluirPermanentemente` existem no
-   service mas estão órfãos.
-4. **Bloco 1 — correções pequenas restantes**:
-   - 1.2 Link do Timesheet filtra Registros em vez de só destacar — revisar
-     à luz do `?registro_id=` (sessão 04/09), pode já resolver.
-   - 1.3 será resolvido dentro da Fase 4 da Conciliação.
-5. **Bug Billable** — `getFooterClass` compara com `8.5` literal; só o TOTAL
-   da semana deveria ganhar cor por dia.
-6. **`buscarMargemMinimaVigente`** e variante mensal ordenam só por
-   `criado_em` — mesmo bug já corrigido em `horas_base`, nunca aplicado às
-   tabelas de margem.
-7. **Bloco 2 — features do Resumo/Projetos:**
-   - 2.2 Ordenação manual do Resumo (drag-and-drop)
-   - 2.3 Paleta de cores por projeto, editável
-   - 2.1 Drill-down por projeto/subcategoria (depende de 1.2)
-   - 2.4 Criar projeto navega direto pro detalhe
-8. **Índices no Postgres + Lighthouse + higiene de código** (infra, itens
-   2-4 acima)
-9. **Dashboard** — analítico novo (KPIs, evolução mensal, ranking),
-   greenfield. Referência: `dashboard_cardapio_revisado.html`.
-10. **Bloco 3 — responsivo** — telas que ainda quebram em mobile.
-11. **Bloco 4 — estética** — elevação nos `Surface`, motion, cor de projeto
-    como identidade. Por último, de propósito.
+Will quer apresentar a distribuição de horas de uma semana ao chefe sem
+mandar print do Calendário (que é ferramenta de gestão pessoal). Quatro
+variantes de relatório foram mostradas e **recusadas**. Uma ideia de
+dashboard analítico também foi mostrada e **recusada, e apagada da memória e
+deste HANDOFF a pedido de Will** — não ressuscitar como referência.
+
+Última direção discutida: abordagem visual / gráfico de barras, peça de uma
+página. Nenhum mockup nessa linha foi feito ou aprovado. **Item parado
+aguardando Will retomar.**
+
+Nota: a antiga pendência "paleta de cor por projeto" **já foi feita** — então
+qualquer peça visual futura já pode contar com cor estável por projeto.
+
+---
+
+## Próximo passo — fila sugerida
+
+1. **Pendências 1 + 4** (ordenação `criado_em` + `ProtectedRoute`) — baratas,
+   isoladas, e a 1 corrige número de faturamento errado.
+2. **Pendência 11, testes Vitest** — rede de segurança do núcleo.
+3. **Pendência 5** (funções de semana duplicadas) — fecha a raiz dos bugs de
+   19/09.
+4. **Conciliação de Horas** — Fase 0 redesenhada à luz da pendência 6.
+5. **Pendência 3** (44px, em duas levas).
+6. **Pendência 2** (drill-down) — precisa de decisão de escopo antes.
+7. **Pendência 7** (performance Timesheet/Ajustes).
+8. **Pendências 8, 9, 10** (débitos menores; a 10 por último).
+9. **Resumo semanal para terceiros** — quando Will trouxer direção.
+10. **Dashboard analítico** — se retomado, do zero.
