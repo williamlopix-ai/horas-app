@@ -75,7 +75,7 @@ export default function Registros() {
   const origem = (location.state as { origem?: { rotulo: string; url: string } } | null)?.origem
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { config } = useConfig()
+  const { config, loadingConfig } = useConfig()
   const { recolhida } = useSidebar()
 
   // Estados dos Dados
@@ -97,23 +97,18 @@ export default function Registros() {
   const [registroDestacadoId, setRegistroDestacadoId] = useState<string | null>(null)
   // Registros cujo destaque ja foi "visto" (usuario editou ou excluiu) nesta visita a pagina
   const [registrosVistos, setRegistrosVistos] = useState<Set<string>>(new Set())
-  const [filtroSemana, setFiltroSemana] = useState<string>(() => {
-    const now = new Date()
-    const y = now.getFullYear()
-    const m = String(now.getMonth() + 1).padStart(2, '0')
-    const d = String(now.getDate()).padStart(2, '0')
-    return getWeekKey(`${y}-${m}-${d}`, 'segunda')
-  })
+  const [filtroSemana, setFiltroSemana] = useState<string>('')
   const [filtroDiaEspecifico, setFiltroDiaEspecifico] = useState<string>('')
 
   useEffect(() => {
-    if (!config?.inicio_semana) return
+    if (loadingConfig || !config?.inicio_semana) return
+    if (filtroSemana) return
     const now = new Date()
     const y = now.getFullYear()
     const m = String(now.getMonth() + 1).padStart(2, '0')
     const d = String(now.getDate()).padStart(2, '0')
     setFiltroSemana(getWeekKey(`${y}-${m}-${d}`, config.inicio_semana))
-  }, [config?.inicio_semana])
+  }, [config?.inicio_semana, loadingConfig, filtroSemana])
 
   const [diasExpandidos, setDiasExpandidos] = useState<{ [key: string]: boolean }>({})
   const [viewMode, setViewMode] = useState<'lista' | 'projeto'>(() => {
@@ -168,29 +163,36 @@ export default function Registros() {
     }
   }
 
-  // Carregar registros de acordo com a semana ou dia selecionado
-  const carregarRegistros = async () => {
-    if (!user) return
-    try {
-      setLoading(true)
-      setError(null)
-      const regs = await listarRegistros(user.id, getFiltroDataAtual())
-      setRegistros(regs)
-    } catch (err: any) {
-      console.error('Erro ao carregar registros:', err)
-      setError(getErrorMessage(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
     carregarMetadados()
-  }, [user])
+  }, [user?.id])
 
   useEffect(() => {
-    carregarRegistros()
-  }, [user, filtroSemana, filtroDiaEspecifico])
+    if (loadingConfig) return
+    if (!filtroSemana && !filtroDiaEspecifico) return
+
+    let cancelado = false
+    const executar = async () => {
+      if (!user?.id) return
+      try {
+        setLoading(true)
+        setError(null)
+        const regs = await listarRegistros(user.id, getFiltroDataAtual())
+        if (cancelado) return
+        setRegistros(regs)
+      } catch (err: any) {
+        if (cancelado) return
+        console.error('Erro ao carregar registros:', err)
+        setError(getErrorMessage(err))
+      } finally {
+        if (!cancelado) {
+          setLoading(false)
+        }
+      }
+    }
+    executar()
+    return () => { cancelado = true }
+  }, [user?.id, filtroSemana, filtroDiaEspecifico, loadingConfig])
 
   useEffect(() => {
     const dataParam = searchParams.get('data')
