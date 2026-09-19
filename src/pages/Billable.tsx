@@ -301,15 +301,18 @@ async function buscarDadosAnuais(userId: string, ano: number): Promise<DadosMesA
 export default function Billable() {
   const { user } = useAuth()
   const { showToast } = useToast()
-  const { config } = useConfig()
+  const { config, loadingConfig } = useConfig()
   const { recolhida } = useSidebar()
   const [activeTab, setActiveTab] = useState<'semanal' | 'mensal' | 'anual'>('semanal')
-  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'segunda'))
+  const [dataInicializada, setDataInicializada] = useState(false)
+  const [currentDate, setCurrentDate] = useState<Date>(() => getInicioSemana(new Date(), 'sabado'))
 
   useEffect(() => {
-    if (!config?.inicio_semana) return
+    if (loadingConfig || !config?.inicio_semana) return
+    if (dataInicializada) return
+    setDataInicializada(true)
     setCurrentDate(getInicioSemana(new Date(), config.inicio_semana))
-  }, [config?.inicio_semana])
+  }, [config?.inicio_semana, loadingConfig, dataInicializada])
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {
     const d = new Date()
     d.setDate(1)
@@ -358,134 +361,166 @@ export default function Billable() {
   const [anoSelecionado, setAnoSelecionado] = useState<number>(() => new Date().getFullYear())
   const [dadosAnual, setDadosAnual] = useState<DadosMesAnual[]>([])
 
-  const carregarDados = async () => {
-    if (!user) return
-    try {
-      setLoading(true)
-      setError(null)
+  useEffect(() => {
+    if (loadingConfig) return
+    if (!user?.id) return
 
-      const startStr = formatYYYYMMDD(currentDate)
-      const sunday = new Date(currentDate)
-      sunday.setDate(currentDate.getDate() + 6)
-      const endStr = formatYYYYMMDD(sunday)
+    let cancelado = false
+    const executar = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-      const [projetosData, totalBillableData, margemData, horasBaseData] = await Promise.all([
-        buscarHorasBillableSemanal(startStr, endStr),
-        buscarTotalBillableSemanal(startStr, endStr),
-        buscarMargemMinimaVigente(startStr),
-        buscarHorasBaseSemanal(user.id, startStr)
-      ])
+        const startStr = formatYYYYMMDD(currentDate)
+        const sunday = new Date(currentDate)
+        sunday.setDate(currentDate.getDate() + 6)
+        const endStr = formatYYYYMMDD(sunday)
 
-      const horasBaseVal = horasBaseData
-      const metaRealVal = Math.round(horasBaseVal * (margemData / 100) * 100) / 100
+        const [projetosData, totalBillableData, margemData, horasBaseData] = await Promise.all([
+          buscarHorasBillableSemanal(startStr, endStr),
+          buscarTotalBillableSemanal(startStr, endStr),
+          buscarMargemMinimaVigente(startStr),
+          buscarHorasBaseSemanal(user.id, startStr)
+        ])
 
-      setBillableProjetos(projetosData)
-      setTotalBillable(totalBillableData)
-      setMargemMinima(margemData)
-      
-      setHorasBase(horasBaseVal)
-      setMetaReal(metaRealVal)
-      setSaldoSemana(Math.round((totalBillableData - metaRealVal) * 100) / 100)
-      
-      const saldoInicio = config.saldo_inicio_semana ?? null
-      setSaldoInicioSemana(saldoInicio)
+        if (cancelado) return
 
-      if (saldoInicio) {
-        const acumulado = await calcularSaldoAcumulado(user.id, saldoInicio, startStr)
-        setSaldoAcumulado(acumulado)
-      } else {
-        setSaldoAcumulado(0)
+        const horasBaseVal = horasBaseData
+        const metaRealVal = Math.round(horasBaseVal * (margemData / 100) * 100) / 100
+
+        setBillableProjetos(projetosData)
+        setTotalBillable(totalBillableData)
+        setMargemMinima(margemData)
+        
+        setHorasBase(horasBaseVal)
+        setMetaReal(metaRealVal)
+        setSaldoSemana(Math.round((totalBillableData - metaRealVal) * 100) / 100)
+        
+        const saldoInicio = config.saldo_inicio_semana ?? null
+        setSaldoInicioSemana(saldoInicio)
+
+        if (saldoInicio) {
+          const acumulado = await calcularSaldoAcumulado(user.id, saldoInicio, startStr)
+          if (cancelado) return
+          setSaldoAcumulado(acumulado)
+        } else {
+          setSaldoAcumulado(0)
+        }
+      } catch (err: any) {
+        if (cancelado) return
+        console.error('Erro ao carregar dados do billable:', err)
+        const msg = getErrorMessage(err)
+        setError(msg)
+        showToast(msg, 'error')
+      } finally {
+        if (!cancelado) {
+          setLoading(false)
+        }
       }
-    } catch (err: any) {
-      console.error('Erro ao carregar dados do billable:', err)
-      const msg = getErrorMessage(err)
-      setError(msg)
-      showToast(msg, 'error')
-    } finally {
-      setLoading(false)
     }
-  }
 
-  const carregarDadosMensal = async () => {
-    if (!user) return
-    try {
-      setLoadingMensal(true)
-      setError(null)
+    executar()
+    return () => {
+      cancelado = true
+    }
+  }, [user?.id, currentDate, loadingConfig])
 
-      const { mesInicio, mesFim } = getMonthRange(currentMonth)
+  useEffect(() => {
+    if (activeTab !== 'mensal') return
+    if (loadingConfig) return
+    if (!user?.id) return
 
-      const [projetosData, totalBillableData, metaData, horasBaseMensalData, margemMensalData] = await Promise.all([
-        buscarHorasBillableMensal(mesInicio, mesFim),
-        buscarTotalBillableMensal(mesInicio, mesFim),
-        buscarMetaBillableMensal(mesInicio),
-        buscarHorasBaseMensal(user.id, mesInicio),
-        buscarMargemMinimaVigenteMensal(mesInicio)
-      ])
+    let cancelado = false
+    const executar = async () => {
+      try {
+        setLoadingMensal(true)
+        setError(null)
 
-      setBillableProjetosMensal(projetosData)
-      setTotalBillableMensal(totalBillableData)
-      setMetaMensal(metaData)
-      
-      const metaRealMensalVal = Math.round(horasBaseMensalData * (margemMensalData / 100) * 100) / 100
+        const { mesInicio, mesFim } = getMonthRange(currentMonth)
 
-      setHorasBaseMensalVal(horasBaseMensalData)
-      setMargemMinimaMensalVal(margemMensalData)
-      setMetaRealMensal(metaRealMensalVal)
-      setSaldoMensal(Math.round((totalBillableData - metaRealMensalVal) * 100) / 100)
-      
-      const saldoInicio = config.saldo_inicio_semana ?? null
-      
-      if (saldoInicio) {
-        const acumuladoMensal = await calcularSaldoAcumuladoMensal(user.id, saldoInicio, mesInicio)
-        setSaldoAcumuladoMensal(acumuladoMensal)
-      } else {
-        setSaldoAcumuladoMensal(0)
+        const [projetosData, totalBillableData, metaData, horasBaseMensalData, margemMensalData] = await Promise.all([
+          buscarHorasBillableMensal(mesInicio, mesFim),
+          buscarTotalBillableMensal(mesInicio, mesFim),
+          buscarMetaBillableMensal(mesInicio),
+          buscarHorasBaseMensal(user.id, mesInicio),
+          buscarMargemMinimaVigenteMensal(mesInicio)
+        ])
+
+        if (cancelado) return
+
+        setBillableProjetosMensal(projetosData)
+        setTotalBillableMensal(totalBillableData)
+        setMetaMensal(metaData)
+        
+        const metaRealMensalVal = Math.round(horasBaseMensalData * (margemMensalData / 100) * 100) / 100
+
+        setHorasBaseMensalVal(horasBaseMensalData)
+        setMargemMinimaMensalVal(margemMensalData)
+        setMetaRealMensal(metaRealMensalVal)
+        setSaldoMensal(Math.round((totalBillableData - metaRealMensalVal) * 100) / 100)
+        
+        const saldoInicio = config.saldo_inicio_semana ?? null
+        
+        if (saldoInicio) {
+          const acumuladoMensal = await calcularSaldoAcumuladoMensal(user.id, saldoInicio, mesInicio)
+          if (cancelado) return
+          setSaldoAcumuladoMensal(acumuladoMensal)
+        } else {
+          setSaldoAcumuladoMensal(0)
+        }
+      } catch (err: any) {
+        if (cancelado) return
+        console.error('Erro ao carregar dados mensais do billable:', err)
+        const msg = getErrorMessage(err)
+        setError(msg)
+        showToast(msg, 'error')
+      } finally {
+        if (!cancelado) {
+          setLoadingMensal(false)
+        }
       }
-    } catch (err: any) {
-      console.error('Erro ao carregar dados mensais do billable:', err)
-      const msg = getErrorMessage(err)
-      setError(msg)
-      showToast(msg, 'error')
-    } finally {
-      setLoadingMensal(false)
     }
-  }
 
-  const carregarDadosAnual = async () => {
-    if (!user) return
-    try {
-      setLoadingAnual(true)
-      setError(null)
-
-      const dados = await buscarDadosAnuais(user.id, anoSelecionado)
-      setDadosAnual(dados)
-    } catch (err: any) {
-      console.error('Erro ao carregar dados anuais do billable:', err)
-      const msg = getErrorMessage(err)
-      setError(msg)
-      showToast(msg, 'error')
-    } finally {
-      setLoadingAnual(false)
+    executar()
+    return () => {
+      cancelado = true
     }
-  }
+  }, [user?.id, currentMonth, activeTab, loadingConfig])
 
   useEffect(() => {
-    carregarDados()
-  }, [user, currentDate, config.inicio_semana])
+    if (activeTab !== 'anual') return
+    if (!user?.id) return
 
-  useEffect(() => {
-    if (activeTab === 'mensal') {
-      carregarDadosMensal()
-    }
-  }, [user, currentMonth, activeTab, config.inicio_semana])
+    let cancelado = false
+    const executar = async () => {
+      try {
+        setLoadingAnual(true)
+        setError(null)
 
-  useEffect(() => {
-    if (activeTab === 'anual') {
-      carregarDadosAnual()
+        const dados = await buscarDadosAnuais(user.id, anoSelecionado)
+        if (cancelado) return
+        setDadosAnual(dados)
+      } catch (err: any) {
+        if (cancelado) return
+        console.error('Erro ao carregar dados anuais do billable:', err)
+        const msg = getErrorMessage(err)
+        setError(msg)
+        showToast(msg, 'error')
+      } finally {
+        if (!cancelado) {
+          setLoadingAnual(false)
+        }
+      }
     }
-  }, [user, anoSelecionado, activeTab])
+
+    executar()
+    return () => {
+      cancelado = true
+    }
+  }, [user?.id, anoSelecionado, activeTab])
 
   const prevWeek = () => {
+    setDataInicializada(true)
     setAnimationClass('animate-slide-left')
     setAnimKey(prev => prev + 1)
     setCurrentDate(prev => {
@@ -496,6 +531,7 @@ export default function Billable() {
   }
 
   const nextWeek = () => {
+    setDataInicializada(true)
     setAnimationClass('animate-slide-right')
     setAnimKey(prev => prev + 1)
     setCurrentDate(prev => {

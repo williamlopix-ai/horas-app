@@ -217,39 +217,6 @@ export default function Timesheet() {
 
   const metaDiaria = metaSemanaExibida / 5
 
-  const carregarDados = async () => {
-    if (!user) return
-    try {
-      setLoading(true)
-      setError(null)
-
-      const projs = await listarProjetos(user.id, false)
-      setProjetos(projs.filter(p => p.status !== 'excluido' && p.codigo_externo && p.codigo_externo.trim() !== ''))
-
-      const sunday = new Date(currentDate)
-      sunday.setDate(currentDate.getDate() + 6)
-
-      const startStr = formatYYYYMMDD(currentDate)
-      const endStr = formatYYYYMMDD(sunday)
-
-      const [regs, baseSemanal, ordem] = await Promise.all([
-        listarRegistros(user.id, { dataInicio: startStr, dataFim: endStr }),
-        buscarHorasBaseSemanal(user.id, startStr),
-        buscarOrdemManual(user.id, startStr)
-      ])
-
-      setRegistros(regs)
-      setMetaSemanaExibida(baseSemanal ?? config.meta_semanal)
-      setOrdemManual(ordem)
-
-    } catch (err: any) {
-      console.error('Erro ao carregar timesheet:', err)
-      setError(getErrorMessage(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
     const corrigida = getInicioSemana(new Date(), config.inicio_semana)
     setCurrentDate(prev => (formatYYYYMMDD(prev) === formatYYYYMMDD(corrigida) ? prev : corrigida))
@@ -257,8 +224,51 @@ export default function Timesheet() {
 
   useEffect(() => {
     if (loadingConfig) return
-    carregarDados()
-  }, [user, currentDate, config.inicio_semana, loadingConfig])
+    if (!user?.id) return
+
+    let cancelado = false
+    const executar = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const projs = await listarProjetos(user.id, false)
+        if (cancelado) return
+        setProjetos(projs.filter(p => p.status !== 'excluido' && p.codigo_externo && p.codigo_externo.trim() !== ''))
+
+        const sunday = new Date(currentDate)
+        sunday.setDate(currentDate.getDate() + 6)
+
+        const startStr = formatYYYYMMDD(currentDate)
+        const endStr = formatYYYYMMDD(sunday)
+
+        const [regs, baseSemanal, ordem] = await Promise.all([
+          listarRegistros(user.id, { dataInicio: startStr, dataFim: endStr }),
+          buscarHorasBaseSemanal(user.id, startStr),
+          buscarOrdemManual(user.id, startStr)
+        ])
+
+        if (cancelado) return
+
+        setRegistros(regs)
+        setMetaSemanaExibida(baseSemanal ?? config.meta_semanal)
+        setOrdemManual(ordem)
+      } catch (err: any) {
+        if (cancelado) return
+        console.error('Erro ao carregar timesheet:', err)
+        setError(getErrorMessage(err))
+      } finally {
+        if (!cancelado) {
+          setLoading(false)
+        }
+      }
+    }
+
+    executar()
+    return () => {
+      cancelado = true
+    }
+  }, [user?.id, currentDate, config.inicio_semana, loadingConfig])
 
   const prevWeek = () => {
     setCurrentDate(prev => {
