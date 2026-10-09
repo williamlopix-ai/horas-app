@@ -10,6 +10,7 @@ import { listarHorariosSemana } from '../services/horariosSemana'
 import { calcularDuracaoCentesimal } from '../services/registros'
 import type { Registro, Projeto, Subcategoria, Fase } from '../types'
 import { useModal } from '../hooks/useModal'
+import { abrirSeletorEmToque, classeIconeRelogio } from '../utils/seletorNativo'
 import { Button, Surface, classeCampo } from './ui'
 
 interface ModalRegistroProps {
@@ -481,7 +482,8 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                     setHoraInicio(e.target.value)
                     setHorasEditadasManualmente(true)
                   }}
-                  className={`${classeCampo()} min-h-[44px] cursor-pointer`}
+                  onClick={abrirSeletorEmToque}
+                  className={`${classeCampo()} min-h-[44px] cursor-pointer ${classeIconeRelogio}`}
                 />
               </div>
 
@@ -498,7 +500,8 @@ export default function ModalRegistro({ isOpen, onClose, onSave, registro, regis
                     setHoraFim(e.target.value)
                     setHorasEditadasManualmente(true)
                   }}
-                  className={`${classeCampo(!!validacaoErro)} min-h-[44px] cursor-pointer`}
+                  onClick={abrirSeletorEmToque}
+                  className={`${classeCampo(!!validacaoErro)} min-h-[44px] cursor-pointer ${classeIconeRelogio}`}
                 />
               </div>
             </div>

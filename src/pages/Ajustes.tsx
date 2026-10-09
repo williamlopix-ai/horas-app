@@ -23,6 +23,7 @@ import { Skeleton, SkeletonLine } from '../components/Skeleton'
 import { Surface, classeCampo, Button, Chip } from '../components/ui'
 import { supabase } from '../lib/supabase'
 import { inicioDaSemana, intervaloDaSemana, formatYYYYMMDD, type InicioSemana } from '../utils/semana'
+import { abrirSeletorEmToque, classeIconeRelogio } from '../utils/seletorNativo'
 
 export default function Ajustes() {
   const { user } = useAuth()
@@ -878,7 +879,8 @@ export default function Ajustes() {
                       type="time"
                       value={inicioDia}
                       onChange={(e) => setInicioDia(e.target.value)}
-                      className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
+                      onClick={abrirSeletorEmToque}
+                      className={`${classeCampo()} font-mono text-sm min-h-[44px] ${classeIconeRelogio}`}
                     />
                   </div>
                   <div className="flex flex-col gap-xs flex-1 w-full">
@@ -890,7 +892,8 @@ export default function Ajustes() {
                       type="time"
                       value={fimDia}
                       onChange={(e) => setFimDia(e.target.value)}
-                      className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
+                      onClick={abrirSeletorEmToque}
+                      className={`${classeCampo()} font-mono text-sm min-h-[44px] ${classeIconeRelogio}`}
                     />
                   </div>
                 </div>
@@ -952,7 +955,8 @@ export default function Ajustes() {
                           type="time"
                           value={novoInicioDia}
                           onChange={(e) => setNovoInicioDia(e.target.value)}
-                          className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
+                          onClick={abrirSeletorEmToque}
+                          className={`${classeCampo()} font-mono text-sm min-h-[44px] ${classeIconeRelogio}`}
                         />
                       </div>
                       <div className="flex flex-col gap-xs flex-1">
@@ -963,7 +967,8 @@ export default function Ajustes() {
                           type="time"
                           value={novoFimDia}
                           onChange={(e) => setNovoFimDia(e.target.value)}
-                          className={`${classeCampo()} font-mono text-sm min-h-[44px]`}
+                          onClick={abrirSeletorEmToque}
+                          className={`${classeCampo()} font-mono text-sm min-h-[44px] ${classeIconeRelogio}`}
                         />
                       </div>
                     </div>

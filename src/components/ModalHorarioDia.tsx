@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useId } from 'react'
 import { X, AlertTriangle, Loader2 } from 'lucide-react'
 import { getErrorMessage } from '../utils/errors'
 import { useModal } from '../hooks/useModal'
+import { abrirSeletorEmToque, classeIconeRelogio } from '../utils/seletorNativo'
 
 interface ModalHorarioDiaProps {
   isOpen: boolean
@@ -120,7 +121,8 @@ export default function ModalHorarioDia({
                   type="time"
                   value={inicio}
                   onChange={(e) => setInicio(e.target.value)}
-                  className="w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono"
+                  onClick={abrirSeletorEmToque}
+                  className={`w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono ${classeIconeRelogio}`}
                   required
                 />
               </div>
@@ -133,7 +135,8 @@ export default function ModalHorarioDia({
                   type="time"
                   value={fim}
                   onChange={(e) => setFim(e.target.value)}
-                  className="w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono"
+                  onClick={abrirSeletorEmToque}
+                  className={`w-full bg-surface-0 border border-hair-strong rounded-ctl px-4 py-2.5 h-11 text-ink-900 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-d1 ease-ez font-mono ${classeIconeRelogio}`}
                   required
                 />
               </div>
